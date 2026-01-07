@@ -1,13 +1,13 @@
 # ft_transcendence
 
-*This project has been created as part of the 42 curriculum by [annabrag], [hsoysal], [pmateo], [...]
+*This project has been created as part of the 42 curriculum by [morajaon], [annabrag], [hsoysal], [agremill], [pmateo].
 
 ## Description
 [...]
 
 ## Team Information
 - **[???]** - Product Owner - [Responsabilités]
-- **[PRIOUX Matéo]** - Project Manager - [Responsabilités]
+- **[???]** - Project Manager - [Responsabilités]
 - **[???]** - Technical Lead - [Responsabilités]
 
 
