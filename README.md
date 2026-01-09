@@ -33,12 +33,27 @@
 
 ## Modules (14+ points required)
 ### Major Modules (2 pts each)
-- [ ] [Module name] - [...]
+- [ ] [ WEB ] [Frameword Frontend & Backend] - [...] - [Who ?]    <-      { +2 Points }
+- [ ] [ WEB ] [WebSockets] - [...] - [Who ?]                 <-           { +2 Points }
+- [ ] [ WEB ] [Users Interacts] - [...] - [Who ?]            <-           { +2 Points }
+- [ ] [ WEB ] [Public API] - [...] - [Who ?]               <-             { +2 Points }
+- [ ] [ USER MANAGEMENT ] - [User Management and Authentication] - [...] - [Who ?]     <-    { +2 Points }
+- [ ] [ CYBERSEC ] - [Waf/ModSecurity + HashiCorp Vault] - [...]  - [Who ?]        <-        { +2 Points }
+- [ ] [ DEVOPS ] - [ELK Log Management] - [...] - [Who ?]                   <-               { +2 Points }
+- [ ] [ DEVOPS ] - [Backend As Microservices] - [...] - [Who ?]                 <-           { +2 Points }
+- [ ] [ GAMING ] - [Web-based Game] - [...] - [Who ?]                    <-                  { +2 Points }
+- [ ] [ GAMING ] - [Remote Players] - [...] - [Who ?]                    <-                  { +2 Points }
+- [ ] [ GAMING ] - [Multiplayer game] - [...] - [Who ?]                     <-               { +2 Points }
 
 ### Minor Modules (1 pts each)
-- [ ] [Module name] - [...]
+- [ ] [ WEB ] - [ORM Database] - [...] - [Who ?]                   <-           { +1 Point }
+- [ ] [ WEB ] - [Custom-Made Design System] -  [...] - [Who ?]          <-      { +1 Point }
+- [ ] [ USER MANAGEMENT ] - [Game Statistics And Match History] -  [...] - [Who ?]          <-      { +1 Point }
+- [ ] [ USER MANAGEMENT ] - [Remote Authentication - Oauth 2.0] -  [...] - [Who ?]          <-      { +1 Point }
+- [ ] [ GAMING ] - [Game Customization] -  [...] - [Who ?]                      <-                  { +1 Point }
 
-**Total Points: [XX]**
+
+**Total Points: [27]**
 
 ## Instructions
 ### Prerequisites
