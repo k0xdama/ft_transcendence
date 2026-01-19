@@ -14,8 +14,6 @@ services:
       - transcendence_network
     restart: unless-stopped
 
-
-
 networks:
   transcendence_network:
     driver: bridge
