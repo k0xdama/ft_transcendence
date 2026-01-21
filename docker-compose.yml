@@ -1,4 +1,22 @@
 services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: transcendence-backend
+    image: backend:v1
+    ports:
+      - "5172:5172"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - transcendence_network
+    environment:
+      - NODE_ENV=development
+      - PORT=5172
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
@@ -12,6 +30,8 @@ services:
       - /app/node_modules
     networks:
       - transcendence_network
+    depends_on:
+      - backend
     restart: unless-stopped
 
 networks:
