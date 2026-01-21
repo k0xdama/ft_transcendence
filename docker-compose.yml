@@ -1,14 +1,28 @@
 services:
+  database:
+    image: postgres:16
+    container_name: postgres
+    pull_policy: never
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - 
+    restart: unless-stopped
+
   frontend:
+    image: frontend:v1
+    container_name: frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: transcendence-frontend
-    image: frontend:v1
-    ports:
-      - 5173:5173
     volumes:
       - ./frontend:/app
+    ports:
+      - "5173:5173"
     networks:
       - transcendence_network
     restart: unless-stopped
