@@ -9,31 +9,16 @@ function App() {
   useEffect(() => {
     fetch('/api/health')
       .then(response => {
-        console.log('Response status:', response.status)
-        console.log('Response headers:', response.headers.get('content-type'))
-        
-        // First get the text to see what we received
-        return response.text().then(text => {
-          console.log('Raw response:', text)
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${text}`)
-          }
-          
-          // Try to parse as JSON
-          try {
-            return JSON.parse(text)
-          } catch (e) {
-            throw new Error(`Invalid JSON: ${text.substring(0, 100)}`)
-          }
-        })
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+        return response.json()
       })
       .then(data => {
         setBackendStatus(data)
         setLoading(false)
       })
       .catch(err => {
-        console.error('Full error:', err)
         setError(err.message)
         setLoading(false)
       })
