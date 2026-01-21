@@ -1,6 +1,6 @@
 # ft_transcendence
 
-*This project has been created as part of the 42 curriculum by [morajaon], [annabrag], [hsoysal], [agremill], [pmateo].
+This project has been created as part of the 42 curriculum by [morajaon], [annabrag], [agremill], [pmateo].
 
 ## Description
 [...]
