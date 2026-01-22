@@ -1,0 +1,12 @@
+{
+	"name": "ci-tests",
+	"private": true,
+	"devDependencies": {
+		"@testing-library/react": "^16.3.2",
+		"supertest": "^7.2.2",
+		"vitest": "^4.0.17"
+	},
+	"scripts": {
+		"test": "vitest --run"
+	}
+}

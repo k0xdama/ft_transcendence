@@ -22,10 +22,8 @@ jobs:
         - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
           with:
-            node-version: '20'
+            node-version: '22'
         - run: npm install
-          working-directory: ./frontend
-        - run: npm test
           working-directory: ./frontend
         - run: npm run build
           working-directory: ./frontend
@@ -37,11 +35,28 @@ jobs:
         - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
           with:
-            node-version: '20'
+            node-version: '22'
         - run: npm install
-          working-directory: ./backend
-        - run: npm test
           working-directory: ./backend
         - run: npm run build
           working-directory: ./backend
-            
+      
+    ci-tests:
+      runs-on: ubuntu-24.04
+      needs: [frontend, backend]
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: '22'
+        - run: npm install
+          working-directory: ./
+
+        - run: docker compose up -d
+
+        - run: npx wait-on http://localhost:5172/api/health --timeout 60000
+        - run: npx wait-on http://localhost:5173 --timeout 60000
+
+        - run: npm run test:backend
+        - run: npm run test:frontend
+        - run: npm run test:ci

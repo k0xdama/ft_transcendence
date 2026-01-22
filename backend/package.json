@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "start": "node server.js",
-  "dev": "node server.js",
-  "test": "jest"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test:frontend": "npx vitest --run tests/frontend/App.test.jsx",
+    "test:backend": "npx vitest --run tests/backend/backend.test.js",
+    "test:ci": "npx vitest --run tests/ci.test.js"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +17,6 @@
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
     "supertest": "^7.2.2"
   }
 }
