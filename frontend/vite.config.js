@@ -14,5 +14,8 @@ export default defineConfig({
         secure: false
       }
     }
+  },
+  test: {
+    environment: 'jsdom'
   }
 })

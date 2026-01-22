@@ -2,13 +2,10 @@
 	"name": "ci-tests",
 	"private": true,
 	"devDependencies": {
-		"@testing-library/react": "^16.3.2",
 		"supertest": "^7.2.2",
 		"vitest": "^4.0.17"
 	},
 	"scripts": {
-		"test:frontend": "npx vitest --run tests/frontend/App.test.jsx",
-    	"test:backend": "npx vitest --run tests/backend/backend.test.js",
-    	"test:ci": "npx vitest --run tests/ci.test.js"
+		"test": "vitest run tests/ci.test.js"
 	}
 }

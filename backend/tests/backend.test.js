@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import request from 'supertest'
-import app, { response } from './server.js'
+import app, { response } from '../server.js'
 
 describe('Backend /api/health', () => {
 	it('should return status ok', async () => {
