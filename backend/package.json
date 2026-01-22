@@ -4,10 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
-    "test:frontend": "npx vitest --run tests/frontend/App.test.jsx",
-    "test:backend": "npx vitest --run tests/backend/backend.test.js",
-    "test:ci": "npx vitest --run tests/ci.test.js"
+    "dev": "node server.js"
   },
   "keywords": [],
   "author": "",
