@@ -1,0 +1,11 @@
+{
+	"name": "ci-tests",
+	"private": true,
+	"devDependencies": {
+		"supertest": "^7.2.2",
+		"vitest": "^4.0.17"
+	},
+	"scripts": {
+		"test": "vitest run tests/ci.test.js"
+	}
+}
