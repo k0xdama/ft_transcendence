@@ -1,40 +1,158 @@
 services:
-  backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: transcendence-backend
-    image: backend:v1
-    ports:
-      - "5172:5172"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    networks:
-      - transcendence_network
+
+  db:
+    image: postgres:18-alpine
+    container_name: postgres
+    pull_policy: never
     environment:
-      - NODE_ENV=development
-      - PORT=5172
+      POSTGRES_DB_FILE: /run/secrets/psql_dbname
+      POSTGRES_USER_FILE: /run/secrets/psql_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/psql_passwd
+    secrets:
+      - psql_dbname
+      - psql_user
+      - psql_passwd
+    build:
+      context: ./postgreSQL
+      dockerfile: Dockerfile
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgreSQL/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/psql_user) -d $(cat /run/secrets/psql_dbname)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - werewolf_network
+    restart: unless-stopped
+
+  cache:
+    image: redis:8.4.0-alpine
+    container_name: redis
+    pull_policy: never
+    secrets:
+      - redis_passwd
+    build:
+      context: ./redis
+      dockerfile: Dockerfile
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $(cat /run/secrets/redis_passwd) ping 2>/dev/null | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - werewolf_network
+    restart: unless-stopped
+
+  user-service:
+    image: user-service:v1
+    container_name: user-service
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/user-service/src:/app/src:ro
+    networks:
+      - werewolf_network
+    restart: unless-stopped
+
+  lobby-service:
+    image: lobby-service:v1
+    container_name: lobby-service
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    build:
+      context: ./backend/lobby-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/lobby-service/src:/app/src:ro
+    networks:
+      - werewolf_network
     restart: unless-stopped
 
   frontend:
+    image: frontend:v1
+    container_name: frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: transcendence-frontend
-    image: frontend:v1
-    ports:
-      - 5173:5173
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+    ports:
+      - "5173:5173"
     networks:
-      - transcendence_network
-    depends_on:
-      - backend
+      - werewolf_network
     restart: unless-stopped
 
+volumes:
+  postgres_data:
+  redis_data:
+
+secrets:
+  psql_dbname:
+    file: ./secrets/psql_dbname.txt
+  psql_user:
+    file: ./secrets/psql_user.txt
+  psql_passwd:
+    file: ./secrets/psql_passwd.txt
+  redis_passwd:
+    file: ./secrets/redis_passwd.txt
+
 networks:
-  transcendence_network:
-    name: transcendence_network
+  werewolf_network:
     driver: bridge
+
+  # backend:
+  #   build: 
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: transcendence-backend
+  #   image: backend:v1
+  #   ports:
+  #     - "5172:5172"
+  #   volumes:
+  #     - ./backend:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - transcendence_network
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=5172
+  #   restart: unless-stopped
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: transcendence-frontend
+  #   image: frontend:v1
+  #   ports:
+  #     - 5173:5173
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - backend
+  #   restart: unless-stopped
+
+# networks:
+#   transcendence_network:
+#     name: transcendence_network
+#     driver: bridge
