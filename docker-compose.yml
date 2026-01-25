@@ -5,12 +5,13 @@ services:
     pull_policy: never
     environment:
       POSTGRES_DB_FILE: /run/secrets/psql_dbname
-      POSTGRES_USER_FILE: /run/secrets/psql_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/psql_passwd
+      POSTGRES_USER_FILE: /run/secrets/psql_admin_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/psql_admin_passwd
     secrets:
       - psql_dbname
-      - psql_user
-      - psql_passwd
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
     build:
       context: ./postgreSQL
       dockerfile: Dockerfile
@@ -20,7 +21,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/psql_user) -d $(cat /run/secrets/psql_dbname)"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/psql_admin_user) -d $(cat /run/secrets/psql_dbname)"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -76,6 +77,12 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+    secrets:
+      - psql_dbname
+      - psql_services_passwd
+      - jwt_access_secret
+      - jwt_refresh_secret
+      - redis_passwd
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
@@ -83,6 +90,8 @@ services:
       - ./backend/auth-service/src:/app/src:ro
     networks:
       - transcendence_network
+    ports:
+      - "8080:8080"
     restart: unless-stopped
 
   frontend:
@@ -109,12 +118,18 @@ volumes:
 secrets:
   psql_dbname:
     file: ./secrets/psql_dbname.txt
-  psql_user:
-    file: ./secrets/psql_user.txt
-  psql_passwd:
-    file: ./secrets/psql_passwd.txt
+  psql_admin_user:
+    file: ./secrets/psql_admin_user.txt
+  psql_admin_passwd:
+    file: ./secrets/psql_admin_passwd.txt
+  psql_services_passwd:
+    file: ./secrets/psql_services_passwd.txt
   redis_passwd:
     file: ./secrets/redis_passwd.txt
+  jwt_access_secret:
+    file: ./secrets/jwt_access_secret.txt
+  jwt_refresh_secret:
+    file: ./secrets/jwt_refresh_secret.txt
 
 networks:
   transcendence_network:

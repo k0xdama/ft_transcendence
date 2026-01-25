@@ -4,10 +4,16 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm ci --only=production
 
-COPY . .
+COPY src ./src
 
-EXPOSE 5173
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
-CMD ["npm", "run", "dev"]
+USER nodejs
+
+EXPOSE 3001
+
+CMD ["node", "src/app.js"]
