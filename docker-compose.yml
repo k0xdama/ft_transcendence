@@ -25,7 +25,7 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - werewolf_network
+      - transcendence_network
     restart: unless-stopped
 
   cache:
@@ -47,7 +47,25 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - werewolf_network
+      - transcendence_network
+    restart: unless-stopped
+
+  backend:
+    image: backend:v1
+    container_name: backend
+    environment:
+      - NODE_ENV=development
+      - PORT=5172
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - transcendence_network
+    ports:
+      - "5172:5172"
     restart: unless-stopped
 
   auth:
@@ -64,21 +82,24 @@ services:
     volumes:
       - ./backend/auth-service/src:/app/src:ro
     networks:
-      - werewolf_network
+      - transcendence_network
     restart: unless-stopped
 
   frontend:
     image: frontend:v1
     container_name: frontend
+    depends_on:
+      - backend
     build:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
       - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - transcendence_network
     ports:
       - "5173:5173"
-    networks:
-      - werewolf_network
     restart: unless-stopped
 
 volumes:
@@ -96,5 +117,5 @@ secrets:
     file: ./secrets/redis_passwd.txt
 
 networks:
-  werewolf_network:
+  transcendence_network:
     driver: bridge
