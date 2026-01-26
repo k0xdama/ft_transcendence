@@ -69,31 +69,6 @@ services:
       - "5172:5172"
     restart: unless-stopped
 
-  auth:
-    image: auth:v1
-    container_name: auth
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
-    secrets:
-      - psql_dbname
-      - psql_services_passwd
-      - jwt_access_secret
-      - jwt_refresh_secret
-      - redis_passwd
-    build:
-      context: ./backend/auth-service
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend/auth-service/src:/app/src:ro
-    networks:
-      - transcendence_network
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-
   frontend:
     image: frontend:v1
     container_name: frontend
