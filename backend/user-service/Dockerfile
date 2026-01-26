@@ -12,7 +12,7 @@ RUN npm install redis
 
 COPY . .
 
-EXPOSE 3002
+EXPOSE 2000
 
 CMD ["node", "user-service.js"]
 # lance le js

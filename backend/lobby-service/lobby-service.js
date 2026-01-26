@@ -1,5 +1,17 @@
 const	express = require("express");
 const	app = express();
-const	pgp = require("pg-promise");
-const	db = pgp();
+const	initOptions = {};
+const	pgPromiseLib = require("pg-promise");
+const	pgp = pgPromiseLib(initOptions);
+
+const	fs = require('fs');
+const	dbName = fs.readFileSync('/run/secrets/psql_dbname', 'utf8').trim();
+const	dbUser = fs.readFileSync('/run/secrets/psql_user', 'utf8').trim();
+const	dbPassword = fs.readFileSync('/run/secrets/psql_passwd', 'utf8').trim();
+const	connectionString = `postgres://${dbUser}:${dbPassword}@db:5432/${dbName}`;
+const	db = pgp(connectionString);
 const	port = 2001;
+
+app.listen(port, () => {
+	console.log(`Lobby service running on port ${port}`);
+});

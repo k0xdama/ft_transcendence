@@ -1,6 +1,22 @@
 {
+  "name": "user-service",
+  "version": "1.0.0",
+  "main": "user-service.js",
+  "scripts": {
+    "start": "node user-service.js",
+    "dev": "node user-service.js",
+	"test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
     "express": "^5.2.1",
     "pg-promise": "^12.3.0"
+  },
+  "devDependencies": {
+	"vitest": "^4.0.17",
+    "supertest": "^7.2.2"
   }
 }

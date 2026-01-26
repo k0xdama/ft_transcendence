@@ -12,7 +12,7 @@ RUN npm install redis
 
 COPY . .
 
-EXPOSE 3001
+EXPOSE 2001
 
 CMD ["node", "lobby-service.js"]
 # lance le js

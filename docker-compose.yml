@@ -2,8 +2,7 @@ services:
 
   db:
     image: postgres:18-alpine
-    container_name: postgres
-    pull_policy: never
+    container_name: postgresql
     environment:
       POSTGRES_DB_FILE: /run/secrets/psql_dbname
       POSTGRES_USER_FILE: /run/secrets/psql_user
@@ -12,9 +11,6 @@ services:
       - psql_dbname
       - psql_user
       - psql_passwd
-    build:
-      context: ./postgreSQL
-      dockerfile: Dockerfile
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgreSQL/init:/docker-entrypoint-initdb.d:ro
@@ -32,12 +28,13 @@ services:
   cache:
     image: redis:8.4.0-alpine
     container_name: redis
-    pull_policy: never
     secrets:
       - redis_passwd
-    build:
-      context: ./redis
-      dockerfile: Dockerfile
+    command: >
+      sh -c 'redis-server
+      --save 20 1
+      --loglevel warning
+      --requirepass "$$(cat /run/secrets/redis_passwd)"'
     volumes:
       - redis_data:/data
     ports:
@@ -59,11 +56,17 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+    secrets:
+      - psql_dbname
+      - psql_user
+      - psql_passwd
     build:
       context: ./backend/user-service
       dockerfile: Dockerfile
     volumes:
       - ./backend/user-service/src:/app/src:ro
+    ports:
+      - "2000:2000"
     networks:
       - werewolf_network
     restart: unless-stopped
@@ -76,11 +79,17 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+    secrets:
+      - psql_dbname
+      - psql_user
+      - psql_passwd
     build:
       context: ./backend/lobby-service
       dockerfile: Dockerfile
     volumes:
       - ./backend/lobby-service/src:/app/src:ro
+    ports:
+      - "2001:2001"
     networks:
       - werewolf_network
     restart: unless-stopped
@@ -93,6 +102,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     ports:
       - "5173:5173"
     networks:
