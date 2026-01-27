@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import HomeView from './components/HomeView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -25,17 +26,6 @@ function App() {
       })
   }, [])
 
-  const HomeView = () => (
-    <div className='homeView'>
-      <h1>Garou Loup</h1>
-      <p>"Prends gare au loup"</p>
-      <div className='buttonContainer'>
-        <button className='createBut'>Create</button>
-        <button className='But'>Join</button>
-        <button className='But'>Test Game</button>
-      </div>
-    </div>
-  );
  return (
   <>
     {currentView === 'home' && <HomeView />}
