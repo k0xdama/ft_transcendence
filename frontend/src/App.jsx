@@ -5,6 +5,7 @@ function App() {
   const [backendStatus, setBackendStatus] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currentView, setCurrentView] = useState('home')
 
   useEffect(() => {
     fetch('/api/health')
@@ -24,24 +25,22 @@ function App() {
       })
   }, [])
 
-  return (
-    <div className="app">
+  const HomeView = () => (
+    <div className='homeView'>
       <h1>Garou Loup</h1>
-      
-      <div className="status-card">
-        <h2>Backend Connection</h2>
-        {loading && <p>Connecting to backend...</p>}
-        {error && <p className="error">Error: {error}</p>}
-        {backendStatus && (
-          <div className="success">
-            <p>✓ Status: {backendStatus.status}</p>
-            <p>Message: {backendStatus.message}</p>
-            <p>Time: {new Date(backendStatus.timestamp).toLocaleString()}</p>
-          </div>
-        )}
+      <p>"Prends gare au loup"</p>
+      <div className='buttonContainer'>
+        <button className='createBut'>Create</button>
+        <button className='But'>Join</button>
+        <button className='But'>Test Game</button>
       </div>
     </div>
-  )
+  );
+ return (
+  <>
+    {currentView === 'home' && <HomeView />}
+  </>
+ )
 }
 
 export default App
