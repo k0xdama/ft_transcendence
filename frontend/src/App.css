@@ -7,7 +7,7 @@
 
 body {
   /* background-color: #604669ad; */
-  background: #604669;
+  background: #604669ad;
   background: -moz-linear-gradient(-45deg, #604669 0%, #371858 49%, #4E111A 100%);
   background: -webkit-linear-gradient(-45deg, #604669 0%, #371858 49%, #4E111A 100%);
   background: linear-gradient(135deg, #604669 0%, #371858 49%, #4E111A 100%);
