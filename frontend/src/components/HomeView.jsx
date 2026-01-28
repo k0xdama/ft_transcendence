@@ -1,11 +1,15 @@
+import { Link } from 'react-router-dom'
+
 function HomeView() {
   return (
     <div className='homeView'>
       <h1>Garou Loup</h1>
-      <p>"Prends gare au loup"</p>
+      <p>"Prends 🚉 au loup"</p>
         <div className='buttonContainer'>
-          <button className='createBut'>Create</button>
-          <button className='But'>Join</button>
+          <Link to="/create">
+            <button className='createBut'>Create game</button>
+          </Link>
+          <button className='But'>Join game</button>
           <button className='But'>Test Game</button>
         </div>
     </div>

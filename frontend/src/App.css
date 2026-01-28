@@ -26,6 +26,9 @@ body {
 
 .createBut {
   background-color: #752586;
+  display: flex;
+  flex-direction: column;
+  width: 180px;
 }
 
 .buttonContainer {
@@ -35,5 +38,10 @@ body {
   margin-top: -100px;
   gap: 1rem;
   justify-content: center;
-
 }
+
+.backBut {
+  display: flex;
+}
+
+

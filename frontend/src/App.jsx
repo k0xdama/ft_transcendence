@@ -1,6 +1,8 @@
+import { Routes, Route } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import './App.css'
 import HomeView from './components/HomeView'
+import CreateGameView from './components/CreateGameView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -26,11 +28,16 @@ function App() {
       })
   }, [])
 
- return (
-  <>
-    {currentView === 'home' && <HomeView />}
-  </>
- )
+  const handleNav = (viewName) => {
+    setCurrentView(viewName)
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomeView />} />
+      <Route path="/create" element={<CreateGameView />} />
+    </Routes>
+  )
 }
 
 export default App
