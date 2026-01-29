@@ -4,7 +4,7 @@ function HomeView() {
   return (
     <div className='homeView'>
       <h1>Garou Loup</h1>
-      <p>"Prends 🚉 au loup"</p>
+      <p>"🚉 au loup"</p>
         <div className='buttonContainer'>
           <Link to="/create">
             <button className='createBut'>Create game</button>

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import HomeView from './components/HomeView'
 import CreateGameView from './components/CreateGameView'
+import NavBar from './components/NavBar'
+import RegisterView from './components/RegisterView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -33,10 +35,17 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<HomeView />} />
-      <Route path="/create" element={<CreateGameView />} />
-    </Routes>
+    <>
+      <NavBar />
+
+      <div className='main-container'>
+        <Routes>
+          <Route path="/" element={<HomeView />} />
+          <Route path="/create" element={<CreateGameView />} />
+          <Route path="/register" element={<RegisterView />} />
+        </Routes>
+      </div>
+    </>
   )
 }
 

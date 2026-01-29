@@ -1,0 +1,48 @@
+.navbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem 2rem;
+	background-color: #1a1a1a;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.brand a {
+	color: white;
+	font-weight: bold;
+	font-size: 1.75rem;
+}
+
+.brand a:hover {
+	color: #9d4edd;
+}
+
+.navControl {
+	display: flex;
+	gap: 2rem;
+	flex-direction: row;
+}
+
+.logBut {
+	color: white;
+	margin-top: 0.5rem;
+}
+
+.logBut:hover {
+	cursor: pointer;
+	color: #9d4edd;
+	text-decoration: underline;
+}
+
+.regBut {
+	background-color: #752586;
+}
+
+.regBut:hover {
+	border-color: #9d4edd;
+}
