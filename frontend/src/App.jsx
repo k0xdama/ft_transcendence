@@ -5,6 +5,7 @@ import HomeView from './components/HomeView'
 import CreateGameView from './components/CreateGameView'
 import NavBar from './components/NavBar'
 import RegisterView from './components/RegisterView'
+import LoginView from './components/LoginView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -43,6 +44,7 @@ function App() {
           <Route path="/" element={<HomeView />} />
           <Route path="/create" element={<CreateGameView />} />
           <Route path="/register" element={<RegisterView />} />
+          <Route path="/login" element={<LoginView />} />
         </Routes>
       </div>
     </>
