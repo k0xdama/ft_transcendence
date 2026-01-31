@@ -2,7 +2,6 @@ services:
   db:
     image: postgres:18-alpine
     container_name: postgres
-    pull_policy: never
     environment:
       POSTGRES_DB_FILE: /run/secrets/psql_dbname
       POSTGRES_USER_FILE: /run/secrets/psql_admin_user
@@ -11,17 +10,15 @@ services:
       - psql_dbname
       - psql_admin_user
       - psql_admin_passwd
-      - psql_services_passwd
-    build:
-      context: ./postgreSQL
-      dockerfile: Dockerfile
+      - psql_auth_user
+      - psql_auth_passwd
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgreSQL/init:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/psql_admin_user) -d $(cat /run/secrets/psql_dbname)"]
+      test: ["CMD-SHELL", "pg_isready -U myadmin -d transcendence_db|| exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -32,12 +29,8 @@ services:
   cache:
     image: redis:8.4.0-alpine
     container_name: redis
-    pull_policy: never
     secrets:
       - redis_passwd
-    build:
-      context: ./redis
-      dockerfile: Dockerfile
     volumes:
       - redis_data:/data
     ports:
@@ -79,9 +72,10 @@ services:
         condition: service_healthy
     secrets:
       - psql_dbname
-      - psql_services_passwd
-      - jwt_access_secret
-      - jwt_refresh_secret
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_auth_user
+      - psql_auth_passwd
       - redis_passwd
     build:
       context: ./backend/auth-service
@@ -91,7 +85,7 @@ services:
     networks:
       - transcendence_network
     ports:
-      - "8080:8080"
+      - "3000:3000"
     restart: unless-stopped
 
   frontend:
@@ -122,14 +116,12 @@ secrets:
     file: ./secrets/psql_admin_user.txt
   psql_admin_passwd:
     file: ./secrets/psql_admin_passwd.txt
-  psql_services_passwd:
-    file: ./secrets/psql_services_passwd.txt
+  psql_auth_user:
+    file: ./secrets/psql_auth_user.txt
+  psql_auth_passwd:
+    file: ./secrets/psql_auth_passwd.txt
   redis_passwd:
     file: ./secrets/redis_passwd.txt
-  jwt_access_secret:
-    file: ./secrets/jwt_access_secret.txt
-  jwt_refresh_secret:
-    file: ./secrets/jwt_refresh_secret.txt
 
 networks:
   transcendence_network:
