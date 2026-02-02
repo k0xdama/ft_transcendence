@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom'
+import './CreateGameView.css'
 
 function CreateGameView() {
 	return (
 		<div className='createGameView'>
-			<Link to="/">
-				<button className='backBut'>← Back</button>
-			</Link>
 			<div className='createBox'>
-				<h2>Create New Game</h2>
+				<h2 className='boxTitle'>Create New Game</h2>
+				<div className='createInputs'>
+					<label className>Max players</label>
+					<input type='number' min={4} max={10} defaultValue={4} className='maxPlayers'></input>
+				</div>
+				<button>Create</button>
 			</div>
 		</div>
 	)

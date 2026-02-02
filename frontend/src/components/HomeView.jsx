@@ -9,7 +9,9 @@ function HomeView() {
           <Link to="/create">
             <button className='createBut'>Create game</button>
           </Link>
-          <button className='But'>Join game</button>
+          <Link to="/join">
+            <button className='joinBut'>Join game</button>
+          </Link>
           <button className='But'>Test Game</button>
         </div>
     </div>
