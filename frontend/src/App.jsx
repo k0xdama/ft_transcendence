@@ -7,6 +7,7 @@ import NavBar from './components/NavBar'
 import RegisterView from './components/RegisterView'
 import LoginView from './components/LoginView'
 import JoinGameView from './components/JoinGameView'
+import TestView from './components/TestView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -47,6 +48,7 @@ function App() {
           <Route path="/join" element={<JoinGameView />} />
           <Route path="/register" element={<RegisterView />} />
           <Route path="/login" element={<LoginView />} />
+          <Route path="/test" element={<TestView />} />
         </Routes>
       </div>
     </>

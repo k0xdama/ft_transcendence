@@ -64,12 +64,8 @@ body {
   border-color: #9d4edd;
 }
 
-.joinBut {
+.But {
   width: 180px;
-}
-
-.backBut {
-  display: flex;
 }
 
 
