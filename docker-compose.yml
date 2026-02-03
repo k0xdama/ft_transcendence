@@ -18,7 +18,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U myadmin -d transcendence_db|| exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/psql_admin_user) -d $(cat /run/secrets/psql_dbname) || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3

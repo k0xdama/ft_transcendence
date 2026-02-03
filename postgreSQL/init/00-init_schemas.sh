@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-AUTH_PASSWD=$(cat /run/secrets/psql_auth_passwd)
-SERVICES_PASSWD=$(cat /run/secrets/psql_auth_passwd)
+# AUTH_PASSWD=$(cat /run/secrets/psql_auth_passwd)
+SERVICES_PASSWD=$(cat /run/secrets/psql_services_passwd)
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
 	-- Create schemas
@@ -13,7 +13,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 	CREATE SCHEMA IF NOT EXISTS chat;
 
 	-- Create service users
-	CREATE USER auth_user WITH PASSWORD '$AUTH_PASSWD';
+	CREATE USER auth_user WITH PASSWORD '$SERVICES_PASSWD';
 	CREATE USER player_user WITH PASSWORD '$SERVICES_PASSWD';
 	CREATE USER lobby_user WITH PASSWORD '$SERVICES_PASSWD';
 	CREATE USER game_user WITH PASSWORD '$SERVICES_PASSWD';
