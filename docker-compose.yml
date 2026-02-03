@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:18-v1
     container_name: postgres
     pull_policy: never
     environment:
@@ -30,7 +30,7 @@ services:
     restart: unless-stopped
 
   cache:
-    image: redis:8.4.0-alpine
+    image: redis:8.4-v1
     container_name: redis
     pull_policy: never
     secrets:
@@ -101,10 +101,6 @@ secrets:
     file: ./secrets/psql_services_passwd.txt
   redis_passwd:
     file: ./secrets/redis_passwd.txt
-  jwt_access_secret:
-    file: ./secrets/jwt_access_secret.txt
-  jwt_refresh_secret:
-    file: ./secrets/jwt_refresh_secret.txt
 
 networks:
   transcendence_network:
