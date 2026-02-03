@@ -23,7 +23,7 @@ SET ROLE auth_user;
 CREATE TABLE auth.users (
 	id UUID			PRIMARY KEY DEFAULT gen_random_uuid(),
 	email			VARCHAR(255) UNIQUE NOT NULL,
-	usernam			VARCHAR(50) UNIQUE NOT NULL,
+	username		VARCHAR(50) UNIQUE NOT NULL,
 	password_hash	VARCHAR(255) NOT NULL,
 	-- is_verified		BOOLEAN DEFAULT FALSE,
 	-- is_active		BOOLEAN DEFAULT TRUE,
