@@ -9,6 +9,10 @@ app.use('/auth', authRoutes);
 
 const port = 3000;
 
-app.listen(port, '0.0.0.0', () => {
-	console.log(`Auth service running on ' ${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+	app.listen(port, '0.0.0.0', () => {
+		console.log(`Auth service running on ${port}`);
+	});
+}
+
+export default app;
