@@ -89,6 +89,7 @@ services:
       # - psql_auth_passwd
       - psql_services_passwd
       - redis_passwd
+      - jwt_access
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
@@ -136,6 +137,8 @@ secrets:
     file: ./secrets/psql_services_passwd.txt
   redis_passwd:
     file: ./secrets/redis_passwd.txt
+  jwt_access:
+    file: ./secrets/jwt_access.txt
 
 networks:
   transcendence_network:
