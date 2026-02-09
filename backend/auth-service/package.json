@@ -6,7 +6,9 @@
 	"scripts": {
 		"start": "node auth-service.js",
 		"dev": "node --watch auth-service.js",
-		"test:register": "NODE_ENV=test vitest run tests/register.test.js"
+		"test": "NODE_ENV=test vitest run",
+		"test:register": "NODE_ENV=test vitest run tests/register.test.js",
+		"test:login": "NODE_ENV=test vitest run tests/login.test.js"
 	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
