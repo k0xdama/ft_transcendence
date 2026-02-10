@@ -13,11 +13,11 @@ services:
       - psql_admin_passwd
       - psql_services_passwd
     build:
-      context: ./postgreSQL
+      context: ./postgresql
       dockerfile: Dockerfile
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgreSQL/init:/docker-entrypoint-initdb.d:ro
+      - ./postgresql/init:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     healthcheck:
