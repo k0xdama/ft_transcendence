@@ -54,12 +54,19 @@ jobs:
         - run: npm install
           working-directory: ./
 
-        - run: docker compose up -d
+        - name: Create secrets files
+          run: |
+            mkdir -p secrets
+            echo "${{ secrets.PSQL_DBNAME }}" > secrets/psql_dbname.txt
+            echo "${{ secrets.PSQL_ADMIN_USER }}" > secrets/psql_admin_user.txt
+            echo "${{ secrets.PSQL_ADMIN_PASSWD }}" > secrets/psql_admin_passwd.txt
+            echo "${{ secrets.PSQL_SERVICES_PASSWD }}" > secrets/psql_services_passwd.txt
+            echo "${{ secrets.REDIS_PASSWD }}" > secrets/redis_passwd.txt
+            echo "${{ secrets.JWT_ACCESS }}" > secrets/jwt_access.txt
 
+        - run: docker compose up -d
         - run: npx wait-on http://localhost:5172/api/health --timeout 60000
         - run: npx wait-on http://localhost:5173 --timeout 60000
-
         - run: npm test
-
         - run: docker compose down
           if: always()
