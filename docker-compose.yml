@@ -11,8 +11,6 @@ services:
       - psql_dbname
       - psql_admin_user
       - psql_admin_passwd
-      # - psql_auth_user
-      # - psql_auth_passwd
       - psql_services_passwd
     build:
       context: ./postgreSQL
@@ -85,8 +83,6 @@ services:
       - psql_dbname
       - psql_admin_user
       - psql_admin_passwd
-      # - psql_auth_user
-      # - psql_auth_passwd
       - psql_services_passwd
       - redis_passwd
       - jwt_access
