@@ -11,7 +11,6 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Expose port
 EXPOSE 5172
 
 # Start server
