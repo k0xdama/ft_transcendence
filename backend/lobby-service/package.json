@@ -1,0 +1,22 @@
+{
+  "name": "lobby-service",
+  "version": "1.0.0",
+  "main": "lobby-service.js",
+  "scripts": {
+    "start": "node lobby-service.js",
+    "dev": "node lobby-service.js",
+	"test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg-promise": "^12.3.0"
+  },
+  "devDependencies": {
+	"vitest": "^4.0.17",
+    "supertest": "^7.2.2"
+  }
+}

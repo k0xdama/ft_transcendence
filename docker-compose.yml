@@ -114,6 +114,56 @@ services:
   #     - "5173:5173"
   #   restart: unless-stopped
 
+  player-service:
+    image: player-service:v1
+    container_name: player-service
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    secrets:
+      - psql_dbname
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
+      - redis_passwd
+    build:
+      context: ./backend/player-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/player-service/src:/app/src:ro
+    ports:
+      - "2000:2000"
+    networks:
+      - transcendence_network
+    restart: unless-stopped
+
+  lobby-service:
+    image: lobby-service:v1
+    container_name: lobby-service
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    secrets:
+      - psql_dbname
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
+      - redis_passwd
+    build:
+      context: ./backend/lobby-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/lobby-service/src:/app/src:ro
+    ports:
+      - "2001:2001"
+    networks:
+      - transcendence_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
