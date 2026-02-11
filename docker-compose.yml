@@ -1,40 +1,141 @@
 services:
-  backend:
-    build: 
-      context: ./backend
+  db:
+    image: postgres:18-v1
+    container_name: postgres
+    pull_policy: never
+    environment:
+      POSTGRES_DB_FILE: /run/secrets/psql_dbname
+      POSTGRES_USER_FILE: /run/secrets/psql_admin_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/psql_admin_passwd
+    secrets:
+      - psql_dbname
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
+    build:
+      context: ./postgresql
       dockerfile: Dockerfile
-    container_name: transcendence-backend
-    image: backend:v1
-    ports:
-      - "5172:5172"
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgresql/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/psql_admin_user) -d $(cat /run/secrets/psql_dbname) || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - transcendence_network
-    environment:
-      - NODE_ENV=development
-      - PORT=5172
     restart: unless-stopped
 
-  frontend:
+  cache:
+    image: redis:8.4-v1
+    container_name: redis
+    pull_policy: never
+    secrets:
+      - redis_passwd
     build:
-      context: ./frontend
+      context: ./redis
       dockerfile: Dockerfile
-    container_name: transcendence-frontend
-    image: frontend:v1
-    ports:
-      - 5173:5173
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $(cat /run/secrets/redis_passwd) ping 2>/dev/null | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - transcendence_network
-    depends_on:
-      - backend
     restart: unless-stopped
+
+  # backend:
+  #   image: backend:v1
+  #   container_name: backend
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=5172
+  #   build: 
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./backend:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - transcendence_network
+  #   ports:
+  #     - "5172:5172"
+  #   restart: unless-stopped
+
+  auth:
+    image: auth:v1
+    container_name: auth
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+    secrets:
+      - psql_dbname
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
+      - redis_passwd
+      - jwt_access
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/auth-service/src:/app/src:ro
+    networks:
+      - transcendence_network
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  # frontend:
+  #   image: frontend:v1
+  #   container_name: frontend
+  #   depends_on:
+  #     - backend
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - transcendence_network
+  #   ports:
+  #     - "5173:5173"
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+secrets:
+  psql_dbname:
+    file: ./secrets/psql_dbname.txt
+  psql_admin_user:
+    file: ./secrets/psql_admin_user.txt
+  psql_admin_passwd:
+    file: ./secrets/psql_admin_passwd.txt
+  # psql_auth_user:
+  #   file: ./secrets/psql_auth_user.txt
+  # psql_auth_passwd:
+  #   file: ./secrets/psql_auth_passwd.txt
+  psql_services_passwd:
+    file: ./secrets/psql_services_passwd.txt
+  redis_passwd:
+    file: ./secrets/redis_passwd.txt
+  jwt_access:
+    file: ./secrets/jwt_access.txt
 
 networks:
   transcendence_network:
-    name: transcendence_network
     driver: bridge
