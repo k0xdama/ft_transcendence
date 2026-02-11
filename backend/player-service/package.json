@@ -1,10 +1,10 @@
 {
-  "name": "user-service",
+  "name": "player-service",
   "version": "1.0.0",
-  "main": "user-service.js",
+  "main": "player-service.js",
   "scripts": {
-    "start": "node user-service.js",
-    "dev": "node user-service.js",
+    "start": "node player-service.js",
+    "dev": "node player-service.js",
 	"test": "vitest run"
   },
   "keywords": [],

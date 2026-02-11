@@ -114,9 +114,9 @@ services:
   #     - "5173:5173"
   #   restart: unless-stopped
 
-  user-service:
-    image: user-service:v1
-    container_name: user-service
+  player-service:
+    image: player-service:v1
+    container_name: player-service
     depends_on:
       db:
         condition: service_healthy
@@ -124,17 +124,19 @@ services:
         condition: service_healthy
     secrets:
       - psql_dbname
-      - psql_user
-      - psql_passwd
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
+      - redis_passwd
     build:
-      context: ./backend/user-service
+      context: ./backend/player-service
       dockerfile: Dockerfile
     volumes:
-      - ./backend/user-service/src:/app/src:ro
+      - ./backend/player-service/src:/app/src:ro
     ports:
       - "2000:2000"
     networks:
-      - werewolf_network
+      - transcendence_network
     restart: unless-stopped
 
   lobby-service:
@@ -147,8 +149,10 @@ services:
         condition: service_healthy
     secrets:
       - psql_dbname
-      - psql_user
-      - psql_passwd
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
+      - redis_passwd
     build:
       context: ./backend/lobby-service
       dockerfile: Dockerfile
@@ -157,7 +161,7 @@ services:
     ports:
       - "2001:2001"
     networks:
-      - werewolf_network
+      - transcendence_network
     restart: unless-stopped
 
 volumes:

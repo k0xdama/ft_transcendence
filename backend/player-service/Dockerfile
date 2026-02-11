@@ -14,5 +14,5 @@ COPY . .
 
 EXPOSE 2000
 
-CMD ["node", "user-service.js"]
+CMD ["node", "player-service.js"]
 # lance le js
