@@ -7,6 +7,7 @@ export function generateAccessToken(user) {
 	return jwt.sign(
 		{ id: user.id, email: user.email, username: user.username },
 		JWT_ACCESS,
-		{ expiresIn: '20m' }
+		// { expiresIn: '20m' }
+		{ expiresIn: '10080m' } // 1 week
 	);
 }

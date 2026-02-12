@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
 		const passwordHash = await bcrypt.hash(password, 10);
 
 		const newUser = await db.one(
-			'INSERT INTO auth.users(email, username, password) VALUES($1, $2, $3) RETURNING id, email, username',
+			'INSERT INTO auth.users(email, username, password_hash) VALUES($1, $2, $3) RETURNING id, email, username',
 			[email, username, passwordHash]
 		);
 
@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
 		const { identifier, password } = req.body;
 
 		const user = await db.oneOrNone(
-			'SELECT id, email, username, password FROM auth.users WHERE email = $1 OR username = $1',
+			'SELECT id, email, username, password_hash FROM auth.users WHERE email = $1 OR username = $1',
 			[identifier]
 		);
 		if (!user) {
