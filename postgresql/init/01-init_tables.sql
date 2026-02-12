@@ -27,7 +27,7 @@ CREATE TABLE auth.users (
 	password		VARCHAR(255) NOT NULL,
 	-- is_verified		BOOLEAN DEFAULT FALSE,
 	-- is_active		BOOLEAN DEFAULT TRUE,
-	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	-- updated_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -49,13 +49,13 @@ RESET ROLE;
 SET ROLE player_user;
 
 CREATE TABLE player.users (
-
 	name			VARCHAR(50) UNIQUE NOT NULL,
 	pp_path			VARCHAR(255) UNIQUE NOT NULL,
-	-- doit etre initialisee sur une profil picture par defaut
-	friends			INT[],
-	-- text et VARCHAR sont geres par varlena, en vrai pas sur d'avoir bien compris la dif https://stackoverflow.com/questions/4848964/difference-between-text-and-varchar-character-varying
-	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	friends		INT[] ,
+	-- is_verified		BOOLEAN DEFAULT FALSE,
+	-- is_active		BOOLEAN DEFAULT TRUE,
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	-- updated_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 RESET ROLE;
