@@ -51,23 +51,23 @@ services:
       - transcendence_network
     restart: unless-stopped
 
-  # backend:
-  #   image: backend:v1
-  #   container_name: backend
-  #   environment:
-  #     - NODE_ENV=development
-  #     - PORT=5172
-  #   build: 
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./backend:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - transcendence_network
-  #   ports:
-  #     - "5172:5172"
-  #   restart: unless-stopped
+  backend:
+    image: backend:v1
+    container_name: backend
+    environment:
+      - NODE_ENV=development
+      - PORT=5172
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - transcendence_network
+    ports:
+      - "5172:5172"
+    restart: unless-stopped
 
   auth:
     image: auth:v1
@@ -97,22 +97,22 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  # frontend:
-  #   image: frontend:v1
-  #   container_name: frontend
-  #   depends_on:
-  #     - backend
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - transcendence_network
-  #   ports:
-  #     - "5173:5173"
-  #   restart: unless-stopped
+  frontend:
+    image: frontend:v1
+    container_name: frontend
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - transcendence_network
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
 
 volumes:
   postgres_data:

@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { use, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react';
 import './RegisterView.css'
 
 function RegisterView() {
@@ -11,6 +11,7 @@ function RegisterView() {
 	})
 	const [error, setError] = useState('')
 	const [loading, setLoading] = useState(false)
+	const [success, setSuccess] = useState('')
 
 	const handleChange = (e) => {
 		setFormData({
@@ -22,30 +23,63 @@ function RegisterView() {
 	const handleRegister = async (e) => {
 		e.preventDefault()
 		setError('')
+		setSuccess('')
 
-		if (formData.password !== formData.confirmPassword)
-		{
+		if (formData.password !== formData.confirmPassword) {
 			setError('Passwords do not match')
 			return
 		}
-		if (!formData.email.includes('@'))
-		{
+
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		if (!emailRegex.test(formData.email)) {
 			setError('Email must be valid')
 			return
 		}
-		else
-		{
+
+		if (formData.password.length < 6) {
+			setError('Password must be 6 or more characters long')
+			return
+		}
+
+		else {
 			console.log('Validation passed ! Registration Data:', {formData})
 		}
 
 		setLoading(true)
 
 		try {
-			//REPLACE BY AUTH SERVICE API CALL
-			await new Promise(resolve => setTimeout(resolve, 2000))
-			console.log('Registration successful!')
+			const response = await fetch('http://localhost:3000/auth/register', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					email: formData.email,
+					username: formData.username,
+					password: formData.password
+				}),
+			})
+
+			const data = await response.json()
+
+			if (!response.ok) {
+				setError(data.error || 'Registration failed')
+				return
+			}
+
+			setSuccess(data.message)
+
+			setFormData({
+				username: '',
+				email: '',
+				password: '',
+				confirmPassword: ''
+			})
+			
+			setTimeout(() => {navigate('/login')}, 2000)
 		} catch (error) {
-			setError('Resgistration Failed')
+			console.error('Register error:', error)
+			setError('Registration failed. Please try again.')
 		} finally {
 			setLoading(false)
 		}
@@ -55,6 +89,7 @@ function RegisterView() {
 		<div className='registerView'>
 			<h2 className='title'>Create a new account</h2>
 			{error && <div className='error'>{error}</div>}
+			{success && <div className='success'> {success}</div>}
 			<div className='inputs'>
 				<label>Username:</label>
 				<input name= 'username' value={formData.username} onChange={handleChange} disabled={loading} type="text" className='inputField'/>

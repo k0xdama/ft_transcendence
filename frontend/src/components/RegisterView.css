@@ -44,6 +44,11 @@
 	color: red;
 }
 
+.success {
+	margin-bottom: 10px;
+	color: green;
+}
+
 p {
 	margin-top: 0px;
 }
