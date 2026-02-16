@@ -40,7 +40,7 @@ function LoginView() {
 		// 	setLoading(false)
 		// }
 		try {
-			const response = await fetch('http://localhost:3000/auth/register', {
+			const response = await fetch('http://localhost:3000/auth/login', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

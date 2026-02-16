@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const PORT = 5172;
 
@@ -6,12 +7,12 @@ const PORT = 5172;
 app.use(express.json());  // Parse JSON bodies
 
 // CORS handling - needed for frontend to connect
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  next();
-});
+app.use(cors ({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'DELETE', 'PUT'],
+  allowHeaders: ['Content-Type', 'Authorization']
+}))
 
 // Test route
 app.get('/api/health', (req, res) => {
@@ -27,4 +28,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend server running on port ${PORT}`);
 });
 
-module.exports = app;  // Export for testing with supertest
+module.exports = app;
