@@ -1,10 +1,19 @@
+import { Routes, Route } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import './App.css'
+import HomeView from './components/HomeView'
+import CreateGameView from './components/CreateGameView'
+import NavBar from './components/NavBar'
+import RegisterView from './components/RegisterView'
+import LoginView from './components/LoginView'
+import JoinGameView from './components/JoinGameView'
+import TestView from './components/TestView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currentView, setCurrentView] = useState('home')
 
   useEffect(() => {
     fetch('/api/health')
@@ -24,23 +33,25 @@ function App() {
       })
   }, [])
 
+  const handleNav = (viewName) => {
+    setCurrentView(viewName)
+  }
+
   return (
-    <div className="app">
-      <h1>Garou Loup</h1>
-      
-      <div className="status-card">
-        <h2>Backend Connection</h2>
-        {loading && <p>Connecting to backend...</p>}
-        {error && <p className="error">Error: {error}</p>}
-        {backendStatus && (
-          <div className="success">
-            <p>✓ Status: {backendStatus.status}</p>
-            <p>Message: {backendStatus.message}</p>
-            <p>Time: {new Date(backendStatus.timestamp).toLocaleString()}</p>
-          </div>
-        )}
+    <>
+      <NavBar />
+
+      <div className='main-container'>
+        <Routes>
+          <Route path="/" element={<HomeView />} />
+          <Route path="/create" element={<CreateGameView />} />
+          <Route path="/join" element={<JoinGameView />} />
+          <Route path="/register" element={<RegisterView />} />
+          <Route path="/login" element={<LoginView />} />
+          <Route path="/test" element={<TestView />} />
+        </Routes>
       </div>
-    </div>
+    </>
   )
 }
 
