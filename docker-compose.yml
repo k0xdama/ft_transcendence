@@ -83,32 +83,32 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  # chat-in-game:
-  #   image: chat-in-game:v1
-  #   container_name: chat-in-game
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   secrets:
-  #     - psql_dbname
-  #     - psql_admin_user
-  #     - psql_admin_passwd
-  #     - psql_services_passwd
-  #     # - psql_chat_passwd
-  #     - redis_passwd
-  #     - jwt_access
-  #   build:
-  #     context: ./backend/chat-service
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./backend/chat-service/src:/app/src:ro
-  #   networks:
-  #     - transcendence_network
-  #   ports:
-  #     - "5055:5055" #UDP port used for real-time communications
-  #   restart: unless-stopped
+  chat-in-game:
+    image: chat-in-game:v1
+    container_name: chat-in-game
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    secrets:
+      - psql_dbname
+      - psql_admin_user
+      - psql_admin_passwd
+      - psql_services_passwd
+      # - psql_chat_passwd
+      - redis_passwd
+      - jwt_access
+    build:
+      context: ./backend/chat-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/chat-service/src:/app/src:ro
+    networks:
+      - transcendence_network
+    ports:
+      - "5055:5055" #UDP port used for real-time communications
+    restart: unless-stopped
 
   backend:
     image: backend:v1
