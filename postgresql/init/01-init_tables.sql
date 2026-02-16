@@ -5,7 +5,7 @@
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-	NEW.updated_at = CURRENT_TIMESTAMP;
+	NEW.updated_at = NOW();
 	RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -22,13 +22,13 @@ SET ROLE auth_user;
 
 CREATE TABLE auth.users (
 	id UUID			PRIMARY KEY DEFAULT gen_random_uuid(),
-	email			VARCHAR(255) UNIQUE NOT NULL,
-	username		VARCHAR(50) UNIQUE NOT NULL,
-	password		VARCHAR(255) NOT NULL,
+	email			TEXT UNIQUE NOT NULL CHECK (length(email) <= 255 AND email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+	username		TEXT UNIQUE NOT NULL CHECK (length(username) <= 50 AND username ~* '^[A-Za-z0-9_-]{3,}$'),
+	password_hash	TEXT NOT NULL CHECK (length(password_hash) <= 255),
 	-- is_verified		BOOLEAN DEFAULT FALSE,
 	-- is_active		BOOLEAN DEFAULT TRUE,
-	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-	-- updated_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	created_at		TIMESTAMPTZ DEFAULT NOW()
+	-- updated_at		TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Index for faster lookups
