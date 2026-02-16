@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { use, useState } from 'react';
 import './LoginView.css'
 
 function LoginView() {
+	const navigate = useNavigate()
 	const [formData, setFormData] = useState({
 		id: '',
 		password: '',
@@ -46,7 +47,7 @@ function LoginView() {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					id: formData.id,
+					identifier: formData.id,
 					password: formData.password
 				}),
 			})

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom'
 function HomeView() {
   return (
     <div className='homeView'>
-      <h1>Garou Loup</h1>
-      <p>"🚉 au loup"</p>
+      <h1>Trois Cartes</h1>
+      <p>"🃏 par trois"</p>
         <div className='buttonContainer'>
           <Link to="/create">
             <button className='createBut'>Create game</button>
