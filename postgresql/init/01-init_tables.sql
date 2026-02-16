@@ -23,7 +23,7 @@ SET ROLE auth_user;
 CREATE TABLE auth.users (
 	id UUID			PRIMARY KEY DEFAULT gen_random_uuid(),
 	email			TEXT UNIQUE NOT NULL CHECK (length(email) <= 255 AND email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
-	username		TEXT UNIQUE NOT NULL CHECK (length(username) <= 50 AND username ~* '^[A-Za-z0-9_-]{3,}$')
+	username		TEXT UNIQUE NOT NULL CHECK (length(username) <= 50 AND username ~* '^[A-Za-z0-9_-]{3,}$'),
 	password_hash	TEXT NOT NULL CHECK (length(password_hash) <= 255),
 	-- is_verified		BOOLEAN DEFAULT FALSE,
 	-- is_active		BOOLEAN DEFAULT TRUE,

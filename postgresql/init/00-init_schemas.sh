@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-# AUTH_PASSWD=$(cat /run/secrets/psql_auth_passwd)
 SERVICES_PASSWD=$(cat /run/secrets/psql_services_passwd)
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
