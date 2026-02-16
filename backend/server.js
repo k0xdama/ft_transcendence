@@ -6,7 +6,6 @@ const PORT = 5172;
 // Middleware
 app.use(express.json());  // Parse JSON bodies
 
-// CORS handling - needed for frontend to connect
 app.use(cors ({
   origin: 'http://localhost:5173',
   credentials: true,

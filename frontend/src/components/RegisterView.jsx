@@ -3,6 +3,7 @@ import { useState } from 'react';
 import './RegisterView.css'
 
 function RegisterView() {
+	const navigate = useNavigate()	
 	const [formData, setFormData] = useState({
 		username: '',
 		email: '',
