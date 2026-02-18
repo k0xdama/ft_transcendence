@@ -31,15 +31,6 @@ function LoginView() {
 
 		setLoading(true)
 
-		// try {
-		// 	//REPLACE BY AUTH SERVICE API CALL
-		// 	await new Promise(resolve => setTimeout(resolve, 2000))
-		// 	console.log('Log in successful!', {formData})
-		// } catch (error) {
-		// 	setError('Invalid username/email or password')
-		// } finally {
-		// 	setLoading(false)
-		// }
 		try {
 			const response = await fetch('http://localhost:3000/auth/login', {
 				method: 'POST',
@@ -60,6 +51,9 @@ function LoginView() {
 			}
 
 			setSuccess(data.message)
+
+			localStorage.setItem('accessToken', data.accessToken)
+			localStorage.setItem('user', JSON.stringify(data.user))
 
 			setFormData({
 				id: '',
