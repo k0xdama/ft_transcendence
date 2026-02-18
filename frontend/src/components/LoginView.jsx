@@ -1,9 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { use, useState } from 'react';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import './LoginView.css'
 
 function LoginView() {
 	const navigate = useNavigate()
+	const { login } = useAuth()
+
 	const [formData, setFormData] = useState({
 		id: '',
 		password: '',
@@ -52,8 +55,7 @@ function LoginView() {
 
 			setSuccess(data.message)
 
-			localStorage.setItem('accessToken', data.accessToken)
-			localStorage.setItem('user', JSON.stringify(data.user))
+			login(data.user, data.accessToken)
 
 			setFormData({
 				id: '',

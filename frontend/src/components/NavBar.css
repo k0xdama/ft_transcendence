@@ -28,21 +28,25 @@
 	flex-direction: row;
 }
 
-.logBut {
+.log-btn {
 	color: white;
 	margin-top: 0.5rem;
 }
 
-.logBut:hover {
+.log-btn:hover {
 	cursor: pointer;
 	color: #9d4edd;
 	text-decoration: underline;
 }
 
-.regBut {
+.reg-btn {
 	background-color: #752586;
 }
 
-.regBut:hover {
+.reg-btn:hover {
 	border-color: #9d4edd;
+}
+
+.welcome-mess {
+	margin-top: 9px;
 }
