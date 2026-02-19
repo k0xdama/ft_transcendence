@@ -7,8 +7,8 @@ function CreateGameView() {
 			<div className='createBox'>
 				<h2 className='boxTitle'>Create New Game</h2>
 				<div className='createInputs'>
-					<label className>Max players</label>
-					<input type='number' min={4} max={10} defaultValue={4} className='maxPlayers'></input>
+					<label className>Players</label>
+					<input type='number' min={3} max={7} defaultValue={3} className='maxPlayers'></input>
 				</div>
 				<button>Create</button>
 			</div>

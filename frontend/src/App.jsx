@@ -40,10 +40,6 @@ function App() {
     setCurrentView(viewName)
   }
 
-  if (!isAuthenticated()) {
-    logout();
-  }
-
   return (
     <>
       <NavBar />
