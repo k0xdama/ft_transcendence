@@ -20,7 +20,9 @@ function NavBar() {
 			<div className='navControl'>
 				{isAuthenticated() ? (
 					<>
-						<span className='welcome-mess'>Welcome, {user.username}!</span>
+						<span className='welcome-mess'>
+							Welcome, <Link to="/profile" className='prof'>{user.username}</Link> !
+						</span>
 						<button onClick={handleLogout} className='logout-btn'>Logout</button>
 					</>
 				) : (

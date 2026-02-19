@@ -62,7 +62,7 @@ function LoginView() {
 				password: ''
 			})
 			
-			setTimeout(() => {navigate('/')}, 2000)
+			setTimeout(() => {navigate('/')}, 1000)
 		} catch (error) {
 			console.error('Log in error:', error)
 			setError('Log in failed. Please try again.')
@@ -76,18 +76,20 @@ function LoginView() {
 			<h2 className='title'>Log in</h2>
 			{error && <div className='error'>{error}</div>}
 			{success && <div className='success'>{success}</div>}
-			<div className='inputs'>
-				<label>Username/Email:</label>
-				<input name= 'id' value={formData.id} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
-				<label>Password:</label>
-				<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
-			</div>
-			<button className='comBut'
-			onClick={handleLogin}
-			disabled={loading}
-			>
-				{loading ? 'Logging in...' : 'Log in'}
-			</button>
+			<form onSubmit={handleLogin}>
+				<div className='inputs'>
+					<label>Username/Email:</label>
+					<input name= 'id' value={formData.id} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
+					<label>Password:</label>
+					<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
+				</div>
+				<button className='comBut'
+				type='submit'
+				disabled={loading}
+				>
+					{loading ? 'Logging in...' : 'Log in'}
+				</button>
+			</form>
 			<p>Don't have an account? <Link to="/register">Sign up</Link></p>
 		</div>
 	);
