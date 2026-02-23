@@ -12,6 +12,15 @@
 	box-sizing: border-box;
 }
 
+.navbar p {
+	margin-bottom: 2px;
+}
+
+.navbar p:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
 .brand a {
 	color: white;
 	font-weight: bold;
@@ -26,6 +35,19 @@
 	display: flex;
 	gap: 2rem;
 	flex-direction: row;
+}
+
+.user-profile {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.profile-pic {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 2px solid #752586;
 }
 
 .log-btn {
@@ -47,11 +69,8 @@
 	border-color: #9d4edd;
 }
 
-.welcome-mess {
-	margin-top: 9px;
-}
-
 .prof:hover {
 	text-decoration: underline;
 	cursor: pointer;
 }
+

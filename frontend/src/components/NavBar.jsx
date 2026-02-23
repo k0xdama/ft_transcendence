@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './NavBar.css'
+import PFP_Default from '../assets/PFP_Default.webp'
 
 function NavBar() {
 	const navigate = useNavigate()
@@ -20,10 +21,13 @@ function NavBar() {
 			<div className='navControl'>
 				{isAuthenticated() ? (
 					<>
-						<span className='welcome-mess'>
-							Welcome, <Link to="/profile" className='prof'>{user.username}</Link> !
-						</span>
-						<button onClick={handleLogout} className='logout-btn'>Logout</button>
+						<div className='user-profile'>
+							<img src={PFP_Default} alt='Profile' className='profile-pic' />
+							<span className='welcome-mess'>
+								Welcome, <Link to="/profile" className='prof'>{user.username}</Link> !
+							</span>
+							<p onClick={handleLogout} className='logout-btn'>Logout</p>
+						</div>
 					</>
 				) : (
 					<>
