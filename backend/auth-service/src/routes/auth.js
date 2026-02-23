@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { db } from '../db/queries.js';
+import { db } from '../config/db.js';
 import { generateAccessToken } from '../utils/jwt.js';
 import { verifyToken } from '../middleware/verify-token.js';
 

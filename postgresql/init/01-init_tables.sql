@@ -52,14 +52,17 @@ RESET ROLE;
 SET ROLE chat_user;
 
 CREATE TABLE chat.messages (
-	id				UUID PRIMARY KEY,
+	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	lobby_id		UUID NOT NULL,
 	sender_id		UUID NOT NULL,
-	content			TEXT NOT NULL,
+	content			TEXT NOT NULL
+		CHECK (char_length(content) BETWEEN 1 AND 500),
 	message_type	VARCHAR(20) NOT NULL DEFAULT 'user-text', -- ou predefined, system
 	game_id			UUID, -- NULL si pré-game, rempli si in-game
 	game_phase		VARCHAR(20), -- 'lobby', 'playing', 'post-game'
 	created_at		TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_lobby_messages ON chat.messages(lobby_id, created_at DESC);
 
 RESET ROLE;

@@ -107,7 +107,7 @@ services:
     networks:
       - transcendence_network
     ports:
-      - "5055:5055" #UDP port used for real-time communications
+      - "5055:5055"
     restart: unless-stopped
 
   backend:

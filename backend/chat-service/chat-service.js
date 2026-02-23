@@ -1,5 +1,5 @@
 import express from 'express';
-import chatRoutes from './src/routes/chat-in-game.js';
+import chatRoutes from './src/routes/chat.js';
 
 const app = express();
 
