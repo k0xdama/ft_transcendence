@@ -12,7 +12,14 @@ RUN npm install redis
 
 COPY . .
 
-EXPOSE 2000
+EXPOSE 3001
 
-CMD ["node", "player-service.js"]
+#SON
+CMD ["npm", "start"]
+#SON
+
+#MON
+#CMD ["node", "player-service.js"]
+#MON
+
 # lance le js

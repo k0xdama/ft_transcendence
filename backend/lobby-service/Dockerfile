@@ -1,7 +1,7 @@
 FROM node:22-alpine
-# on prens l'image officielle de nodejs 
+# on prens l'image officielle de nodejs
 WORKDIR /app
-# REVOIR 
+# REVOIR
 COPY package.json .
 
 RUN npm install
@@ -12,7 +12,7 @@ RUN npm install redis
 
 COPY . .
 
-EXPOSE 2001
+EXPOSE 3002
 
 CMD ["node", "lobby-service.js"]
 # lance le js

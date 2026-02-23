@@ -4,7 +4,30 @@ import { db } from '../db/queries.js';
 import { generateAccessToken } from '../utils/jwt.js';
 import { verifyToken } from '../middleware/verify-token.js';
 
+//const axios = require('axios');
+import	axios from 'axios';
+
 const router = express.Router();
+
+// Configuration
+const PLAYER_SERVICE_URL = 'http://localhost:3001';//const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'http://localhost:3000'; ici on rajoute aussi la possibilite de changer le port avec variable d'environement
+//const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me-in-production';//token secret cunnu seulement des service permettant d'attester que c'est un service qui a fait la requete
+const SERVICE_SECRET = 'change-me';//WARN A CHANGER PAR UNE LECTURE DU TOKEN DANS LES SECRETS
+
+async function createPlayerProfile(userData) {
+	try	{
+		const	response = await axios.post('${PLAYER_SERVICE_URL}/player/create', userData,
+			{
+				timeout: 5000,
+				headers: {'Service-token': SERVICE_SECRET}
+			}
+		);
+		return response.data;
+	}
+	catch (error) {
+	console.error('No answer from player service',error.message);
+	}
+}
 
 router.post('/register', async (req, res) => {
 	try {
@@ -42,7 +65,22 @@ router.post('/register', async (req, res) => {
 		console.error('Register: ', error);
 		res.status(500).json({ error: 'Internal Server Error'});
 	}
+
+	try {
+		const	playerProfile = await createPlayerProfile({
+			id: newUser.id,//pas sur de ce paramettre dans la db auth il semble etre id UUID et il ne semble pas etre pris ici
+			username: newUser.username,
+			email: newUser.email
+		});
+
+		console.log(`Profil created in player schema id : ${playeProfile.player.id}`);//PAS SUR de la syntaxe
+	} catch (error) {
+		console.error('Failed to create profile inh player schema : ', error.message);
+	}
+
 });
+
+
 
 router.post('/login', async (req, res) => {
 	try {

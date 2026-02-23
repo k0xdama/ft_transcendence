@@ -86,6 +86,7 @@ services:
       - psql_services_passwd
       - redis_passwd
       - jwt_access
+#      - service_token
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
@@ -128,13 +129,14 @@ services:
       - psql_admin_passwd
       - psql_services_passwd
       - redis_passwd
+#      - service_token
     build:
       context: ./backend/player-service
       dockerfile: Dockerfile
     volumes:
       - ./backend/player-service/src:/app/src:ro
     ports:
-      - "2000:2000"
+      - "3001:3001"
     networks:
       - transcendence_network
     restart: unless-stopped
@@ -153,13 +155,14 @@ services:
       - psql_admin_passwd
       - psql_services_passwd
       - redis_passwd
+#      - service_token
     build:
       context: ./backend/lobby-service
       dockerfile: Dockerfile
     volumes:
       - ./backend/lobby-service/src:/app/src:ro
     ports:
-      - "2001:2001"
+      - "3002:3002"
     networks:
       - transcendence_network
     restart: unless-stopped
@@ -185,6 +188,8 @@ secrets:
     file: ./secrets/redis_passwd.txt
   jwt_access:
     file: ./secrets/jwt_access.txt
+  # service_token:
+  #   file:./secrets/service_token.txt
 
 networks:
   transcendence_network:

@@ -22,6 +22,9 @@ echo ""
 read -s -p "JWT_ACCESS (leave blank to generate automatically - press ENTER): " jwt_access
 echo ""
 
+read -p "SERVICE_TOKEN: " service_token
+echo ""
+
 # Generate JWT if empty
 if [ -z "$jwt_access" ]; then
 	printf "\n${P_BLUE}Generating JsonWebToken...${RESET}\n"
@@ -37,5 +40,7 @@ echo "$psql_admin_passwd" > secrets/psql_admin_passwd.txt
 echo "$psql_services_passwd" > secrets/psql_services_passwd.txt
 echo "$redis_passwd" > secrets/redis_passwd.txt
 echo "$jwt_access" > secrets/jwt_access.txt
+
+echo "$service_token" > secrets/service-token.txt
 
 printf "${BOLD}${P_GREEN}All secret files have been successfully created in the 'secrets' folder${RESET}"

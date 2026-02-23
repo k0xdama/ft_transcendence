@@ -49,9 +49,11 @@ RESET ROLE;
 SET ROLE player_user;
 
 CREATE TABLE player.users (
-	name			VARCHAR(50) UNIQUE NOT NULL,
+	id				SERIAL PRIMARY KEY,
+	email			VARCHAR(255) UNIQUE NOT NULL,
+	username		VARCHAR(50) UNIQUE NOT NULL,
 	pp_path			VARCHAR(255) UNIQUE NOT NULL,
-	friends		INT[] ,
+	friends			INT[] ,
 	-- is_verified		BOOLEAN DEFAULT FALSE,
 	-- is_active		BOOLEAN DEFAULT TRUE,
 	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
