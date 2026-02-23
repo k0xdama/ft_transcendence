@@ -44,7 +44,7 @@ body::before {
   height: 100%;
   background-image: url('./assets/synthwave_wallpaper_by_frozenskullvfx_dbkpxz5.png');
   background-size: cover;
-  background-position: cover;
+  background-position: center;
   filter: blur(3px);
   z-index: -1;
 }
