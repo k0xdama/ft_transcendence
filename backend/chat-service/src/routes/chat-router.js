@@ -9,9 +9,9 @@ const router = express.Router();
 
 router.post('/block', verifyToken, async(req, res) => {
 	try {
-		const { blocked_user_id } = req.body;
-		if (!blocked_user_id) {
-			return res.status(400).json({ error: 'blocked_user_id required' });
+		const blockedId = req.body;
+		if (!blockedId) {
+			return res.status(400).json({ error: 'Blocked user ID required' });
 		}
 
 		const blockerId = req.user.id;
@@ -20,7 +20,7 @@ router.post('/block', verifyToken, async(req, res) => {
 			`INSERT INTO chat.blocked_users (blocker_id, blocked_id)
 			VALUES ($1, $2)
 			ON CONFLICT DO NOTHING`,
-			[blockerId, blocked_user_id]
+			[blockerId, blockedId]
 		);
 
 		res.json({ success: true });
