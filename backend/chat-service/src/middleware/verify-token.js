@@ -1,5 +1,7 @@
-import fs from 'fs';
+/*	A supprimer quand l'API Gateway gerera les JWT */
+
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 
 const JWT_ACCESS = fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
@@ -9,7 +11,7 @@ export function verifyToken(req, res, next) {
 		return res.status(401).json({ error: 'No token provided' });
 	}
 
-	const token = authHeader.split(' ')[1];		// [0] 'Bearer' [1] <token>
+	const token = authHeader.split(' ')[1]; // [0] 'Bearer' [1] <token>
 	if (!token) {
 		return res.status(401).json({ error: 'Invalid token format' });
 	}

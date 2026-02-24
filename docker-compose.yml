@@ -83,9 +83,9 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  chat-in-game:
-    image: chat-in-game:v1
-    container_name: chat-in-game
+  chat:
+    image: chat:v1
+    container_name: chat
     depends_on:
       db:
         condition: service_healthy
