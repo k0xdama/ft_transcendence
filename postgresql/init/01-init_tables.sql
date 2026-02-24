@@ -37,6 +37,9 @@ CREATE TABLE auth.users (
 	updated_at		TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE INDEX idx_users_email ON auth.users(email);
+CREATE INDEX idx_users_username ON auth.users(username);
+
 CREATE TABLE auth.refresh_tokens (
 	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	user_id			UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -45,13 +48,9 @@ CREATE TABLE auth.refresh_tokens (
 	expires_at		TIMESTAMPTZ NOT NULL
 );
 
--- Index for faster lookups
-CREATE INDEX idx_users_email ON auth.users(email);
-CREATE INDEX idx_users_username ON auth.users(username);
-
-CREATE TRIGGER update_users_updated_at
-	BEFORE UPDATE ON auth.users
-	FOR EACH ROW
-	EXECUTE FUNCTION update_updated_at();
+-- CREATE TRIGGER update_users_updated_at
+-- 	BEFORE UPDATE ON auth.users
+-- 	FOR EACH ROW
+-- 	EXECUTE FUNCTION update_updated_at();
 
 RESET ROLE;
