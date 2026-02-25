@@ -13,43 +13,73 @@
 }
 
 .gameboard {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	height: 85vh;
-	padding: 1rem;
+	position: relative;
+	height: 100vh;
+	width: 100vw;
+	overflow: hidden;
 }
 
-.opponents-area {
+.table-area {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 1.5rem;
+}
+
+.player-slot {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.seat-top		{ top: 1rem; left: 50%; transform: translateX(-50%); }
+.seat-left		{ left: 1rem; top: 50%; transform: translateX(50%); }
+.seat-right		{ right: 1rem; top: 50%; transform: translateX(-50%); }
+.seat-top-left	{ top: 1rem; left: 1rem }
+.seat-top-right	{ top: 1rem; right: 1rem }
+
+.face-down-hand {
 	display: flex;
 	flex-direction: row;
-	gap: 1rem;
+	gap: 3px;
+}
+
+.seat-left .face-down-hand,
+.seat-right .face-down-hand {
+	flex-direction: column;
+}
+
+.seat-left .card-back,
+.seat-right .card-back {
+	transform: rotate(90deg);
 }
 
 .player-hand {
+	position: absolute;
+	bottom: 1rem;
+	left: 50%;
+	transform: translateX(-50%);
 	display: flex;
-	flex-direction: row;
 	gap: 0.5rem;
-	justify-content: center;
 }
 
 .card {
-	width: 60px;
-	height: 90px;
+	width: 42px;
+	height: 62px;
 	background: black;
 	border-radius: 6px;
+	border: 1px solid rgba(255,255,255,0.2);
+}
+
+.card-front {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-weight: bold;
 	cursor: pointer;
-}
-
-.player-slot {
-	background: rgba(0, 0, 0, 4);
-	color: white;
-	padding: 0.5rem 1rem;
-	border-radius: 8px;
 }
 
 .active-turn {
