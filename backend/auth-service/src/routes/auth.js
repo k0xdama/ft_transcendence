@@ -10,13 +10,17 @@ import	axios from 'axios';
 const router = express.Router();
 
 // Configuration
-const PLAYER_SERVICE_URL = 'http://localhost:3001';//const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'http://localhost:3000'; ici on rajoute aussi la possibilite de changer le port avec variable d'environement
+//const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'http://player:3001';//version avec les env du docker compose.yml
+const PLAYER_SERVICE_URL = 'http://player:3001';//const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'http://localhost:3000'; ici on rajoute aussi la possibilite de changer le port avec variable d'environement
+//WARN comme le service player est dans un autre container ne pas utiliser localhost car lecolhost ici est le container de auth, il faut donc rentrer en dut ou utiliser des variables d'environements creees dans le docker compose.yml
+
 //const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me-in-production';//token secret cunnu seulement des service permettant d'attester que c'est un service qui a fait la requete
+//const SERVICE_SECRET = fs.readFileSync('/run/secrets/service_token', 'utf8').trim();//version avec les secrets a tester une fis que les test avec token hardcode marche car en env docker on vois les mdp donc aucun interet
 const SERVICE_SECRET = 'change-me';//WARN A CHANGER PAR UNE LECTURE DU TOKEN DANS LES SECRETS
 
 async function createPlayerProfile(userData) {
 	try	{
-		const	response = await axios.post('${PLAYER_SERVICE_URL}/player/create', userData,
+		const	response = await axios.post(`${PLAYER_SERVICE_URL}/player/create`, userData,
 			{
 				timeout: 5000,
 				headers: {'Service-token': SERVICE_SECRET}
@@ -25,7 +29,7 @@ async function createPlayerProfile(userData) {
 		return response.data;
 	}
 	catch (error) {
-	console.error('No answer from player service',error.message);
+	console.error('No answer from player service : ', error);
 	}
 }
 
@@ -56,6 +60,26 @@ router.post('/register', async (req, res) => {
 			[email, username, passwordHash]
 		);
 
+		console.log(`AVANT MON TC`);
+
+		try {
+
+			console.log(`DEBUT MON TC`);
+
+			const	playerProfile = await createPlayerProfile({
+				auth_user_id: newUser.id,//pas sur de ce paramettre dans la db auth il semble etre id UUID et il ne semble pas etre pris ici
+				username: newUser.username,
+				email: newUser.email
+			});
+
+			console.log(`Profil created in player schema id : ${playerProfile.player.id}`);//PAS SUR de la syntaxe
+		}
+		catch (error) {
+			console.error('Failed to create profile in player schema : ', error);
+		}
+
+		console.log(`APRES MON TC`);
+
 		return res.status(201).json({
 			message: `${newUser.username}'s account has been successfully created!`,
 			user: newUser
@@ -64,18 +88,6 @@ router.post('/register', async (req, res) => {
 	catch (error) {
 		console.error('Register: ', error);
 		res.status(500).json({ error: 'Internal Server Error'});
-	}
-
-	try {
-		const	playerProfile = await createPlayerProfile({
-			id: newUser.id,//pas sur de ce paramettre dans la db auth il semble etre id UUID et il ne semble pas etre pris ici
-			username: newUser.username,
-			email: newUser.email
-		});
-
-		console.log(`Profil created in player schema id : ${playeProfile.player.id}`);//PAS SUR de la syntaxe
-	} catch (error) {
-		console.error('Failed to create profile inh player schema : ', error.message);
 	}
 
 });

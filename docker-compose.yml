@@ -77,8 +77,11 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+      # player:
+      #   condition: service_started #rajout d'une dependance comme le auth/register fait appel a player/create
     environment:
       - NODE_ENV=development
+      - PLAYER_SERVICE_URL=http://player:3001 #rajout pour pas seulement ecrire en dur dans auth.js, c'est un test pour le moment
     secrets:
       - psql_dbname
       - psql_admin_user
@@ -86,7 +89,7 @@ services:
       - psql_services_passwd
       - redis_passwd
       - jwt_access
-#      - service_token
+#      - service_token #c'etait un test pour un token de header que je vais peut etre refaire
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
@@ -115,9 +118,9 @@ services:
   #     - "5173:5173"
   #   restart: unless-stopped
 
-  player-service:
-    image: player-service:v1
-    container_name: player-service
+  player:
+    image: player:v1
+    container_name: player
     depends_on:
       db:
         condition: service_healthy

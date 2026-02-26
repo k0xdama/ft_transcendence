@@ -11,6 +11,7 @@ const	router = express.Router();//on utilise router pour eviter de faire toutes 
 // MON TRUC
 
 //const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me-in-production';//token secret cunnu seulement des service permettant d'attester que c'est un service qui a fait la requete
+//const SERVICE_SECRET = fs.readFileSync('/run/secrets/service_token', 'utf8').trim();//version avec les secrets a tester une fis que les test avec token hardcode marche car en env docker on vois les mdp donc aucun interet
 const SERVICE_SECRET = 'change-me';//WARN A CHANGER PAR UNE LECTURE DU TOKEN DANS LES SECRETS
 
 
@@ -25,20 +26,23 @@ const	verifyServiceToken = (req, res, next) => {
 };
 
 router.post('/create', verifyServiceToken, async (req, res) => {
-	const	{id, username, email} = req.body;//A CHANGER SI RAJOUTE DES PARAMS DANS LA DB
+	const	{auth_user_id, username, email} = req.body;//A CHANGER SI RAJOUTE DES PARAMS DANS LA DB
 	
-	if(!id || !username || !email){
+	console.log('===== PLAYER CREATE REQUEST =====');
+    console.log(`Received : id = ${auth_user_id}, unsername = ${username}, email = ${email}`);
+
+	if(!auth_user_id || !username || !email){
 		return	res.status(400).json({error : 'Missing required field'});
 	}
 
 	try {
 		//avant que la partie auth fasse appel a cette requete elle verifie deja si il existe deja un profil donc arrive ici on se que le profil n'existe pas
 		const	newPlayerUsers = await db.one(
-			'INSERT INTO player.users (id, username, email, pp_path, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, username, email, created_at',
-			[id, username, email, '../../profilePictures/']
+			'INSERT INTO player.users (auth_user_id, username, email, pp_path, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, username, email, created_at',
+			[auth_user_id, username, email, '../../profilePictures/']
 		);
 
-		console.log(`Player user created id : ${newPlayerUsers.id} username : ${newPlayerUsers.username} in player schema`);
+		console.log(`Player user created auth_user_id : ${newPlayerUsers.auth_user_id} username : ${newPlayerUsers.username} in player schema`);
 		res.status(201).json({
 			message: 'Player profile created',
       		player: newPlayerUsers
@@ -55,7 +59,7 @@ router.get('/:id', async (req, res) => {
 	try {
 		const	player = await db.oneOrNone(
 			'SELECT * FROM player.users WHERE id = $1',
-			[req.params.id]
+			[req.params.id]//a voir si je peux et doit synchroniser les id de l'auth et du player
 		);
 
 		if (!player) {

@@ -49,7 +49,8 @@ RESET ROLE;
 SET ROLE player_user;
 
 CREATE TABLE player.users (
-	id				SERIAL PRIMARY KEY,
+	id 				SERIAL PRIMARY KEY,
+	auth_user_id	UUID UNIQUE NOT NULL,
 	email			VARCHAR(255) UNIQUE NOT NULL,
 	username		VARCHAR(50) UNIQUE NOT NULL,
 	pp_path			VARCHAR(255) UNIQUE NOT NULL,
@@ -59,6 +60,11 @@ CREATE TABLE player.users (
 	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	-- updated_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Index for faster lookups
+CREATE INDEX idx_player_auth_user_id ON player.users(auth_user_id);
+CREATE INDEX idx_player_username ON player.users(username);
+CREATE INDEX idx_player_email ON player.users(email);
 
 RESET ROLE;
 
