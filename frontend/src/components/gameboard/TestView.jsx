@@ -1,35 +1,53 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
+import ChatOverlay from './ChatOverlay'
 import './TestView.css'
 
 const SEAT_POSITIONS = ["top", "left", "right", "top-left", "top-right"]
 
-const	mockGameState = {
-	players: [
-		{ id: 1, username: "Opponent 1", cardCount: 7, isTurn: false },
-		{ id: 2, username: "Opponent 2", cardCount: 6, isTurn: true },
-		{ id: 3, username: "Opponent 3", cardCount: 4, isTurn: false },
-		// { id: 4, username: "Opponent 4", cardCount: 5, isTurn: false },
-		{ id: 5, username: "You", cardCount: 3, isTurn: false },
-	],
-	myHand: [
-		{ id: "c1", label: 10 },
-		{ id: "c2", label: 7 },
-		{ id: "c3", label: 2 },
-	],
+const ALL_PLAYERS = [
+	{ id: 1, username: "Opponent 1", cardCount: 7 },
+	{ id: 2, username: "Opponent 2", cardCount: 6 },
+	{ id: 3, username: "Opponent 3", cardCount: 4 },
+	{ id: 4, username: "Opponent 4", cardCount: 5 },
+	{ id: 5, username: "Opponent 5", cardCount: 5 },
+	{ id: 6, username: "You", cardCount: 3 },
+]
+
+const MY_HAND = [
+	{ id: "c1", label: 10 },
+	{ id: "c2", label: 7 },
+	{ id: "c3", label: 2 },
+]
+
+const RIVER_COUNT = {
+	3: {total: 9, cols: 3},
+	4: {total: 8, cols: 4},
+	5: {total: 6, cols: 3},
+	6: {total: 6, cols: 3},
 }
 
 function TestView () {
-	const	[gameState, setGameState] = useState(mockGameState)
-
-	const	opponents = gameState.players.filter(p => p.username !== "You")
-	const	myData = gameState.players.find(p => p.username === "You")
+	const	[playerCount, setPlayerCount] = useState(3)
+	const	opponents = ALL_PLAYERS.slice(0, playerCount - 1)
+	const	{total, cols} = RIVER_COUNT[playerCount]
 	const	seatedOpponents = opponents.map((player, index) => ({
 		player,
 		seat: SEAT_POSITIONS[index]
 	}))
+
+	useEffect(() => {
+		document.body.classList.add("gameboard-active")
+
+		return () => {
+			document.body.classList.remove("gameboard-active")
+		}
+	}, [])
+
+	const addPlayer = () => setPlayerCount(c => Math.min(c + 1, 6))
+	const removePlayer = () => setPlayerCount(c => Math.max(c - 1, 3))
 
 	return (
 		<div className='gameboard'>
@@ -37,9 +55,15 @@ function TestView () {
 				<PlayerSlot key={player.id} player={player} seat={seat} />
 			))}
 
-			<TableArea />
+			<TableArea total={total} cols={cols} />
 
-			<PlayerHand cards={gameState.myHand} />
+			<PlayerHand cards={MY_HAND} />
+			<ChatOverlay />
+			<div className='demo-controls'>
+				<button onClick={removePlayer} disabled={playerCount <= 3}>-</button>
+				<span>{playerCount} players</span>
+				<button onClick={addPlayer} disabled={playerCount >= 6}>+</button>
+			</div>
 		</div>
 	)
 }

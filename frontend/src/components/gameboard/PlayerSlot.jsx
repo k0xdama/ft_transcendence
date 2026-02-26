@@ -2,7 +2,7 @@ function PlayerSlot({ player, seat }) {
 	const	faceDownCards = Array.from({ length: player.cardCount })
 
 	return (
-		<div className={`player-slot seat-${seat} ${player.isTurn ? "active-turn" : ""}`}>
+		<div className={`player-slot seat-${seat}`}>
 			<span className="player-name">{player.username}</span>
 			<div className="face-down-hand">
 				{faceDownCards.map((_,i) => (
