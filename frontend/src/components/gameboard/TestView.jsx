@@ -5,12 +5,31 @@ import TableArea from './TableArea'
 import ChatOverlay from './ChatOverlay'
 import './TestView.css'
 
+const LAYOUTS = {
+	3: {
+		seats: ["top", "left"],
+		playerSeat: "bottom-center"
+	},
+	4: {
+		seats: ["top", "left", "right"],
+	playerSeat: "bottom-center"
+	},
+	5: {
+		seats: ["top-left", "top-right", "left", "right"],
+		playerSeat: "bottom-right"
+	},
+	6: {
+		seats: ["top-left", "top-right", "left", "right", "bottom-left"],
+		playerSeat: "bottom-right"
+	}
+}
+
 const SEAT_POSITIONS = ["top", "left", "right", "top-left", "top-right"]
 
 const ALL_PLAYERS = [
-	{ id: 1, username: "Opponent 1", cardCount: 7 },
-	{ id: 2, username: "Opponent 2", cardCount: 6 },
-	{ id: 3, username: "Opponent 3", cardCount: 4 },
+	{ id: 1, username: "Opponent 1", cardCount: 5 },
+	{ id: 2, username: "Opponent 2", cardCount: 5 },
+	{ id: 3, username: "Opponent 3", cardCount: 5 },
 	{ id: 4, username: "Opponent 4", cardCount: 5 },
 	{ id: 5, username: "Opponent 5", cardCount: 5 },
 	{ id: 6, username: "You", cardCount: 3 },
@@ -33,9 +52,10 @@ function TestView () {
 	const	[playerCount, setPlayerCount] = useState(3)
 	const	opponents = ALL_PLAYERS.slice(0, playerCount - 1)
 	const	{total, cols} = RIVER_COUNT[playerCount]
+	const	layout = LAYOUTS[playerCount]
 	const	seatedOpponents = opponents.map((player, index) => ({
 		player,
-		seat: SEAT_POSITIONS[index]
+		seat: layout.seats[index]
 	}))
 
 	useEffect(() => {
@@ -57,7 +77,7 @@ function TestView () {
 
 			<TableArea total={total} cols={cols} />
 
-			<PlayerHand cards={MY_HAND} />
+			<PlayerHand cards={MY_HAND} seat={layout.playerSeat} />
 			<ChatOverlay />
 			<div className='demo-controls'>
 				<button onClick={removePlayer} disabled={playerCount <= 3}>-</button>

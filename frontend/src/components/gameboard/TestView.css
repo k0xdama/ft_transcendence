@@ -48,16 +48,17 @@ body.gameboard-active .main-container {
 	gap: 0.4rem;
 }
 
-.seat-top		{ top: 1rem; left: 50%; transform: translateX(-50%); }
-.seat-left		{ left: 1rem; top: 50%; transform: translateY(-50%); }
-.seat-right		{ right: 1rem; top: 50%; transform: translateY(-50%); }
-.seat-top-left	{ top: 1rem; left: 1rem }
-.seat-top-right	{ top: 1rem; right: 1rem }
+.seat-top			{ top: 1rem; left: 50%; transform: translateX(-50%); }
+.seat-left			{ left: 1rem; top: 50%; transform: translateY(-50%); }
+.seat-right			{ right: 1rem; top: 50%; transform: translateY(-50%); }
+.seat-bottom-left	{ bottom: 5rem; left: 20rem; }
+.seat-top-left		{ top: 5rem; left: 20rem }
+.seat-top-right		{ top: 5rem; right: 20rem }
 
 .face-down-hand {
 	display: flex;
 	flex-direction: row;
-	gap: 3px;
+	gap: 0.5rem;
 }
 
 .seat-left .face-down-hand,
@@ -70,13 +71,23 @@ body.gameboard-active .main-container {
 	transform: rotate(90deg);
 }
 
-.player-hand {
+.player-hand.bottom-center {
 	position: absolute;
 	bottom: 1rem;
 	left: 50%;
 	transform: translateX(-50%);
 	display: flex;
 	gap: 0.5rem;
+}
+
+.player-hand.bottom-right {
+	position: absolute;
+	bottom: 5rem;
+	right: 20rem;
+	display: flex;
+	gap: 0.5rem;
+	left: auto;
+	transform: none;
 }
 
 .river {
