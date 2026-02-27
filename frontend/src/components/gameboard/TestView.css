@@ -111,6 +111,13 @@ body.gameboard-active .main-container {
 	cursor: pointer;
 }
 
+.card-img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	border-radius: 6px;
+}
+
 .demo-controls {
 	position: absolute;
 	bottom: 1rem;
