@@ -16,7 +16,7 @@ app.use(cors ({
 // Test route
 app.get('/api/health', (req, res) => {
   res.json({ 
-    status: 'ok', 
+    status: 'OK', 
     message: 'Backend is running',
     timestamp: new Date().toISOString()
   });

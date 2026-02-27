@@ -38,7 +38,7 @@ describe('Auth /auth/register', () => {
 			.send({
 				email: 'oggy@test.fr',
 				username: 'miaou',
-				password: 'tesT2test1test@'
+				password: 'blaB2bla1*b'
 			});
 
 		expect(response.status).toBe(400);
@@ -47,7 +47,7 @@ describe('Auth /auth/register', () => {
 });
 
 // Clean after performing tests
-// afterAll(async () => {
-// 	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
-// 	await db.$pool.end();
-// });
+afterAll(async () => {
+	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
+	await db.$pool.end();
+});

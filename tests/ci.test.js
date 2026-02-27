@@ -7,7 +7,7 @@ describe('Frontend ↔ Backend integration', () => {
 
 		const data = await response.json()
 
-		expect(data.status).toBe('ok')
+		expect(data.status).toBe('OK')
 		expect(data.message).toBe('Backend is running')
 		expect(data.timestamp).toBeDefined()
 	})

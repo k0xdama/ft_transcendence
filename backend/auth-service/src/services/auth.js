@@ -10,7 +10,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
 function hashToken(token) {
-	crypto.createHash('sha256'.update(token).digest('hex'));
+	return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 class AuthService {
