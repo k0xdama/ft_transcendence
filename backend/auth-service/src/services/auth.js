@@ -9,6 +9,10 @@ import {
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
+function hashToken(token) {
+	crypto.createHash('sha256'.update(token).digest('hex'));
+}
+
 class AuthService {
 	async register({ email, username, password }) {
 		validateEmail(email);
@@ -58,16 +62,17 @@ class AuthService {
 		}
 
 		const refreshToken = crypto.randomBytes(64).toString('hex');
+		const tokenHash = hashToken(refreshToken);
 
 		await db.none(
-			`INSERT INTO auth.refresh_tokens (user_id, token, expires_at)
+			`INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at)
 			VALUES ($1, $2, NOW() + INTERVAL '7 days')`,
-			[user.id, refreshToken]
+			[user.id, tokenHash]
 		);
 
 		return {
 			user: { id: user.id, email: user.email, username: user.username },
-			refreshToken
+			refreshToken	// raw token sent via cookies
 		};
 	}
 
@@ -75,28 +80,31 @@ class AuthService {
 		if (!refreshToken)
 			throw new InvalidCredentialsError('Refresh token is required');
 
+		const tokenHash = hashToken(refreshToken);
+
 		const record = await db.oneOrNone(
-			`SELECT rt.token, rt.expires_at, u.id, u.email, u.username
+			`SELECT rt.id AS token_id, u.id, u.email, u.username
 			FROM auth.refresh_tokens rt
 			JOIN auth.users u ON u.id = rt.user_id
-			WHERE rt.token = $1 AND rt.expires_at > NOW()`,
-			[refreshToken]
+			WHERE rt.token_hash = $1 AND rt.expires_at > NOW()`,
+			[tokenHash]
 		);
 		if (!record)
 			throw new InvalidCredentialsError('Invalid or expired refresh token');
 
 		const newRefreshToken = crypto.randomBytes(64).toString('hex');
+		const newTokenHash = hashToken(newRefreshToken);
 
 		await db.tx(async t => {	// atomic transaction (rotation) where t is a copy of db with context
 			await t.none(
-				`DELETE FROM auth.refresh_tokens WHERE token = $1`,
-				[refreshToken]
+				`DELETE FROM auth.refresh_tokens WHERE id = $1`,
+				[record.token_id]
 			);
 
 			await t.none(
-				`INSERT INTO auth.refresh_tokens (user_id, token, expires_at)
+				`INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at)
 				VALUES ($1, $2, NOW() + INTERVAL '7 days')`,
-				[record.id, newRefreshToken]
+				[record.id, newTokenHash]
 			);
 		});
 
@@ -110,9 +118,11 @@ class AuthService {
 		if (!refreshToken)
 			return;
 
+		const tokenHash = hashToken(refreshToken);
+
 		await db.none(
-			`DELETE FROM auth.refresh_tokens WHERE token = $1`,
-			[refreshToken]
+			`DELETE FROM auth.refresh_tokens WHERE token_hash = $1`,
+			[tokenHash]
 		);
 	}
 }

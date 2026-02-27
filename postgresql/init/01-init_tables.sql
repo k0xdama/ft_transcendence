@@ -43,7 +43,9 @@ CREATE INDEX idx_users_username ON auth.users(username);
 CREATE TABLE auth.refresh_tokens (
 	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	user_id			UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-	token			TEXT NOT NULL UNIQUE,
+	token_hash		TEXT NOT NULL UNIQUE
+		CONSTRAINT check_token_hash_length
+		CHECK (length(token_hash) = 64),
 	created_at		TIMESTAMPTZ DEFAULT NOW(),
 	expires_at		TIMESTAMPTZ NOT NULL
 );
