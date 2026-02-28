@@ -107,7 +107,7 @@ services:
     networks:
       - transcendence_network
     ports:
-      - "5055:5055"
+      - "2000:2000"
     restart: unless-stopped
 
   backend:

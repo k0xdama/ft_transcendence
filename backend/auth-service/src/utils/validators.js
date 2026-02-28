@@ -11,8 +11,8 @@ export function validateEmail(email) {
 		throw new ValidationError('Invalid email format');
 	}
   
-	if (email.length > 255) {
-		throw new ValidationError('Email too long (max 255 characters)');
+	if (email.length > 254) {
+		throw new ValidationError('Email too long (max 254 characters)');	// RFC 5321
 	}
 }
 
@@ -20,7 +20,6 @@ export function validateUsername(username) {
 	if (!username) {
 		throw new ValidationError('Username is required');
 	}
-  
 	if (username.length < 3 || username.length > 50) {
 		throw new ValidationError('Username must be between 3 and 50 characters');
 	}
@@ -36,7 +35,6 @@ export function validatePassword(password) {
 	if (!password) {
 		throw new ValidationError('Password is required');
 	}
-
 	if (password.length < 8) {
 		throw new ValidationError('Password must be at least 8 characters');
 	}
