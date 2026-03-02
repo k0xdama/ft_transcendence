@@ -12,6 +12,11 @@ services:
       - psql_admin_user
       - psql_admin_passwd
       - psql_services_passwd
+      # - psql_auth_passwd
+      # - psql_player_passwd
+      # - psql_lobby_passwd
+      # - psql_game_passwd
+      # - psql_chat_passwd
     build:
       context: ./postgresql
       dockerfile: Dockerfile
@@ -29,7 +34,7 @@ services:
       - transcendence_network
     restart: unless-stopped
 
-  cache:
+  redis:
     image: redis:8.4-v1
     container_name: redis
     pull_policy: never
@@ -51,39 +56,20 @@ services:
       - transcendence_network
     restart: unless-stopped
 
-  # backend:
-  #   image: backend:v1
-  #   container_name: backend
-  #   environment:
-  #     - NODE_ENV=development
-  #     - PORT=5172
-  #   build: 
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./backend:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - transcendence_network
-  #   ports:
-  #     - "5172:5172"
-  #   restart: unless-stopped
-
   auth:
     image: auth:v1
     container_name: auth
     depends_on:
       db:
         condition: service_healthy
-      cache:
+      redis:
         condition: service_healthy
-    environment:
-      - NODE_ENV=development
     secrets:
       - psql_dbname
       - psql_admin_user
       - psql_admin_passwd
       - psql_services_passwd
+      # - psql_auth_passwd
       - redis_passwd
       - jwt_access
     build:
@@ -97,22 +83,40 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  # frontend:
-  #   image: frontend:v1
-  #   container_name: frontend
-  #   depends_on:
-  #     - backend
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - transcendence_network
-  #   ports:
-  #     - "5173:5173"
-  #   restart: unless-stopped
+  backend:
+    image: backend:v1
+    container_name: backend
+    environment:
+      - NODE_ENV=development
+      - PORT=5172
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - transcendence_network
+    ports:
+      - "5172:5172"
+    restart: unless-stopped
+
+  frontend:
+    image: frontend:v1
+    container_name: frontend
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - transcendence_network
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
 
 volumes:
   postgres_data:
@@ -125,12 +129,18 @@ secrets:
     file: ./secrets/psql_admin_user.txt
   psql_admin_passwd:
     file: ./secrets/psql_admin_passwd.txt
-  # psql_auth_user:
-  #   file: ./secrets/psql_auth_user.txt
-  # psql_auth_passwd:
-  #   file: ./secrets/psql_auth_passwd.txt
   psql_services_passwd:
     file: ./secrets/psql_services_passwd.txt
+  # psql_auth_passwd:
+  #   file: ./secrets/psql_auth_passwd.txt
+  # psql_player_passwd:
+  #   file: ./secrets/psql_player_passwd.txt
+  # psql_lobby_passwd:
+  #   file: ./secrets/psql_lobby_passwd.txt
+  # psql_game_passwd:
+  #   file: ./secrets/psql_game_passwd.txt 
+  # psql_chat_passwd:
+  #   file: ./secrets/psql_chat_passwd.txt
   redis_passwd:
     file: ./secrets/redis_passwd.txt
   jwt_access:

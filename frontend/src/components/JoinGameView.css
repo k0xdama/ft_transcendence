@@ -1,0 +1,33 @@
+.joinBox {
+	display: flex;
+	flex-direction: column;
+	background-color: #1a1a1a;
+	border-radius: 12px;
+	margin-top: -400px;
+	padding: 1rem;
+}
+
+.joinInputs {
+	display: flex;
+	flex-direction: row;
+}
+
+.joinBox label {
+	font-weight: bold;
+	margin-right: 10px;
+}
+
+.joinBox button {
+	background-color: #752586;
+	margin-top: 20px;
+	width: 100px;
+}
+
+.joinBox h2 {
+	margin-top: 5px;
+}
+
+.gameID {
+	background-color: white;
+	border-radius: 5px;
+}

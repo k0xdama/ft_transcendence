@@ -1,0 +1,44 @@
+.testUI {
+	display: grid;
+	gap: 10px;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgb(66, 65, 82);
+	padding: 10px;
+	grid-template-columns: 25vw 1fr 25vw;
+	grid-template-rows: auto 1fr;
+	grid-template-areas:
+		"players cycles roles"
+		"chat log roles";
+}
+
+.players-section {
+	grid-area: players;
+	background-color: rgba(8, 58, 8, 0.795);
+	height: 400px;
+	width: 300px;
+}
+
+.chat-section {
+	grid-area: chat;
+	background-color: rgb(36, 35, 35);
+}
+
+.cycles-section {
+	grid-area: cycles;
+	height: 10vh;
+	width: 1000px;
+	background-color: rgba(79, 79, 219, 0.877);
+}
+
+.roles-section {
+	grid-area: roles;
+	width: 25vw;
+	height: 50vh;
+	background-color: rgb(76, 20, 129);
+}
+
+.game-section {
+	grid-area: log;
+	background-color: rgb(53, 51, 51);
+}

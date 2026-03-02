@@ -5,7 +5,6 @@ const initOptions = {};
 const pgp = pgPromiseLib(initOptions);
 
 const dbName = fs.readFileSync('/run/secrets/psql_dbname', 'utf8').trim();
-// const dbUser = fs.readFileSync('/run/secrets/psql_auth_user', 'utf8').trim();
 const dbUser = 'auth_user';
 // const dbPassword = fs.readFileSync('/run/secrets/psql_auth_passwd', 'utf8').trim();
 const dbPassword = fs.readFileSync('/run/secrets/psql_services_passwd', 'utf8').trim();
