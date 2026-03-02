@@ -36,7 +36,8 @@ jobs:
             node-version: '22'
         - run: npm install
           working-directory: ./backend
-        - run: npm test
+        - run: npm run test:global
+          working-directory: ./backend
       
     ci-tests:
       runs-on: ubuntu-24.04
