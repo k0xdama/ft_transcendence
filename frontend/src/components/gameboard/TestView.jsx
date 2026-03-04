@@ -32,12 +32,14 @@ const ALL_PLAYERS = [
 	{ id: 3, username: "Opponent 3", cardCount: 5 },
 	{ id: 4, username: "Opponent 4", cardCount: 5 },
 	{ id: 5, username: "Opponent 5", cardCount: 5 },
-	{ id: 6, username: "You", cardCount: 3 },
+	{ id: 6, username: "You", cardCount: 5 },
 ]
 
 const MY_HAND = [
 	{ id: "c1", label: 10 },
 	{ id: "c2", label: 7 },
+	{ id: "c3", label: 8 },
+	{ id: "c3", label: 4 },
 	{ id: "c3", label: 2 },
 ]
 
