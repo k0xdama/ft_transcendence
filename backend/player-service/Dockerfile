@@ -10,6 +10,8 @@ RUN npm install pg-promise
 
 RUN npm install redis
 
+RUN npm install multer
+
 COPY . .
 
 EXPOSE 3001

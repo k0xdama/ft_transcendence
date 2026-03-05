@@ -20,7 +20,7 @@ const SERVICE_SECRET = 'change-me';//WARN A CHANGER PAR UNE LECTURE DU TOKEN DAN
 
 async function createPlayerProfile(userData) {
 	try	{
-		const	response = await axios.post(`${PLAYER_SERVICE_URL}/player/create`, userData,
+		const	response = await axios.post(`${PLAYER_SERVICE_URL}/player`, userData,
 			{
 				timeout: 5000,
 				headers: {'Service-token': SERVICE_SECRET}

@@ -78,7 +78,7 @@ services:
       cache:
         condition: service_healthy
       # player:
-      #   condition: service_started #rajout d'une dependance comme le auth/register fait appel a player/create
+      #   condition: service_started #rajout d'une dependance comme le auth/register fait appel a player/
     environment:
       - NODE_ENV=development
       - PLAYER_SERVICE_URL=http://player:3001 #rajout pour pas seulement ecrire en dur dans auth.js, c'est un test pour le moment
