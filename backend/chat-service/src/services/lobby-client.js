@@ -1,20 +1,18 @@
-// const LOBBY_SERVICE_URL = 'http://lobby:2000';
+/*
+	Remplacer par un vrai appel HTTP au lobby-service quand service OK
+	Il devra creer les lobby_sessions en DB lors de l'ouverture d'un lobby
+*/
+
+import { db } from '../config/db.js';
 
 export async function checkLobbyMembership(lobbyId, userId, accessToken) {
-	// const response = await fetch(
-	// 	`${LOBBY_SERVICE_URL}/lobby/rooms/${lobbyId}/members/${userId}`,
-	// 	{
-	// 		headers: { 'Authorization': `Bearer ${accessToken}` }
-	// 	}
-	// );
+	// Mock: cree la session lobby en DB si elle n'existe pas
+	await db.none(
+		`INSERT INTO chat.lobby_sessions (lobby_id)
+		VALUES ($1)
+		ON CONFLICT (lobby_id) DO NOTHING`,
+		[lobbyId]
+	);
 
-	// if (response.status === 404)
-	// 	return false;
-
-	// if (!response.ok)
-	// 	throw new Error(`Lobby service responded with ${response.status}`);
-
-	// const data = await response.json();
-	// return data.isMember === true;
 	return true;
 }

@@ -31,7 +31,7 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - transcendence_network
+      - trio_network
     restart: unless-stopped
 
   redis:
@@ -53,7 +53,7 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - transcendence_network
+      - trio_network
     restart: unless-stopped
 
   auth:
@@ -78,7 +78,7 @@ services:
     volumes:
       - ./backend/auth-service/src:/app/src:ro
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "3000:3000"
     restart: unless-stopped
@@ -105,7 +105,7 @@ services:
     volumes:
       - ./backend/chat-service/src:/app/src:ro
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "2000:2000"
     restart: unless-stopped
@@ -123,7 +123,7 @@ services:
       - ./backend:/app
       - /app/node_modules
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "5172:5172"
     restart: unless-stopped
@@ -140,7 +140,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "5173:5173"
     restart: unless-stopped
@@ -174,5 +174,5 @@ secrets:
     file: ./secrets/jwt_access.txt
 
 networks:
-  transcendence_network:
+  trio_network:
     driver: bridge

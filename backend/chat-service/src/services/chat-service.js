@@ -8,7 +8,7 @@ import {
 	NotLobbyMemberError,
 	LobbyServiceUnavailableError } from '../utils/errors.js';
 
-const VALID_MESSAGE_TYPES = ['user_text', 'quick_chat'];
+const VALID_MESSAGE_TYPES = ['user_text', 'suggestion'];
 
 class ChatService {
 	async blockUser(blockerId, blockedId) {
@@ -46,7 +46,7 @@ class ChatService {
 			throw new MissingFieldError('Message content');
 
 		if (!VALID_MESSAGE_TYPES.includes(messageType))
-			throw new InvalidFieldError('Message type must be user_text or quick_chat');
+			throw new InvalidFieldError('Message type must be user_text or suggestion');
 
 		let isMember;
 
