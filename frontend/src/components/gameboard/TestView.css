@@ -61,7 +61,6 @@ body.gameboard-active .main-container {
 .seat-top-left .card,
 .seat-top-right .card	{ transform-origin: top center; }
 
-
 .face-down-hand {
 	display: flex;
 	flex-direction: row;
@@ -76,6 +75,11 @@ body.gameboard-active .main-container {
 .seat-left .card-back,
 .seat-right .card-back {
 	transform: rotate(90deg);
+}
+
+.seat-left .card-back:hover,
+.seat-right .card-back:hover {
+	transform: rotate(90deg) scale(1.3);
 }
 
 .player-hand.bottom-center {
