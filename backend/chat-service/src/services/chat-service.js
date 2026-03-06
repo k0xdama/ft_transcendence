@@ -6,7 +6,8 @@ import {
 	InvalidFieldError,
 	CannotBlockSelfError,
 	NotLobbyMemberError,
-	LobbyServiceUnavailableError } from '../utils/errors.js';
+	LobbyServiceUnavailableError,
+	CannotDMSelfError } from '../utils/errors.js';
 
 const VALID_MESSAGE_TYPES = ['user_text', 'suggestion'];
 
@@ -74,6 +75,23 @@ class ChatService {
 		await redisClient.publish('chat:messages', JSON.stringify(payload));	// for WebSocket broadcast
 
 		return payload;
+	}
+
+	async createConversation(userId, targetId) {
+		if (!targetId)
+			throw new MissingFieldError('Target user ID');
+
+		if (userId === targetId)
+			throw new CannotDMSelfError();
+
+		const direct_conv = await db.oneOrNone(
+			`INSERT INTO chat.direct_conversations (user1_id, user2_id)
+			VALUES ($1, $2)
+			ON CONFLICT ON CONSTRAINT check_one_conversation_per_pair
+			DO UPDATE SET user1_id = EXCLUDED.user1_id
+			RETURNING id, user1_id, user2_id, created_at`,
+			[userId, targetId]
+		);
 	}
 }
 
