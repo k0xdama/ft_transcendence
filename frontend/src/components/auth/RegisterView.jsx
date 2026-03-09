@@ -37,8 +37,8 @@ function RegisterView() {
 			return
 		}
 
-		if (formData.password.length < 6) {
-			setError('Password must be 6 or more characters long')
+		if (formData.password.length < 8) {
+			setError('Password must be 8 or more characters')
 			return
 		}
 
