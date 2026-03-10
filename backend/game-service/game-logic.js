@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { randomInt } from 'crypto'
+import { getActiveResourcesInfo } from 'process';
 
 export const GAME_MODES = {
 	CLASSIC: 'classic',
@@ -178,13 +179,15 @@ export function shuffleAndDistribute(gameStruct, deck) {
 	gameStruct.cardsInMiddle = shuffled;
 }
 // if action is FLIP_MIDDLE target parameter gonna be the card position, else if action is ASK_LOWEST/HIGHEST so target gonna be the player's id targeted by the action
-// manque : maj currentaction + cardsRevealed non clean après fin de tour + trio trouvé mais non ajouté + stats (actionplayed + combo + trioof7)
+// manque : stats (actionplayed + combo + trioof7)
 export function executeAction(gameStruct, action_type, target) {
 	let return_object = {
 		event: null,
 		revealedCard: null,
+		actionDone: null,
+		target: null,
 		turnEnded: false,
-		nextAction: "",
+		nextAction: null,
 	}
 	let card = null;
 	let players = gameStruct.players;
@@ -192,6 +195,8 @@ export function executeAction(gameStruct, action_type, target) {
 	switch (action_type) {
 		case ACTIONS.FLIP_MIDDLE:
 			card = flipMiddleCard(gameStruct, target);
+			return_object.actionDone = action_type;
+			return_object.target = target;
 			break;
 		case ACTIONS.PLAYER_LOWEST: {
 			let hand = null;
@@ -200,6 +205,8 @@ export function executeAction(gameStruct, action_type, target) {
 					hand = player.hand;
 			}
 			card = getLowestCard(gameStruct, hand);
+			return_object.actionDone = action_type;
+			return_object.target = target;
 			break;
 		}
 		case ACTIONS.PLAYER_HIGHEST: {
@@ -209,6 +216,8 @@ export function executeAction(gameStruct, action_type, target) {
 					hand = player.hand;
 			}
 			card = getHighestCard(gameStruct, hand);
+			return_object.actionDone = action_type;
+			return_object.target = target;
 			break;
 		}
 	}
@@ -228,20 +237,30 @@ export function executeAction(gameStruct, action_type, target) {
 				return_object.event = EVENTS.PAIR_MISSED;
 				return_object.turnEnded = true;
 				return_object.nextAction = ACTIONS_NUMBER.FIRST;
+				gameStruct.cardsRevealed = [];
 				nextPlayer(gameStruct);
 			}
 			break;
-		case ACTIONS_NUMBER.BONUS:
+		case ACTIONS_NUMBER.BONUS: {
 			return_object.revealedCard = card;
-			if (checkForTrio(gameStruct.cardsRevealed) === true)
+			if (checkForTrio(gameStruct.cardsRevealed) === true) {
 				return_object.event = EVENTS.TRIO_FOUND;
+				gameStruct.trioWonArray[gameStruct.currentPlayer].push(card.value);
+				for (const cardToRemove of gameStruct.cardsRevealed) {
+					removeCard(gameStruct, cardToRemove.id);
+				}
+			}
 			else
 				return_object.event = EVENTS.TRIO_MISSED;
 			return_object.turnEnded = true;
 			return_object.nextAction = ACTIONS_NUMBER.FIRST;
+			gameStruct.cardsRevealed = [];
 			nextPlayer(gameStruct);
 			break;
+		}
 	}
+
+	gameStruct.currentAction = return_object.nextAction;
 
 	return return_object;
 }
