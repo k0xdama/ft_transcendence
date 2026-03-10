@@ -12,9 +12,21 @@ RUN npm install redis
 
 RUN npm install multer
 
+# RUN sudo apt install jq pour ubuntu/debian 
+# pour le testeur de requete
+
+#RUN chmod +x test-player.sh
+
 COPY . .
 
+# ✅ Copier le script d'initialisation
+COPY init-uploads.sh /usr/local/bin/init-uploads.sh
+RUN chmod +x /usr/local/bin/init-uploads.sh
+
 EXPOSE 3001
+
+# ✅ Utiliser le script comme ENTRYPOINT
+ENTRYPOINT ["/usr/local/bin/init-uploads.sh"]
 
 #SON
 CMD ["npm", "start"]

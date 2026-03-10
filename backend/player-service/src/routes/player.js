@@ -2,8 +2,8 @@ import 	express from 	'express';
 import	{ db } 	from	'../db/queries.js';
 
 import	path 	from	'path';
-import { deleteFile } from '../utils/fileHandler.js';
-import { UPLOAD_DIR } from '../middleware/upload.js';
+import { deleteFile, isDefaultProfilePicture } from '../utils/fileHandler.js';
+import upload, { UPLOAD_DIR, DEFAULT_PROFILE_PICTURE } from '../middleware/upload.js';
 
 //import { generateAccessToken } from '../../../auth-service/src/utils/jwt.js';//pas utilise pour le moment
 //import { verifyToken } from '../../../auth-service/src/middleware/verify-token.js';//pas utilise pour le moment
@@ -30,11 +30,6 @@ const	verifyServiceToken = (req, res, next) => {
 };
 
 
-// ========================================
-// CRUD de base sur /players
-// ========================================
-
-
 //WARN REST on doit avoir les nom au pluriel voir conv avec claude
 router.post('/', verifyServiceToken, async (req, res) => {// WARN route de la methode a changer carla convention REST implique deja que post creer donc on a juste post / pas post/create
 	const	{auth_user_id, username, email} = req.body;//A CHANGER SI RAJOUTE DES PARAMS DANS LA DB
@@ -47,10 +42,10 @@ router.post('/', verifyServiceToken, async (req, res) => {// WARN route de la me
 	}
 
 	try {
-		//avant que la partie auth fasse appel a cette requete elle verifie deja si il existe deja un profil donc arrive ici on se que le profil n'existe pas
+		//WARN avant que la partie auth fasse appel a cette requete elle verifie deja si il existe deja un profil donc arrive ici on se que le profil n'existe pas a voir si on rajoute une deuxieme verif
 		const	newPlayerUsers = await db.one(
 			'INSERT INTO player.users (auth_user_id, username, email, pp_path, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, username, email, created_at',
-			[auth_user_id, username, email, '../../profilePictures/']
+			[auth_user_id, username, email, DEFAULT_PROFILE_PICTURE]
 		);
 
 		console.log(`Player user created auth_user_id : ${newPlayerUsers.auth_user_id} username : ${newPlayerUsers.username} in player schema`);
@@ -64,6 +59,152 @@ router.post('/', verifyServiceToken, async (req, res) => {// WARN route de la me
 			error : 'Failed to create player user in player schema'});
 	}
 });
+
+// ========================================
+// Sous-ressource : Photo de profil
+// ========================================
+
+router.post('/:auth_user_id/profile-picture', upload.single('profilePicture'), async (req, res) => {
+	const	playerId = req.params.auth_user_id;
+
+	console.log('===== PROFILE PICTURE UPLOAD =====');
+    console.log(`Player ID: ${playerId}`);
+    console.log(`File:`, req.file);
+
+	try {
+		const player = await db.oneOrNone(
+            'SELECT id, pp_path FROM player.users WHERE auth_user_id = $1',
+            [playerId]
+        );
+
+		if (!player) {
+            if (req.file) {
+                deleteFile(req.file.path);
+            }
+            return res.status(404).json({ error: 'Player not found' });
+        }
+
+		if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+		if (player.pp_path && !isDefaultProfilePicture(player.pp_path)) {
+            const oldFilePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
+            deleteFile(oldFilePath);
+            console.log(`🗑️  Old profile picture deleted`);
+        } else if (isDefaultProfilePicture(player.pp_path)) {
+            console.log(`ℹ️  Previous picture was default, no deletion needed`);
+        }
+
+		const relativePath = `/uploads/profilePictures/${req.file.filename}`;
+
+        const updatedPlayer = await db.one(
+            'UPDATE player.users SET pp_path = $1 WHERE auth_user_id = $2 RETURNING *',
+            [relativePath, playerId]
+        );
+
+		console.log(`✅ Profile picture updated for player ${updatedPlayer.id}`);
+
+        res.status(200).json({
+            message: 'Profile picture uploaded successfully',
+            player: updatedPlayer,
+            file: {
+                filename: req.file.filename,
+                size: req.file.size,
+                mimetype: req.file.mimetype,
+                path: relativePath
+            }
+		});
+
+	} catch (error) {
+
+		console.error('❌ Error uploading profile picture:', error);
+        
+        if (req.file) {
+            deleteFile(req.file.path);
+        }
+
+        res.status(500).json({ error: 'Failed to upload profile picture' });
+	}
+});
+
+// ✅ RESTful : GET /players/:auth_user_id/profile-picture (récupérer)
+router.get('/:auth_user_id/profile-picture', async (req, res) => {
+    try {
+        const player = await db.oneOrNone(
+            'SELECT pp_path FROM player.users WHERE auth_user_id = $1',
+            [req.params.auth_user_id]
+        );
+
+        if (!player) {
+            return res.status(404).json({ error: 'Player not found' });
+        }
+
+        if (!player.pp_path) {
+            return res.status(404).json({ error: 'No profile picture' });
+        }
+
+        // Redirection vers le fichier statique
+        res.redirect(player.pp_path);
+
+    } catch (error) {
+        console.error('Error fetching profile picture:', error);
+        res.status(500).json({ error: 'Failed to fetch profile picture' });
+    }
+});
+
+// ✅ RESTful : DELETE /players/:auth_user_id/profile-picture (supprimer)
+router.delete('/:auth_user_id/profile-picture', async (req, res) => {
+    const playerId = req.params.auth_user_id;
+
+    try {
+        const player = await db.oneOrNone(
+            'SELECT auth_user_id, pp_path FROM player.users WHERE auth_user_id = $1',
+            [playerId]
+        );
+
+        if (!player) {
+            return res.status(404).json({ error: 'Player not found' });
+        }
+
+		if (isDefaultProfilePicture(player.pp_path)) {
+            return res.status(400).json({ 
+                error: 'Already using default profile picture',
+                message: 'No custom picture to delete'
+            });
+        }
+
+        if (!player.pp_path) {
+            return res.status(404).json({ error: 'No profile picture to delete' });
+        }
+
+        const filePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
+        deleteFile(filePath);
+
+		await db.none(
+            'UPDATE player.users SET pp_path = $1 WHERE auth_user_id = $2',
+            [DEFAULT_PROFILE_PICTURE, playerId]
+        );
+
+        console.log(`✅ Profile picture reset to default for player ${player.auth_user_id}`);
+
+        res.status(200).json({  // ✅ 200 au lieu de 204 pour renvoyer un message
+            message: 'Profile picture deleted, reset to default',
+            pp_path: DEFAULT_PROFILE_PICTURE
+        });
+
+    } catch (error) {
+        console.error('❌ Error deleting profile picture:', error);
+        res.status(500).json({ error: 'Failed to delete profile picture' });
+    }
+});
+
+// ========================================
+// CRUD de base sur /players
+// ========================================
+
+
+
 
 router.get('/:auth_user_id', async (req, res) => { //WARN j'ai CHANGE CAR pas secu on ne met jamais de SERIAL dans une routes car c'est une faiblesse tres simpl a exploiter on met de l'UUID ici authUserId
 
@@ -97,10 +238,12 @@ router.delete('/:auth_user_id' , async (req, res) => {
 			return res.status(404).json({error : `Player not found`});
 		}
 
-		if (player.pp_path) {
-			const filePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
-			deleteFile(filePath);
-		}
+		if (player.pp_path && !isDefaultProfilePicture(player.pp_path)) {
+            const filePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
+            deleteFile(filePath);
+        } else if (isDefaultProfilePicture(player.pp_path)) {
+            console.log(`ℹ️  Player has default picture, skipping file deletion`);
+        }
 
 		await db.none('DELETE FROM player.users WHERE auth_user_id = $1', [req.params.auth_user_id]);
 
@@ -148,11 +291,8 @@ router.patch('/:auth_user_id', async (req, res) => {//WARN la verification de la
         
         res.status(500).json({ error: 'Failed to update player' });
 	}
-});
+});//Cette technique plutot que de faire une query pour chaque parametre de a db et donc devoir remettre le meme pour ne pas changer le NULL, ici on ne modifie QUE les parametres dont on recois l'info, de plus on peut facilement rajouter de paramettre
 
-// ========================================
-// Sous-ressource : Photo de profil
-// ========================================
 
 
 

@@ -138,6 +138,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend/player-service/src:/app/src:ro
+      - ./backend/player-service/uploads:/app/uploads
     ports:
       - "3001:3001"
     networks:
