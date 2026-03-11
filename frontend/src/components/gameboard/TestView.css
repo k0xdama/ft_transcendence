@@ -48,6 +48,12 @@ body.gameboard-active .main-container {
 	gap: 0.4rem;
 }
 
+.slot-hand-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
 .seat-top			{ top: 2vh; left: 50%; transform: translateX(-50%); }
 .seat-left			{ left: 5vw; top: 50%; transform: translateY(-50%); }
 .seat-right			{ right: 5vw; top: 50%; transform: translateY(-50%); }
@@ -82,21 +88,29 @@ body.gameboard-active .main-container {
 	transform: rotate(90deg) scale(1.3);
 }
 
-.player-hand.bottom-center {
-	position: absolute;
-	bottom: 1rem;
-	left: 50%;
-	transform: translateX(-50%);
+.player-hand {
 	display: flex;
+	flex-direction: row;
+	align-items: center;
 	gap: 0.5rem;
 }
 
-.player-hand.bottom-right {
+.player-hand-wrapper {
 	position: absolute;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.player-hand-wrapper.bottom-center {
+	bottom: 2vh;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.player-hand-wrapper.bottom-right {
 	bottom: 8vh;
 	right: 22vw;
-	display: flex;
-	gap: 0.5rem;
 	left: auto;
 	transform: none;
 }
@@ -135,6 +149,68 @@ body.gameboard-active .main-container {
 	height: 100%;
 	object-fit: contain;
 	border-radius: 6px;
+}
+
+.trio-badge {
+	width: 0;
+	height: 0;
+	border-left: 20px solid transparent;
+	border-right: 20px solid transparent;
+	border-bottom: 35px solid gold;
+	position: relative;
+	cursor: pointer;
+	filter: drop-shadow(0 0 4px rgba(255, 255, 0, 0.6));
+}
+
+.trio-badge-count {
+	position: absolute;
+	bottom: -30px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 0.75rem;
+	font-weight: bold;
+	color: black;
+	pointer-events: none;
+}
+
+.trio-tooltip {
+	display: none;
+	position: absolute;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(0, 0, 0, 0.85);
+	border: 1px solid rgba(255, 255, 0, 0.4);
+	border-radius: 6px;
+	padding: 0.4rem;
+	gap: 0.4rem;
+	z-index: 20;
+	white-space: nowrap;
+}
+
+.trio-badge-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.trio-badge-wrapper:hover .trio-tooltip {
+	display: flex;
+}
+
+.trio-mini-card {
+	width: 2.2vw;
+	height: 3vw;
+	border-radius: 4px;
+	overflow: hidden;
+	border: 1px solid rgba(255,255,255,0.2);
+}
+
+.trio-card-img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 
 .demo-controls {

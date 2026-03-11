@@ -27,12 +27,12 @@ const LAYOUTS = {
 const SEAT_POSITIONS = ["top", "left", "right", "top-left", "top-right"]
 
 const ALL_PLAYERS = [
-	{ id: 1, username: "Opponent 1", cardCount: 5 },
-	{ id: 2, username: "Opponent 2", cardCount: 5 },
-	{ id: 3, username: "Opponent 3", cardCount: 5 },
-	{ id: 4, username: "Opponent 4", cardCount: 5 },
-	{ id: 5, username: "Opponent 5", cardCount: 5 },
-	{ id: 6, username: "You", cardCount: 5 },
+	{ id: 1, username: "Opponent 1", cardCount: 5, trios: [1, 5] },
+	{ id: 2, username: "Opponent 2", cardCount: 5, trios: [3] },
+	{ id: 3, username: "Opponent 3", cardCount: 5, trios: [11] },
+	{ id: 4, username: "Opponent 4", cardCount: 5, trios: [9] },
+	{ id: 5, username: "Opponent 5", cardCount: 5, trios: [] },
+	{ id: 6, username: "You", cardCount: 5, trios: [12, 6]},
 ]
 
 const MY_HAND = [
@@ -42,6 +42,8 @@ const MY_HAND = [
 	{ id: "c3", label: 4 },
 	{ id: "c3", label: 2 },
 ]
+
+const MY_TRIOS = [12, 6]
 
 const RIVER_COUNT = {
 	3: {total: 9, cols: 3},
@@ -79,7 +81,7 @@ function TestView () {
 
 			<TableArea total={total} cols={cols} />
 
-			<PlayerHand cards={MY_HAND} seat={layout.playerSeat} />
+			<PlayerHand cards={MY_HAND} seat={layout.playerSeat} trios={MY_TRIOS}/>
 			<ChatOverlay />
 			<div className='demo-controls'>
 				<button onClick={removePlayer} disabled={playerCount <= 3}>-</button>
