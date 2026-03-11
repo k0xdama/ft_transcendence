@@ -1,0 +1,13 @@
+{
+    "name": "game-service",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "game-service.js",
+    "scripts": {
+        "start": "node game-service.js",
+        "dev": "node --watch game-service.js"
+    },
+    "dependencies": {
+        "socket.io": "^4.8.1"
+    }
+}

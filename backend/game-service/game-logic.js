@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { randomInt } from 'crypto'
 import { getActiveResourcesInfo } from 'process';
 
@@ -26,49 +25,9 @@ export const EVENTS = {
 	TRIO_MISSED: 'TRIO_MISSED'
 };
 
-export function createGame(playersIds, gameMode) {
-	const gameId = randomUUID();
-	const players = [];
-
-	for (const id of playersIds) {
-		const player = {
-			id: id,
-			hand: []
-		};
-		players.push(player);
-	}
-
-	const gameStruct = {
-		gameId: gameId,
-		gameMode: gameMode,
-		players: players,
-		playersNumber: players.length,
-		currentPlayerIndex: 0,
-		currentPlayer: players[0].id,
-		currentAction: ACTIONS_NUMBER.FIRST,
-		cardsInMiddle: [],
-		cardsRevealed: [],
-		trioWonArray: {},
-		stats: {},
-		start: Date.now()
-	};
-
-	for (const player of gameStruct.players) {
-		gameStruct.trioWonArray[player.id] = [];
-		gameStruct.stats[player.id] = {
-			actionsPlayed: 0,
-			combo: 0,
-			trioOf7: 0
-		};
-	}
-
-	const deck = createDeck();
-	shuffleAndDistribute(gameStruct, deck);
-	return gameStruct;
-}
-
 //   const gameStruct = {
 //     gameId: ...,
+// 	creatorId:...
 //     gameMode: ...,
 //     players: ...,
 //     PlayersNumber: ...,
@@ -81,6 +40,49 @@ export function createGame(playersIds, gameMode) {
 //     stats: {},
 //     startTime: ...
 //   };
+
+export function createGame(gameId, gameMode) {
+	const gameStruct = {
+		gameId: gameId,
+		creatorId: null,
+		gameMode: gameMode,
+		players: [],
+		playersNumber: 0,
+		cardsInMiddle: [],
+		cardsRevealed: [],
+		trioWonArray: {},
+		stats: {},
+	};
+
+	return gameStruct;
+}
+
+export function startGame(gameStruct) {
+	gameStruct.currentPlayerIndex = 0;
+	gameStruct.currentPlayer = gameStruct.players[0];
+	gameStruct.currentAction = ACTIONS_NUMBER.FIRST;
+	gameStruct.start = Date.now();
+
+	for (const player of gameStruct.players) {
+		gameStruct.trioWonArray[player.id] = [];
+		gameStruct.stats[player.id] = {
+			actionsPlayed: 0,
+			combo: 0,
+			trioOf7: 0
+		};
+	}
+	const deck = createDeck();
+	shuffleAndDistribute(gameStruct, deck);
+}
+
+export function addPlayer(gameStruct, playerId) {
+	const player = {
+		id: playerId,
+		hand: []
+	};
+	gameStruct.players.push(player);
+	gameStruct.playersNumber++;
+}
 
 export function createDeck() {
 	const deck = [];
@@ -161,7 +163,7 @@ export function shuffleAndDistribute(gameStruct, deck) {
 			nbInMiddle = 5, nbByPlayer = 6; break;
 	}
 	const shuffled = [...deck];
-	for (let i = shuffled.length - 1; i > 0; ++i) {
+	for (let i = shuffled.length - 1; i > 0; --i) {
 		const j = randomInt(0, i + 1);
 		[shuffled[i], shuffled[j]] = [shuffled[i], shuffled[j]];
 	}

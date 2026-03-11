@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Client</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Test WebSocket</h1>
+    <div id="status">Connexion...</div>
+	<button onclick="socket.emit('game:create', {
+		gameMode: 'classic'
+	})">Create Game</button>
+
+	<input id="joinId" placeholder="Game ID" />
+	<button onclick="socket.emit('game:join', { gameId: document.getElementById('joinId').value })">Join Game</button>
+	<button onclick="socket.emit('game:start', { gameId: currentGameId })">Start Game</button>
+    
+    <script>
+        const socket = io('http://localhost:3001');
+
+		socket.onAny((event, data) => console.log('event reçu:', event, data));
+        
+        socket.on('connect', () => {
+            document.getElementById('status').innerText = 
+                '✅ Connecté ! ID: ' + socket.id;
+            console.log('Connecté au serveur');
+        });
+
+		let currentGameId = null;
+
+		socket.on('game:created', (data) => {
+			currentGameId = data.gameId;
+			document.getElementById('status').innerText =
+				`Une partie à été créé et rejointe par l'hôte. ID: ` + data.gameId;
+			console.log(`Une partie à été créé et rejointe par l'hôte. ID: ${data.gameId}`);
+		});
+
+		socket.on('game:joined', (data) => {
+			currentGameId = data.gameId;
+			document.getElementById('status').innerText = 'Rejoint la partie : ' + data.gameId;
+		});
+
+		socket.on('game:started', (data) => {
+   			document.getElementById('status').innerText = 'Partie démarrée !';
+    		console.log('game:started reçu', data);
+		});
+
+		socket.on('error', (msg) => {
+    		document.getElementById('status').innerText = 'Erreur : ' + msg;
+		});
+        
+        socket.on('disconnect', () => {
+            document.getElementById('status').innerText = 
+                '❌ Déconnecté';
+            console.log('Déconnecté du serveur');
+        });
+    </script>
+</body>
+</html>
