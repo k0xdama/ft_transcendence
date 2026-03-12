@@ -9,7 +9,7 @@ import CreateGameView from '../src/components/lobby/CreateGameView'
 import JoinGameView from '../src/components/lobby/JoinGameView'
 import LoginView from '../src/components/auth/LoginView'
 import RegisterView from '../src/components/auth/RegisterView'
-import TestView from '../src/components/gameboard/TestView'
+import { AuthProvider } from '../src/context/AuthContext'
 
 afterEach(cleanup)
 
