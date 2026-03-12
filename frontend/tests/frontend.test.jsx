@@ -225,8 +225,8 @@ describe('RegisterView', () => {
 		const inputs = document.querySelectorAll('input')
         fireEvent.change(inputs[0], { target: { name: 'username', value: 'testuser' } })
         fireEvent.change(inputs[1], { target: { name: 'email', value: 'user@test.com' } })
-        fireEvent.change(inputs[2], { target: { name: 'password', value: 'abcdef' } })
-        fireEvent.change(inputs[3], { target: { name: 'confirmPassword', value: 'abcdef' } })
+        fireEvent.change(inputs[2], { target: { name: 'password', value: '@Bcd3fgh' } })
+        fireEvent.change(inputs[3], { target: { name: 'confirmPassword', value: '@Bcd3fgh' } })
         fireEvent.click(screen.getByRole('button', { name: 'Register' }))
 
         await waitFor(() => {
