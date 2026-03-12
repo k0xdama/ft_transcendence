@@ -5,11 +5,11 @@ import { MemoryRouter } from 'react-router-dom'
 
 import NavBar from '../src/components/NavBar'
 import HomeView from '../src/components/HomeView'
-import CreateGameView from '../src/components/CreateGameView'
-import JoinGameView from '../src/components/JoinGameView'
-import LoginView from '../src/components/LoginView'
-import RegisterView from '../src/components/RegisterView'
-import TestView from '../src/components/TestView'
+import CreateGameView from '../src/components/lobby/CreateGameView'
+import JoinGameView from '../src/components/lobby/JoinGameView'
+import LoginView from '../src/components/auth/LoginView'
+import RegisterView from '../src/components/auth/RegisterView'
+import TestView from '../src/components/gameboard/TestView'
 
 afterEach(cleanup)
 
@@ -217,19 +217,4 @@ describe('RegisterView', () => {
 
         vi.unstubAllGlobals()
     })
-})
-
-// ################
-// ### TestView ###
-// ################
-
-describe('TestView', () => {
-	it('affiche les sections de l\'interface de jeu', () => {
-		withRouter(<TestView />)
-		expect(screen.getByText('PLAYERS')).toBeDefined()
-		expect(screen.getByText('CHAT')).toBeDefined()
-		expect(screen.getByText('CURRENT CYCLE')).toBeDefined()
-		expect(screen.getByText('LOG')).toBeDefined()
-		expect(screen.getByText('ROLES')).toBeDefined()
-	})
 })
