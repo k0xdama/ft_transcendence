@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { randomUUID } from 'crypto';
-import { createGame } from './game-logic.js';
+import { createGame, executeAction } from './game-logic.js';
 import { startGame } from './game-logic.js';
 import { addPlayer } from './game-logic.js';
 import { SocketAddress } from 'net';
@@ -56,9 +56,7 @@ io.on('connection', (socket) => {
 			socket.emit('error', `La partie n'existe plus...Quelque chose a tourné au vinaigre...`);
 			return;
 		}
-		console.log('gameStruct trouvé ?', gameStruct ? 'oui' : 'non');
-    	console.log('creatorId ?', gameStruct?.creatorId, 'socket.id ?', socket.id);
-    	console.log('playersNumber ?', gameStruct?.playersNumber);
+    	console.log('playersNumber :', gameStruct?.playersNumber);
 		if (socket.id !== gameStruct.creatorId) {
 			socket.emit('error', `Seul l'hôte peut lancer la partie`);
 			return;
@@ -67,11 +65,24 @@ io.on('connection', (socket) => {
 			socket.emit('error', 'Pas assez de joueurs pour lancer la partie (3 minimum)');
 			return;
 		}
-		console.log('zizi');
 		startGame(gameStruct);
-		console.log('prout');
 		io.to(data.gameId).emit('game:started', { gameStruct });
 		console.log(`Game ${data.gameId} has been started !`);
+	});
+
+	socket.on('game:action', (data) => {
+		console.log('game:action reçu', data);
+		const gameStruct = games.get(data.gameId);
+		if (!gameStruct) {
+			socket.emit('error', `La partie n'existe plus...Quelque chose a tourné au vinaigre...`);
+			return;
+		}
+		if (socket.id !== gameStruct.currentPlayer) {
+			socket.emit('error', `Ce n'est pas ton tour !`);
+			return;
+		}
+		const action_result = executeAction(gameStruct, data.actionType, data.target);
+		io.to(data.gameId).emit('game:update', { action_result, gameStruct });
 	});
 
 	socket.on('disconnect', () => {

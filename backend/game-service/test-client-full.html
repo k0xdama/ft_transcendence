@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Client</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Test WebSocket</h1>
+    <div id="status">Connexion...</div>
+
+    <hr>
+    <button onclick="socket.emit('game:create', { gameMode: 'classic' })">Create Game</button>
+    <input id="joinId" placeholder="Game ID" />
+    <button onclick="socket.emit('game:join', { gameId: document.getElementById('joinId').value })">Join Game</button>
+    <button onclick="socket.emit('game:start', { gameId: currentGameId })">Start Game</button>
+
+    <hr>
+    <div id="game" style="display:none">
+        <p>Mon ID : <strong id="myId"></strong></p>
+        <p>Tour de : <strong id="currentPlayer"></strong></p>
+        <p>Action : <strong id="currentAction"></strong></p>
+
+        <h3>Ma main</h3>
+        <div id="hand"></div>
+
+        <h3>Cartes du milieu</h3>
+        <div id="middle"></div>
+
+        <h3>Cartes révélées</h3>
+        <div id="revealed"></div>
+
+        <h3>Actions</h3>
+        <select id="actionType">
+            <option value="PLAYER_HIGHEST">ASK_HIGHEST</option>
+            <option value="PLAYER_LOWEST">ASK_LOWEST</option>
+            <option value="FLIP_MIDDLE">FLIP_MIDDLE</option>
+        </select>
+        <input id="actionTarget" placeholder="ID joueur ou position milieu" />
+        <button onclick="sendAction()">Jouer</button>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:3001');
+        socket.onAny((event, data) => console.log('event reçu:', event, data));
+
+        let currentGameId = null;
+
+        socket.on('connect', () => {
+            document.getElementById('status').innerText = '✅ Connecté ! ID: ' + socket.id;
+            document.getElementById('myId').innerText = socket.id;
+        });
+
+        socket.on('game:created', (data) => {
+            currentGameId = data.gameId;
+            document.getElementById('status').innerText = 'Partie créée et rejointe. ID: ' + data.gameId;
+        });
+
+        socket.on('game:joined', (data) => {
+            currentGameId = data.gameId;
+            document.getElementById('status').innerText = 'Rejoint la partie : ' + data.gameId;
+        });
+
+        socket.on('game:started', (data) => {
+            document.getElementById('status').innerText = 'Partie démarrée !';
+            document.getElementById('game').style.display = 'block';
+            updateUI(data.gameStruct);
+        });
+
+        socket.on('game:update', (data) => {
+            updateUI(data.gameStruct);
+        });
+
+        socket.on('error', (msg) => {
+            document.getElementById('status').innerText = 'Erreur : ' + msg;
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('status').innerText = '❌ Déconnecté';
+        });
+
+        function sendAction() {
+            const actionType = document.getElementById('actionType').value;
+            const target = document.getElementById('actionTarget').value;
+            socket.emit('game:action', {
+                gameId: currentGameId,
+                actionType: actionType,
+                target: target
+            });
+        }
+
+        function updateUI(gameStruct) {
+            document.getElementById('currentPlayer').innerText = gameStruct.currentPlayer;
+            document.getElementById('currentAction').innerText = gameStruct.currentAction;
+
+            const me = gameStruct.players.find(p => p.id === socket.id);
+            if (me) {
+                document.getElementById('hand').innerText =
+                    me.hand.map(c => `[${c.value}]`).join(' ');
+            }
+
+            document.getElementById('middle').innerText =
+                gameStruct.cardsInMiddle.map((c, i) =>
+                    c.revealed ? `${i}:[${c.value}]` : `${i}:[?]`
+                ).join(' ');
+
+            document.getElementById('revealed').innerText =
+                gameStruct.cardsRevealed.map(c => `[${c.value}]`).join(' ');
+        }
+    </script>
+</body>
+</html>

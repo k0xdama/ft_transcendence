@@ -1,5 +1,4 @@
 import { randomInt } from 'crypto'
-import { getActiveResourcesInfo } from 'process';
 
 export const GAME_MODES = {
 	CLASSIC: 'classic',
@@ -59,7 +58,7 @@ export function createGame(gameId, gameMode) {
 
 export function startGame(gameStruct) {
 	gameStruct.currentPlayerIndex = 0;
-	gameStruct.currentPlayer = gameStruct.players[0];
+	gameStruct.currentPlayer = gameStruct.players[0].id;
 	gameStruct.currentAction = ACTIONS_NUMBER.FIRST;
 	gameStruct.start = Date.now();
 
@@ -104,12 +103,11 @@ export function getHighestCard(gameStruct, cards) {
 	let highestCard = cards[0];
 	
 	for (let current = 0; current < cards.length; ++current) {
-		if (cards[current].value > highestCard.value) {
+		if (cards[current].value > highestCard.value)
 			highestCard = cards[current];
-			highestCard.revealed = true;
-			gameStruct.cardsRevealed.push(highestCard);
-		}
 	}
+	highestCard.revealed = true;
+	gameStruct.cardsRevealed.push(highestCard);
 	return highestCard;
 }
 
@@ -117,12 +115,11 @@ export function getLowestCard(gameStruct, cards) {
 	let lowestCard = cards[0];
 
 	for (let current = 0; current < cards.length; ++current) {
-		if (cards[current].value < lowestCard.value) {
+		if (cards[current].value < lowestCard.value)
 			lowestCard = cards[current];
-			lowestCard.revealed = true;
-			gameStruct.cardsRevealed.push(lowestCard);
-		}
 	}
+	lowestCard.revealed = true;
+	gameStruct.cardsRevealed.push(lowestCard);
 	return lowestCard;
 }
 
@@ -163,10 +160,14 @@ export function shuffleAndDistribute(gameStruct, deck) {
 			nbInMiddle = 5, nbByPlayer = 6; break;
 	}
 	const shuffled = [...deck];
+	console.log('deck avant shuffle:', shuffled.map(c => c.value));
 	for (let i = shuffled.length - 1; i > 0; --i) {
 		const j = randomInt(0, i + 1);
-		[shuffled[i], shuffled[j]] = [shuffled[i], shuffled[j]];
+		console.log('loop i & j : ', i, '- ', j);
+		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
 	}
+
+	console.log('deck après shuffle:', shuffled.map(c => c.value));
 
 	for (const player of gameStruct.players) {
 		player.hand = [];
@@ -177,12 +178,12 @@ export function shuffleAndDistribute(gameStruct, deck) {
 			player.hand.push(shuffled.shift());
 		}
 	}
-
+	console.log('deck après distribution:', shuffled.map(c => c.value));
 	gameStruct.cardsInMiddle = shuffled;
 }
 // if action is FLIP_MIDDLE target parameter gonna be the card position, else if action is ASK_LOWEST/HIGHEST so target gonna be the player's id targeted by the action
 // manque : stats (actionplayed + combo + trioof7)
-export function executeAction(gameStruct, action_type, target) {
+export function executeAction(gameStruct, actionType, target) {
 	let return_object = {
 		event: null,
 		revealedCard: null,
@@ -194,10 +195,10 @@ export function executeAction(gameStruct, action_type, target) {
 	let card = null;
 	let players = gameStruct.players;
 
-	switch (action_type) {
+	switch (actionType) {
 		case ACTIONS.FLIP_MIDDLE:
 			card = flipMiddleCard(gameStruct, target);
-			return_object.actionDone = action_type;
+			return_object.actionDone = actionType;
 			return_object.target = target;
 			break;
 		case ACTIONS.PLAYER_LOWEST: {
@@ -207,7 +208,7 @@ export function executeAction(gameStruct, action_type, target) {
 					hand = player.hand;
 			}
 			card = getLowestCard(gameStruct, hand);
-			return_object.actionDone = action_type;
+			return_object.actionDone = actionType;
 			return_object.target = target;
 			break;
 		}
@@ -218,7 +219,7 @@ export function executeAction(gameStruct, action_type, target) {
 					hand = player.hand;
 			}
 			card = getHighestCard(gameStruct, hand);
-			return_object.actionDone = action_type;
+			return_object.actionDone = actionType;
 			return_object.target = target;
 			break;
 		}
@@ -270,7 +271,7 @@ export function executeAction(gameStruct, action_type, target) {
 export function nextPlayer(gameStruct) {
 	const nextIndex = (gameStruct.currentPlayerIndex + 1) % gameStruct.playersNumber;
 	gameStruct.currentPlayerIndex = nextIndex;
-	gameStruct.currentPlayer = gameStruct.players[nextIndex];
+	gameStruct.currentPlayer = gameStruct.players[nextIndex].id;
 }
 
 export function endTurn() {
@@ -298,7 +299,7 @@ export function checkForTrio(cards) {
 
 export function checkWinConditions(gameStruct) {
 	for (const player of gameStruct.players) {
-		const trios = gameStruct.TrioWonArray[player.id];
+		const trios = gameStruct.trioWonArray[player.id];
 
 		if (trios.length === 3)
 			return (player);
