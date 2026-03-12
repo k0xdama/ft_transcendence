@@ -1,6 +1,6 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../auth-service.js';
+import app from '../auth-server.js';
 import { db } from '../src/config/db.js';
 
 describe('Auth /auth/register', () => {

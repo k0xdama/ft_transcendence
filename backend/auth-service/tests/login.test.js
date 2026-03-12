@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../auth-service.js';
+import app from '../auth-server.js';
 import { db } from '../src/config/db.js';
 
 describe('Auth /auth/login', () => {
-	beforeAll(async () => {		// Create a user before login testing
+	// Create a user before login testing
+	beforeAll(async () => {
 		await request(app)
 			.post('/auth/register')
 			.send({

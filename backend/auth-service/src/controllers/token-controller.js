@@ -1,4 +1,4 @@
-import { authService } from '../services/auth.js';
+import { authService } from '../services/auth-service.js';
 import { generateAccessToken } from '../utils/jwt.js';
 import { setRefreshCookie } from '../utils/cookies.js';
 
@@ -16,10 +16,15 @@ export async function refresh(req, res) {
 	}
 	catch (error) {
 		if (error.isOperational) {
-			return res.status(error.statusCode).json({ error: error.detail });
+			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
 		console.error('Refresh:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
+}
+
+// GET /auth/test (debug route)
+export async function testAccessToken(req, res) {
+	return res.status(200).json({ user: req.user });
 }

@@ -37,8 +37,8 @@ function RegisterView() {
 			return
 		}
 
-		if (formData.password.length < 6) {
-			setError('Password must be 6 or more characters long')
+		if (formData.password.length < 8) {
+			setError('Password must be 8 or more characters')
 			return
 		}
 
@@ -77,7 +77,7 @@ function RegisterView() {
 				confirmPassword: ''
 			})
 			
-			setTimeout(() => {navigate('/login')}, 2000)
+			setTimeout(() => {navigate('/login')}, 1000)
 		} catch (error) {
 			console.error('Register error:', error)
 			setError('Registration failed. Please try again.')
@@ -91,22 +91,24 @@ function RegisterView() {
 			<h2 className='title'>Create a new account</h2>
 			{error && <div className='error'>{error}</div>}
 			{success && <div className='success'> {success}</div>}
-			<div className='inputs'>
-				<label>Username:</label>
-				<input name= 'username' value={formData.username} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
-				<label>Email address:</label>
-				<input name= 'email' value={formData.email} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
-				<label>Password:</label>
-				<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
-				<label>Confirm password:</label>
-				<input name= 'confirmPassword' value={formData.confirmPassword} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
-			</div>
-			<button className='comBut'
-			onClick={handleRegister}
-			disabled={loading}
-			>
-				{loading ? 'Registering...' : 'Register'}
-			</button>
+			<form onSubmit={handleRegister}>
+				<div className='inputs'>
+					<label>Username:</label>
+					<input name= 'username' value={formData.username} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
+					<label>Email address:</label>
+					<input name= 'email' value={formData.email} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
+					<label>Password:</label>
+					<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
+					<label>Confirm password:</label>
+					<input name= 'confirmPassword' value={formData.confirmPassword} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
+				</div>
+				<button className='comBut'
+				type='submit'
+				disabled={loading}
+				>
+					{loading ? 'Registering...' : 'Register'}
+				</button>
+			</form>
 			<p>Already have an account? <Link to="/login">Sign in</Link></p>
 		</div>
 	);

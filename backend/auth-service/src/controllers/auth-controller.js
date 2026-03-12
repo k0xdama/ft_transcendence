@@ -1,4 +1,4 @@
-import { authService } from '../services/auth.js';
+import { authService } from '../services/auth-service.js';
 import { generateAccessToken } from '../utils/jwt.js';
 import { setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
 
@@ -16,7 +16,7 @@ export async function register(req, res) {
 	}
 	catch (error) {
 		if (error.isOperational) {	// ex: validation error, duplication...
-			return res.status(error.statusCode).json({ error: error.detail });
+			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
 		console.error('Register:', error);
@@ -46,7 +46,7 @@ export async function login(req, res) {
 	}
 	catch (error) {
 		if (error.isOperational) {
-			return res.status(error.statusCode).json({ error: error.detail });
+			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
 		console.error('Login:', error);
@@ -60,7 +60,6 @@ export async function logout(req, res) {
 		const refreshToken = req.cookies.refreshToken;
 
 		await authService.logout(refreshToken);
-
 		clearRefreshCookie(res);
 
 		return res.status(200).json({ message: 'Logout successful' });
@@ -69,9 +68,4 @@ export async function logout(req, res) {
 		console.error('Logout:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
-}
-
-// GET /auth/test (debug route)
-export async function testToken(req, res) {
-	return res.status(200).json({ user: req.user });
 }

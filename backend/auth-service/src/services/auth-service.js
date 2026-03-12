@@ -3,8 +3,8 @@ import { db } from '../config/db.js';
 import {
 	EmailAlreadyExistsError,
 	UsernameAlreadyExistsError,
-	UserNotFoundError,
-	InvalidPasswordError,
+	UserNotFoundError,			// To delete before correction
+	InvalidPasswordError,		// To delete before correction
 	InvalidCredentialsError } from '../utils/errors.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
