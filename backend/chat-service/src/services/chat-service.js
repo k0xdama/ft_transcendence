@@ -16,10 +16,10 @@ const VALID_MSG_TYPES = ['user_text', 'suggestion'];
 
 class ChatService {
 	// Private methods
-	async #verifyLobbyMember(roomId) {
+	async #verifyLobbyMember(roomId, userId, accessToken) {
 		let isMember;
 		try {
-			isMember = await checkLobbyMembership(roomId); // ajouter @params: userId + accessToken quand Lobby service OK
+			isMember = await checkLobbyMembership(roomId, userId, accessToken);
 		}
 		catch (error) {
 			throw new LobbyServiceUnavailableError();
@@ -71,8 +71,7 @@ class ChatService {
 		await redisClient.sRem(`chat:blocked:${blockerId}`, blockedId);
 	}
 
-	// ajouter @param: accessToken quand Lobby service OK
-	async sendLobbyMessage({ roomId, userId, username, content, messageType = 'user_text' }) {
+	async sendLobbyMessage({ roomId, userId, username, content, messageType = 'user_text', accessToken }) {
 		if (!roomId)
 			throw new MissingFieldError('Lobby room ID');
 
@@ -82,13 +81,13 @@ class ChatService {
 		if (!VALID_MSG_TYPES.includes(messageType))
 			throw new InvalidFieldError('Message type must be user_text or suggestion');
 
-		await this.#verifyLobbyMember(roomId);
+		await this.#verifyLobbyMember(roomId, userId, accessToken);
 
 		const message = await db.one(
-			`INSERT INTO chat.lobby_messages (room_id, sender_id, content, message_type)
-			VALUES ($1, $2, $3, $4)
-			RETURNING id, room_id, sender_id, content, message_type, created_at`,
-			[roomId, userId, content.trim(), messageType]
+			`INSERT INTO chat.lobby_messages (room_id, sender_id, username, content, message_type)
+			VALUES ($1, $2, $3, $4, $5)
+			RETURNING id, room_id, sender_id, username, content, message_type, created_at`,
+			[roomId, userId, username, content.trim(), messageType]
 		);
 
 		// '...' is a spread operator: copies all message properties into this object
@@ -99,19 +98,25 @@ class ChatService {
 		return payload;
 	}
 
-	async getLobbyHistory({ roomId, limit = 50 }) {
+	async getLobbyHistory({ roomId, limit = 50, userId, accessToken }) {
 		if (!roomId)
 			throw new MissingFieldError('Lobby room ID');
 
-		await this.#verifyLobbyMember(roomId); // ajouter @params: userId + accessToken quand Lobby service OK
+		await this.#verifyLobbyMember(roomId, userId, accessToken);
+
+		const blockedIds = await redisClient.sMembers(`chat:blocked:${userId}`);
 
 		const history = await db.manyOrNone(
-			`SELECT room_id, sender_id, content, message_type, created_at
+			`SELECT
+				room_id,
+				sender_id, username,
+				content, message_type, created_at
 			FROM chat.lobby_messages
 			WHERE room_id = $1
+			${blockedIds.length ? 'AND sender_id != ALL($3::uuid[])' : ''}
 			ORDER BY created_at DESC
 			LIMIT $2`,
-			[roomId, limit]
+			blockedIds.length ? [roomId, limit, blockedIds] : [roomId, limit]
 		);
 
 		return history;

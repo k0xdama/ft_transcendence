@@ -2,9 +2,7 @@ import express from 'express';
 import { verifyAccessToken } from '../middleware/verify-jwt.js';
 import { blockUser, unblockUser } from '../controllers/block-controller.js';
 import { sendLobbyMessage, getLobbyHistory } from '../controllers/lobby-controller.js';
-import {
-	createDM, sendDM,
-	getDMHistory, getMyDMs } from '../controllers/dm-controller.js';
+import { createDM, sendDM, getDMHistory, getMyDMs } from '../controllers/dm-controller.js';
 
 const router = express.Router();
 

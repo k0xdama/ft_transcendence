@@ -17,9 +17,9 @@ export const AuthProvider = ({ children }) => {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		const	tryRestoreSession = async () => {
+		const tryRestoreSession = async () => {
 			try {
-				const	response = await fetch('http://localhost:3000/auth/refresh', {
+				const response = await fetch('http://localhost:3000/auth/refresh', {
 					method: 'POST',
 					credentials: 'include'
 				})
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
 	}
 
 	const authFetch = async (URL, options = {}) => {
-		const response = fetch(url, {
+		const response = await fetch(URL, {
 			...options,
 			headers: {
 				...options.headers,
@@ -77,7 +77,6 @@ export const AuthProvider = ({ children }) => {
 			method: 'POST',
 			credentials: 'include'
 		})
-
 		if (!refreshResponse.ok) {
 			logout()
 			return response
@@ -87,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 		const newToken = data.accessToken
 		setAccessToken(newToken)
 
-		return fetch(url, {
+		return await fetch(URL, {
 			...options,
 			headers: {
 				...options.headers,
