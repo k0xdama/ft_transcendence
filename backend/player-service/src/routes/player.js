@@ -293,7 +293,561 @@ router.patch('/:auth_user_id', async (req, res) => {//WARN la verification de la
 	}
 });//Cette technique plutot que de faire une query pour chaque parametre de a db et donc devoir remettre le meme pour ne pas changer le NULL, ici on ne modifie QUE les parametres dont on recois l'info, de plus on peut facilement rajouter de paramettre
 
+// ========================================
+// Système d'amitié
+// ========================================
 
+/**
+ * Helper : Récupérer les IDs internes de deux utilisateurs
+ */
+async function getUserIds(userAuthId, friendAuthId) {
+    const user = await db.oneOrNone(
+        'SELECT id, username FROM player.users WHERE auth_user_id = $1',
+        [userAuthId]
+    );
+    
+    if (!user) {
+        throw { status: 404, message: 'User not found' };
+    }
+
+    const friend = await db.oneOrNone(
+        'SELECT id, username FROM player.users WHERE auth_user_id = $1',
+        [friendAuthId]
+    );
+    
+    if (!friend) {
+        throw { status: 404, message: 'Friend not found' };
+    }
+
+    return { user, friend };
+}
+
+/**
+ * POST /players/:auth_user_id/friend-requests/:friend_auth_user_id
+ * Envoyer une demande d'ami
+ */
+router.post('/:auth_user_id/friend-requests/:friend_auth_user_id', async (req, res) => {
+    const userAuthId = req.params.auth_user_id;
+    const friendAuthId = req.params.friend_auth_user_id;
+
+    console.log('===== FRIEND REQUEST =====');
+    console.log(`From: ${userAuthId} → To: ${friendAuthId}`);
+
+    try {
+        const { user, friend } = await getUserIds(userAuthId, friendAuthId);
+
+        // Vérifier si une relation existe déjà (dans les deux sens)
+        const existing = await db.oneOrNone(`
+            SELECT id, requester_id, addressee_id, status 
+            FROM player.friendships 
+            WHERE (requester_id = $1 AND addressee_id = $2)
+               OR (requester_id = $2 AND addressee_id = $1)
+        `, [user.id, friend.id]);
+
+        if (existing) {
+            // Si demande déjà envoyée par moi
+            if (existing.requester_id === user.id) {
+                if (existing.status === 'pending') {
+                    return res.status(400).json({ error: 'Friend request already sent' });
+                }
+                if (existing.status === 'accepted') {
+                    return res.status(400).json({ error: 'Already friends' });
+                }
+                if (existing.status === 'blocked') {
+                    return res.status(403).json({ error: 'Cannot send friend request to this user' });
+                }
+            }
+            
+            // Si l'autre a déjà envoyé une demande (acceptation automatique)
+            if (existing.requester_id === friend.id && existing.status === 'pending') {
+                const friendship = await db.one(`
+                    UPDATE player.friendships 
+                    SET status = 'accepted', responded_at = NOW()
+                    WHERE id = $1
+                    RETURNING *
+                `, [existing.id]);
+
+                console.log(`✅ Friend request auto-accepted (mutual interest)`);
+
+                return res.status(200).json({
+                    message: 'Friend request automatically accepted',
+                    friendship
+                });
+            }
+
+            // Si déjà amis ou bloqué
+            if (existing.status === 'accepted') {
+                return res.status(400).json({ error: 'Already friends' });
+            }
+            if (existing.status === 'blocked') {
+                return res.status(403).json({ error: 'Cannot send friend request' });
+            }
+        }
+
+        // Créer la demande
+        const friendship = await db.one(`
+            INSERT INTO player.friendships (requester_id, addressee_id, status)
+            VALUES ($1, $2, 'pending')
+            RETURNING id, requester_id, addressee_id, status, requested_at
+        `, [user.id, friend.id]);
+
+        console.log(`✅ Friend request sent: ${user.username} → ${friend.username}`);
+
+        res.status(201).json({
+            message: 'Friend request sent',
+            friendship
+        });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ error: error.message });
+        }
+        console.error('❌ Error sending friend request:', error);
+        res.status(500).json({ error: 'Failed to send friend request' });
+    }
+});
+
+/**
+ * POST /players/:auth_user_id/friend-requests/:friend_auth_user_id/accept
+ * Accepter une demande d'ami
+ */
+router.post('/:auth_user_id/friend-requests/:friend_auth_user_id/accept', async (req, res) => {
+    const userAuthId = req.params.auth_user_id;
+    const friendAuthId = req.params.friend_auth_user_id;
+
+    console.log('===== ACCEPT FRIEND REQUEST =====');
+    console.log(`User: ${userAuthId} accepting: ${friendAuthId}`);
+
+    try {
+        const { user, friend } = await getUserIds(userAuthId, friendAuthId);
+
+        // Mettre à jour le statut (je suis addressee, l'autre est requester)
+        const updated = await db.oneOrNone(`
+            UPDATE player.friendships 
+            SET status = 'accepted', responded_at = NOW()
+            WHERE requester_id = $1 
+              AND addressee_id = $2 
+              AND status = 'pending'
+            RETURNING *
+        `, [friend.id, user.id]);
+
+        if (!updated) {
+            return res.status(404).json({ error: 'No pending friend request found' });
+        }
+
+        console.log(`✅ Friend request accepted: ${user.username} ← ${friend.username}`);
+
+        res.json({
+            message: 'Friend request accepted',
+            friendship: updated
+        });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ error: error.message });
+        }
+        console.error('❌ Error accepting friend request:', error);
+        res.status(500).json({ error: 'Failed to accept friend request' });
+    }
+});
+
+/**
+ * DELETE /players/:auth_user_id/friend-requests/:friend_auth_user_id
+ * Refuser ou annuler une demande d'ami
+ */
+router.delete('/:auth_user_id/friend-requests/:friend_auth_user_id', async (req, res) => {
+    const userAuthId = req.params.auth_user_id;
+    const friendAuthId = req.params.friend_auth_user_id;
+
+    console.log('===== DECLINE/CANCEL FRIEND REQUEST =====');
+    console.log(`User: ${userAuthId}, Friend: ${friendAuthId}`);
+
+    try {
+        const { user, friend } = await getUserIds(userAuthId, friendAuthId);
+
+        // Supprimer la demande (que je sois requester ou addressee)
+        const deleted = await db.result(`
+            DELETE FROM player.friendships 
+            WHERE status = 'pending'
+              AND ((requester_id = $1 AND addressee_id = $2)
+                OR (requester_id = $2 AND addressee_id = $1))
+        `, [user.id, friend.id]);
+
+        if (deleted.rowCount === 0) {
+            return res.status(404).json({ error: 'No pending friend request found' });
+        }
+
+        console.log(`✅ Friend request declined/cancelled`);
+
+        res.status(200).json({ message: 'Friend request declined/cancelled' });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ error: error.message });
+        }
+        console.error('❌ Error declining friend request:', error);
+        res.status(500).json({ error: 'Failed to decline friend request' });
+    }
+});
+
+/**
+ * GET /players/:auth_user_id/friends
+ * Récupérer la liste d'amis (acceptés)
+ */
+router.get('/:auth_user_id/friends', async (req, res) => {
+    console.log('===== GET FRIENDS LIST =====');
+    console.log(`User: ${req.params.auth_user_id}`);
+
+    try {
+        const friends = await db.any(`
+            SELECT 
+                u.id,
+                u.auth_user_id,
+                u.username,
+                u.pp_path,
+                CASE 
+                    WHEN f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1) 
+                    THEN f.requested_at 
+                    ELSE f.responded_at 
+                END as friends_since
+            FROM player.friendships f
+            JOIN player.users u ON (
+                CASE 
+                    WHEN f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1) 
+                    THEN f.addressee_id 
+                    ELSE f.requester_id 
+                END = u.id
+            )
+            WHERE f.status = 'accepted'
+              AND (f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
+                OR f.addressee_id = (SELECT id FROM player.users WHERE auth_user_id = $1))
+            ORDER BY friends_since DESC
+        `, [req.params.auth_user_id]);
+
+        console.log(`✅ Found ${friends.length} friends`);
+
+        res.json({
+            count: friends.length,
+            friends
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching friends:', error);
+        res.status(500).json({ error: 'Failed to fetch friends' });
+    }
+});
+
+/**
+ * GET /players/:auth_user_id/friend-requests/pending
+ * Récupérer les demandes d'amis en attente (reçues)
+ */
+router.get('/:auth_user_id/friend-requests/pending', async (req, res) => {
+    console.log('===== GET PENDING FRIEND REQUESTS =====');
+    console.log(`User: ${req.params.auth_user_id}`);
+
+    try {
+        const requests = await db.any(`
+            SELECT 
+                u.id,
+                u.auth_user_id,
+                u.username,
+                u.pp_path,
+                f.requested_at
+            FROM player.friendships f
+            JOIN player.users u ON f.requester_id = u.id
+            WHERE f.addressee_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
+              AND f.status = 'pending'
+            ORDER BY f.requested_at DESC
+        `, [req.params.auth_user_id]);
+
+        console.log(`✅ Found ${requests.length} pending requests`);
+
+        res.json({
+            count: requests.length,
+            requests
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching pending requests:', error);
+        res.status(500).json({ error: 'Failed to fetch pending requests' });
+    }
+});
+
+/**
+ * GET /players/:auth_user_id/friend-requests/sent
+ * Récupérer les demandes d'amis envoyées (en attente)
+ */
+router.get('/:auth_user_id/friend-requests/sent', async (req, res) => {
+    console.log('===== GET SENT FRIEND REQUESTS =====');
+    console.log(`User: ${req.params.auth_user_id}`);
+
+    try {
+        const requests = await db.any(`
+            SELECT 
+                u.id,
+                u.auth_user_id,
+                u.username,
+                u.pp_path,
+                f.requested_at
+            FROM player.friendships f
+            JOIN player.users u ON f.addressee_id = u.id
+            WHERE f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
+              AND f.status = 'pending'
+            ORDER BY f.requested_at DESC
+        `, [req.params.auth_user_id]);
+
+        console.log(`✅ Found ${requests.length} sent requests`);
+
+        res.json({
+            count: requests.length,
+            requests
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching sent requests:', error);
+        res.status(500).json({ error: 'Failed to fetch sent requests' });
+    }
+});
+
+/**
+ * DELETE /players/:auth_user_id/friends/:friend_auth_user_id
+ * Supprimer un ami
+ */
+router.delete('/:auth_user_id/friends/:friend_auth_user_id', async (req, res) => {
+    const userAuthId = req.params.auth_user_id;
+    const friendAuthId = req.params.friend_auth_user_id;
+
+    console.log('===== REMOVE FRIEND =====');
+    console.log(`User: ${userAuthId}, Friend: ${friendAuthId}`);
+
+    try {
+        const { user, friend } = await getUserIds(userAuthId, friendAuthId);
+
+        // Supprimer l'amitié (dans les deux sens)
+        const deleted = await db.result(`
+            DELETE FROM player.friendships 
+            WHERE status = 'accepted'
+              AND ((requester_id = $1 AND addressee_id = $2)
+                OR (requester_id = $2 AND addressee_id = $1))
+        `, [user.id, friend.id]);
+
+        if (deleted.rowCount === 0) {
+            return res.status(404).json({ error: 'Friendship not found' });
+        }
+
+        console.log(`✅ Friend removed: ${user.username} ↔ ${friend.username}`);
+
+        res.status(200).json({ message: 'Friend removed successfully' });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ error: error.message });
+        }
+        console.error('❌ Error removing friend:', error);
+        res.status(500).json({ error: 'Failed to remove friend' });
+    }
+});
+
+/**
+ * POST /players/:auth_user_id/blocked/:blocked_auth_user_id
+ * Bloquer un utilisateur
+ */
+router.post('/:auth_user_id/blocked/:blocked_auth_user_id', async (req, res) => {
+    const userAuthId = req.params.auth_user_id;
+    const blockedAuthId = req.params.blocked_auth_user_id;
+
+    console.log('===== BLOCK USER =====');
+    console.log(`User: ${userAuthId} blocking: ${blockedAuthId}`);
+
+    try {
+        const { user, friend: blocked } = await getUserIds(userAuthId, blockedAuthId);
+
+        // Vérifier si une relation existe
+        const existing = await db.oneOrNone(`
+            SELECT id, requester_id, addressee_id, status 
+            FROM player.friendships 
+            WHERE (requester_id = $1 AND addressee_id = $2)
+               OR (requester_id = $2 AND addressee_id = $1)
+        `, [user.id, blocked.id]);
+
+        if (existing) {
+            // Si la relation existe, la mettre à jour
+            await db.none(`
+                UPDATE player.friendships 
+                SET status = 'blocked', responded_at = NOW()
+                WHERE id = $1
+            `, [existing.id]);
+
+            console.log(`✅ User blocked (updated existing relationship)`);
+        } else {
+            // Sinon, créer une nouvelle entrée
+            await db.none(`
+                INSERT INTO player.friendships (requester_id, addressee_id, status, responded_at)
+                VALUES ($1, $2, 'blocked', NOW())
+            `, [user.id, blocked.id]);
+
+            console.log(`✅ User blocked (new entry)`);
+        }
+
+        res.status(200).json({ message: 'User blocked successfully' });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ error: error.message });
+        }
+        console.error('❌ Error blocking user:', error);
+        res.status(500).json({ error: 'Failed to block user' });
+    }
+});
+
+/**
+ * DELETE /players/:auth_user_id/blocked/:blocked_auth_user_id
+ * Débloquer un utilisateur
+ */
+router.delete('/:auth_user_id/blocked/:blocked_auth_user_id', async (req, res) => {
+    const userAuthId = req.params.auth_user_id;
+    const blockedAuthId = req.params.blocked_auth_user_id;
+
+    console.log('===== UNBLOCK USER =====');
+    console.log(`User: ${userAuthId} unblocking: ${blockedAuthId}`);
+
+    try {
+        const { user, friend: blocked } = await getUserIds(userAuthId, blockedAuthId);
+
+        const deleted = await db.result(`
+            DELETE FROM player.friendships 
+            WHERE status = 'blocked'
+              AND requester_id = $1 
+              AND addressee_id = $2
+        `, [user.id, blocked.id]);
+
+        if (deleted.rowCount === 0) {
+            return res.status(404).json({ error: 'User is not blocked' });
+        }
+
+        console.log(`✅ User unblocked`);
+
+        res.status(200).json({ message: 'User unblocked successfully' });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ error: error.message });
+        }
+        console.error('❌ Error unblocking user:', error);
+        res.status(500).json({ error: 'Failed to unblock user' });
+    }
+});
+
+/**
+ * GET /players/:auth_user_id/blocked
+ * Récupérer la liste des utilisateurs bloqués
+ */
+router.get('/:auth_user_id/blocked', async (req, res) => {
+    console.log('===== GET BLOCKED USERS =====');
+    console.log(`User: ${req.params.auth_user_id}`);
+
+    try {
+        const blocked = await db.any(`
+            SELECT 
+                u.id,
+                u.auth_user_id,
+                u.username,
+                u.pp_path,
+                f.responded_at as blocked_at
+            FROM player.friendships f
+            JOIN player.users u ON f.addressee_id = u.id
+            WHERE f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
+              AND f.status = 'blocked'
+            ORDER BY f.responded_at DESC
+        `, [req.params.auth_user_id]);
+
+        console.log(`✅ Found ${blocked.length} blocked users`);
+
+        res.json({
+            count: blocked.length,
+            blocked
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching blocked users:', error);
+        res.status(500).json({ error: 'Failed to fetch blocked users' });
+    }
+});
+
+/**
+ * GET /players/:auth_user_id/friends/:friend_auth_user_id/mutual
+ * Récupérer les amis en commun avec un ami
+ */
+router.get('/:auth_user_id/friends/:friend_auth_user_id/mutual', async (req, res) => {
+    const userAuthId = req.params.auth_user_id;
+    const friendAuthId = req.params.friend_auth_user_id;
+
+    console.log('===== GET MUTUAL FRIENDS =====');
+    console.log(`User: ${userAuthId}, Friend: ${friendAuthId}`);
+
+    try {
+        const { user, friend } = await getUserIds(userAuthId, friendAuthId);
+
+        // Vérifier que les deux sont amis
+        const areFriends = await db.oneOrNone(`
+            SELECT id FROM player.friendships 
+            WHERE status = 'accepted'
+              AND ((requester_id = $1 AND addressee_id = $2)
+                OR (requester_id = $2 AND addressee_id = $1))
+        `, [user.id, friend.id]);
+
+        if (!areFriends) {
+            return res.status(403).json({ error: 'You must be friends to see mutual friends' });
+        }
+
+        // Récupérer les amis en commun
+        const mutualFriends = await db.any(`
+            SELECT DISTINCT
+                u.id,
+                u.auth_user_id,
+                u.username,
+                u.pp_path
+            FROM player.users u
+            WHERE u.id IN (
+                -- Amis de l'utilisateur
+                SELECT CASE 
+                    WHEN f1.requester_id = $1 THEN f1.addressee_id 
+                    ELSE f1.requester_id 
+                END
+                FROM player.friendships f1
+                WHERE f1.status = 'accepted'
+                  AND (f1.requester_id = $1 OR f1.addressee_id = $1)
+            )
+            AND u.id IN (
+                -- Amis de l'ami
+                SELECT CASE 
+                    WHEN f2.requester_id = $2 THEN f2.addressee_id 
+                    ELSE f2.requester_id 
+                END
+                FROM player.friendships f2
+                WHERE f2.status = 'accepted'
+                  AND (f2.requester_id = $2 OR f2.addressee_id = $2)
+            )
+            AND u.id != $1  -- Exclure l'utilisateur lui-même
+            AND u.id != $2  -- Exclure l'ami
+            ORDER BY u.username
+        `, [user.id, friend.id]);
+
+        console.log(`✅ Found ${mutualFriends.length} mutual friends`);
+
+        res.json({
+            count: mutualFriends.length,
+            mutual_friends: mutualFriends
+        });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({ error: error.message });
+        }
+        console.error('❌ Error fetching mutual friends:', error);
+        res.status(500).json({ error: 'Failed to fetch mutual friends' });
+    }
+});
 
 
 // SON TRUC
