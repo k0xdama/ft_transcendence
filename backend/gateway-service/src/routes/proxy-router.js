@@ -8,12 +8,6 @@ router.use('/auth', createProxyMiddleware({
 	target: 'http://auth:3000',
 	changeOrigin: true,
 	pathRewrite: { '^/': '/auth/' },
-	on: {
-		proxyReq: (proxyReq, req) => {
-			console.log(`[PROXY] ${req.method} ${req.path} → ${proxyReq.path}`)
-			console.log(`[PROXY] cookies:`, req.headers.cookie)
-		}
-	}
 }))
 
 router.use('/chat', authGuard, createProxyMiddleware({

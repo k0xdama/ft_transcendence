@@ -22,7 +22,7 @@ body.gameboard-active .main-container {
 	background-size: cover;
 	background-position: center;
 	filter: blur(2px) brightness(0.8);
-	z-index: -1;
+	z-index: 0;
 }
 
 .gameboard {
