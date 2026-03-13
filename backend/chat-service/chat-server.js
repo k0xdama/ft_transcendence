@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import chatRoutes from './src/routes/chat-router.js';
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(cors(
 	}
 ))
 app.use(express.json());
+app.use(cookieParser());
 app.use('/chat', chatRoutes);
 
 const port = 2000;

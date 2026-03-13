@@ -13,12 +13,10 @@ router.post('/block', verifyAccessToken, blockUser);
 router.delete('/unblock/:userId', verifyAccessToken, unblockUser);
 
 // Lobby messages (pre-during-post game)
-router.post('/lobby/send', sendLobbyMessage);
-router.get('/lobby/:roomId/history', getLobbyHistory);
-// router.post('/lobby/send', verifyAccessToken, sendLobbyMessage);
-// router.get('/lobby/:roomId/history', verifyAccessToken, getLobbyHistory);
+router.post('/lobby/send', verifyAccessToken, sendLobbyMessage);
+router.get('/lobby/:roomId/history', verifyAccessToken, getLobbyHistory);
 
-// DM messages
+// DM
 router.post('/dm', verifyAccessToken, createDM);
 router.post('/dm/:conversationId/send', verifyAccessToken, sendDM);
 router.get('/dm/:conversationId/history', verifyAccessToken, getDMHistory);
