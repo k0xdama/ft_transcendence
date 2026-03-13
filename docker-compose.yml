@@ -31,7 +31,7 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - transcendence_network
+      - trio_network
     restart: unless-stopped
 
   redis:
@@ -53,7 +53,7 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - transcendence_network
+      - trio_network
     restart: unless-stopped
 
   auth:
@@ -62,15 +62,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     secrets:
       - psql_dbname
-      - psql_admin_user
-      - psql_admin_passwd
       - psql_services_passwd
       # - psql_auth_passwd
-      - redis_passwd
       - jwt_access
     build:
       context: ./backend/auth-service
@@ -78,36 +73,9 @@ services:
     volumes:
       - ./backend/auth-service/src:/app/src:ro
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "3000:3000"
-    restart: unless-stopped
-
-  chat:
-    image: chat:v1
-    container_name: chat
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    secrets:
-      - psql_dbname
-      - psql_admin_user
-      - psql_admin_passwd
-      - psql_services_passwd
-      # - psql_chat_passwd
-      - redis_passwd
-      - jwt_access
-    build:
-      context: ./backend/chat-service
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend/chat-service/src:/app/src:ro
-    networks:
-      - transcendence_network
-    ports:
-      - "2000:2000"
     restart: unless-stopped
 
   backend:
@@ -123,7 +91,7 @@ services:
       - ./backend:/app
       - /app/node_modules
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "5172:5172"
     restart: unless-stopped
@@ -140,7 +108,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "5173:5173"
     restart: unless-stopped
@@ -174,5 +142,5 @@ secrets:
     file: ./secrets/jwt_access.txt
 
 networks:
-  transcendence_network:
+  trio_network:
     driver: bridge
