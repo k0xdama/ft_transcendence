@@ -1,5 +1,6 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+
 const app = express();
 
 app.use(cors(
@@ -30,4 +31,4 @@ app.listen(port, '0.0.0.0', () => {
 	console.log(`Backend server running on port ${port}`);
 });
 
-module.exports = app;
+export default app;

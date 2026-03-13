@@ -13,6 +13,11 @@ export const userB = {
 	username: 'user_b'
 };
 
+export const userC = {
+	id: '00000000-0000-0000-0000-000000000003',
+	username: 'user_c'
+};
+
 export function generateTestToken(user) {
 	return jwt.sign(
 		{ id: user.id, username: user.username },

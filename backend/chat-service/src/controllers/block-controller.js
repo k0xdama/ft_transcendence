@@ -13,9 +13,10 @@ export async function blockUser(req, res) {
 	catch (error) {
 		if (error.isOperational) {
 			return res.status(error.statusCode).json({ error: error.reason });
-	}
-	console.error('Block user:', error);
-	return res.status(500).json({ error: 'Internal Server Error' });
+		}
+
+		console.error('Block user:', error);
+		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
 

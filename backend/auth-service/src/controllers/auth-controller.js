@@ -6,9 +6,9 @@ import { setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
 export async function register(req, res) {
 	try {
 		const { email, username, password } = req.body;
-    
+
 		const newUser = await authService.register({ email, username, password });
-    
+
 		return res.status(201).json({
 			message: `${newUser.username}'s account has been successfully created!`,
 			user: newUser
@@ -28,11 +28,6 @@ export async function register(req, res) {
 export async function login(req, res) {
 	try {
 		const { identifier, password } = req.body;
-
-		if (!identifier || !password) {
-			return res.status(400).json({ error: 'Identifier and password required' });
-		}
-    
 		const { user, refreshToken } = await authService.login(identifier, password);
 
 		const accessToken = generateAccessToken(user);

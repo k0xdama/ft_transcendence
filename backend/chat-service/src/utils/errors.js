@@ -26,6 +26,12 @@ export class CannotBlockSelfError extends AppError {
 	}
 }
 
+export class BlockedUserMessageError extends AppError {
+	constructor(message = 'This message cannot be delivered') {
+		super(message, 403);
+	}
+}
+
 export class NotLobbyMemberError extends AppError {
 	constructor(message = 'You are not a member of this lobby') {
 		super(message, 403);
@@ -41,5 +47,17 @@ export class LobbyServiceUnavailableError extends AppError {
 export class CannotDMSelfError extends AppError {
 	constructor(message = 'You cannot DM yourself') {
 		super(message, 400);
+	}
+}
+
+export class DMConversationNotFoundError extends AppError {
+	constructor(message = 'DM conversation not found') {
+		super(message, 404);
+	}
+}
+
+export class NotConversationMemberError extends AppError {
+	constructor(message = 'You are not a member of this conversation') {
+		super(message, 403);
 	}
 }

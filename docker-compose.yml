@@ -62,15 +62,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     secrets:
       - psql_dbname
-      - psql_admin_user
-      - psql_admin_passwd
       - psql_services_passwd
       # - psql_auth_passwd
-      - redis_passwd
       - jwt_access
     build:
       context: ./backend/auth-service
@@ -93,8 +88,6 @@ services:
         condition: service_healthy
     secrets:
       - psql_dbname
-      - psql_admin_user
-      - psql_admin_passwd
       - psql_services_passwd
       # - psql_chat_passwd
       - redis_passwd

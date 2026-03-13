@@ -7,7 +7,8 @@
 		"start": "node chat-server.js",
 		"dev": "node --watch chat-server.js",
 		"test": "vitest run",
-		"test:block": "vitest run tests/block.test.js"
+		"test:block": "vitest run tests/block.test.js",
+		"test:dm": "vitest run tests/dm.test.js"
 	},
 	"dependencies": {
 		"cors": "^2.8.6",

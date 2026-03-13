@@ -54,7 +54,7 @@ SET ROLE chat_user;
 -- Lobby-related lifecycle
 CREATE TABLE chat.lobby_sessions (
 	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	lobby_id		UUID NOT NULL UNIQUE,
+	room_id			UUID NOT NULL UNIQUE,
 	status			TEXT NOT NULL DEFAULT 'open'
 		CONSTRAINT check_lobby_session_status
 		CHECK (status IN ('open', 'closing', 'closed')),
@@ -65,26 +65,25 @@ CREATE TABLE chat.lobby_sessions (
 );
 
 CREATE INDEX idx_lobby_session_lookup
-	ON chat.lobby_sessions(lobby_id, status);
+	ON chat.lobby_sessions(room_id, status);
 
--------------------------------------------------
 -- Chat in-game
 CREATE TABLE chat.lobby_messages (
-	id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	lobby_id        UUID NOT NULL REFERENCES chat.lobby_sessions(lobby_id) ON DELETE CASCADE,
-	sender_id       UUID NOT NULL,
-	content         TEXT NOT NULL
+	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	room_id			UUID NOT NULL REFERENCES chat.lobby_sessions(room_id) ON DELETE CASCADE,
+	sender_id		UUID NOT NULL,
+	content			TEXT NOT NULL
 		CONSTRAINT check_lobby_msg_content_length
 		CHECK (char_length(content) BETWEEN 1 AND 500),
-	message_type    TEXT NOT NULL DEFAULT 'user_text'
+	message_type	TEXT NOT NULL DEFAULT 'user_text'
 		CONSTRAINT check_lobby_msg_type
 		CHECK (message_type IN ('user_text', 'suggestion')),
-	created_at      TIMESTAMPTZ DEFAULT NOW(),
-	expires_at      TIMESTAMPTZ
+	created_at		TIMESTAMPTZ DEFAULT NOW(),
+	expires_at		TIMESTAMPTZ
 );
 
 CREATE INDEX idx_lobby_recent
-	ON chat.lobby_messages(lobby_id, created_at DESC);
+	ON chat.lobby_messages(room_id, created_at DESC);
 
 CREATE INDEX idx_lobby_expiry
 	ON chat.lobby_messages(expires_at);
@@ -105,13 +104,13 @@ CREATE TABLE chat.direct_conversations (
 );
 
 CREATE TABLE chat.direct_messages (
-	id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	conversation_id UUID NOT NULL REFERENCES chat.direct_conversations(id) ON DELETE CASCADE,
-	sender_id       UUID NOT NULL,
-	content         TEXT NOT NULL
+	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	conversation_id	UUID NOT NULL REFERENCES chat.direct_conversations(id) ON DELETE CASCADE,
+	sender_id		UUID NOT NULL,
+	content			TEXT NOT NULL
 		CONSTRAINT check_dm_content_length
 		CHECK (char_length(content) BETWEEN 1 AND 500),
-	created_at      TIMESTAMPTZ DEFAULT NOW()
+	created_at		TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX idx_dm_recent

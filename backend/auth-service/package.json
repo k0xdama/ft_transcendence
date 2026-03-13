@@ -8,7 +8,8 @@
 		"dev": "node --watch auth-server.js",
 		"test": "vitest run",
 		"test:register": "vitest run tests/register.test.js",
-		"test:login": "vitest run tests/login.test.js"
+		"test:login": "vitest run tests/login.test.js",
+		"test:token": "vitest run tests/token.test.js"
 	},
 	"dependencies": {
 		"cors": "^2.8.6",

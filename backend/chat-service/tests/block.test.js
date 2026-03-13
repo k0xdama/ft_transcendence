@@ -13,9 +13,8 @@ describe('POST /chat/block', () => {
 			.post('/chat/block')
 			.set('Authorization', `Bearer ${tokenA}`)
 			.send({ blockedId: userB.id });
-
 		expect(response.status).toBe(200);
-		expect(response.body.success).toBe(true);
+		expect(response.body.message).toBeDefined();
 
 		// Check in DB
 		const row = await db.oneOrNone(
@@ -29,7 +28,7 @@ describe('POST /chat/block', () => {
 			`chat:blocked:${userA.id}`,
 			userB.id
 		);
-		expect(isCached).toBe(true);
+		expect(isCached).toBeTruthy();
 	});
 
 	it('should ignore duplicate block (ON CONFLICT DO NOTHING)', async () => {
@@ -37,7 +36,6 @@ describe('POST /chat/block', () => {
 			.post('/chat/block')
 			.set('Authorization', `Bearer ${tokenA}`)
 			.send({ blockedId: userB.id });
-
 		expect(response.status).toBe(200);
 	});
 
@@ -46,7 +44,6 @@ describe('POST /chat/block', () => {
 			.post('/chat/block')
 			.set('Authorization', `Bearer ${tokenA}`)
 			.send({ blockedId: userA.id });
-
 		expect(response.status).toBe(400);
 		expect(response.body.error).toContain('yourself');
 	});
@@ -56,7 +53,6 @@ describe('POST /chat/block', () => {
 			.post('/chat/block')
 			.set('Authorization', `Bearer ${tokenA}`)
 			.send({});
-
 		expect(response.status).toBe(400);
 		expect(response.body.error).toContain('required');
 	});
@@ -65,7 +61,6 @@ describe('POST /chat/block', () => {
 		const response = await request(app)
 			.post('/chat/block')
 			.send({ blockedId: userB.id });
-
 		expect(response.status).toBe(401);
 	});
 });
@@ -75,29 +70,28 @@ describe('DELETE /chat/unblock/:userId', () => {
 		const response = await request(app)
 			.delete(`/chat/unblock/${userB.id}`)
 			.set('Authorization', `Bearer ${tokenA}`);
-
 		expect(response.status).toBe(200);
-		expect(response.body.success).toBe(true);
+		expect(response.body.message).toBeDefined();
 
-		// Check deletion in DB
+		// Check in DB
 		const row = await db.oneOrNone(
 			'SELECT * FROM chat.blocked_users WHERE blocker_id = $1 AND blocked_id = $2',
 			[userA.id, userB.id]
 		);
 		expect(row).toBeNull();
 
+		// Check in Redis
 		const isCached = await redisClient.sIsMember(
 			`chat:blocked:${userA.id}`,
 			userB.id
 		);
-		expect(isCached).toBe(false);
+		expect(isCached).toBeFalsy();
 	});
 
 	it('should handle unblocking a non-blocked user gracefully', async () => {
 		const response = await request(app)
 			.delete(`/chat/unblock/${userB.id}`)
 			.set('Authorization', `Bearer ${tokenA}`);
-
 		expect(response.status).toBe(200);
 	});
 });
