@@ -5,7 +5,6 @@ import chatRoutes from './src/routes/chat-router.js';
 
 const app = express();
 
-// Supprimer cors une fois l'API Gateway implémentée
 app.use(cors(
 	{
 		origin: 'http://localhost:5173',

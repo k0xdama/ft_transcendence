@@ -6,7 +6,7 @@ function ChatOverlay({ roomId }) {
 	const [messages, setMessages] = useState([])
 	const [draft, setDraft] = useState("")
 	const bottomRef = useRef(null)
-	const { authFetch, user } = useAuth()
+	const { authFetch, user, accessToken } = useAuth()
 
 	useEffect(() => {
 		if (!accessToken) return
@@ -27,6 +27,7 @@ function ChatOverlay({ roomId }) {
 				console.error('Failed to fetch chat history:', err)
 			}
 		}
+
 		fetchHistory()
 		const interval = setInterval(fetchHistory, 3000)
 		return () => clearInterval(interval)

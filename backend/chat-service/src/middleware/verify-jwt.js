@@ -1,5 +1,3 @@
-/*	A déplacer dans l'API Gateway */
-
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 
