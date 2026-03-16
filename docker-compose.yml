@@ -126,7 +126,7 @@ services:
     volumes:
       - /app/node_modules
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "4000:4000"
     restart: unless-stopped
