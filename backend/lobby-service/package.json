@@ -1,0 +1,13 @@
+{
+    "name": "lobby-service",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "lobby-service.js",
+    "scripts": {
+        "start": "node lobby-service.js",
+        "dev": "node --watch lobby-service.js"
+    },
+    "dependencies": {
+        "socket.io": "^4.8.1"
+    }
+}

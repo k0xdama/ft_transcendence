@@ -1,8 +1,13 @@
 import { randomInt } from 'crypto'
 
 export const GAME_MODES = {
-	CLASSIC: 'classic',
-	LINKED: 'linked'
+	CLASSIC: 'CLASSIC',
+	LINKED: 'LINKED'
+};
+
+export const GAME_TYPES = {
+	SOLO: 'SOLO',
+	TEAM_UP: 'TEAM_UP'
 };
 
 export const ACTIONS = {
@@ -29,7 +34,6 @@ export const EVENTS = {
 // 	creatorId:...
 //     gameMode: ...,
 //     players: ...,
-//     PlayersNumber: ...,
 //     currentPlayerIndex: ...,
 //     currentPlayer: ...,
 //     currentAction: ...,
@@ -40,23 +44,25 @@ export const EVENTS = {
 //     startTime: ...
 //   };
 
-export function createGame(gameId, gameMode) {
+export function createGame(gameId, gameMode, gameType, creatorId) {
 	const gameStruct = {
 		gameId: gameId,
-		creatorId: null,
+		creatorId: creatorId,
 		gameMode: gameMode,
+		gameType: gameType,
 		players: [],
-		playersNumber: 0,
+		expectedPlayers: null,
 		cardsInMiddle: [],
 		cardsRevealed: [],
 		trioWonArray: {},
-		stats: {},
+		stats: {}
 	};
 
 	return gameStruct;
 }
 
 export function startGame(gameStruct) {
+	console.log('in StartGame');
 	gameStruct.currentPlayerIndex = 0;
 	gameStruct.currentPlayer = gameStruct.players[0].id;
 	gameStruct.currentAction = ACTIONS_NUMBER.FIRST;
@@ -80,7 +86,6 @@ export function addPlayer(gameStruct, playerId) {
 		hand: []
 	};
 	gameStruct.players.push(player);
-	gameStruct.playersNumber++;
 }
 
 export function createDeck() {
@@ -149,7 +154,7 @@ export function shuffleAndDistribute(gameStruct, deck) {
 	let nbInMiddle = 0;
 	let nbByPlayer = 0;
 
-	switch (gameStruct.playersNumber) {
+	switch (gameStruct.players.length) {
 		case 3: 
 			nbInMiddle = 9, nbByPlayer = 9; break;
 		case 4: 
@@ -269,7 +274,7 @@ export function executeAction(gameStruct, actionType, target) {
 }
 
 export function nextPlayer(gameStruct) {
-	const nextIndex = (gameStruct.currentPlayerIndex + 1) % gameStruct.playersNumber;
+	const nextIndex = (gameStruct.currentPlayerIndex + 1) % gameStruct.length;
 	gameStruct.currentPlayerIndex = nextIndex;
 	gameStruct.currentPlayer = gameStruct.players[nextIndex].id;
 }

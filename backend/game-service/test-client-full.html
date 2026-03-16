@@ -9,7 +9,7 @@
     <div id="status">Connexion...</div>
 
     <hr>
-    <button onclick="socket.emit('game:create', { gameMode: 'classic' })">Create Game</button>
+    <button onclick="socket.emit('game:create', { gameMode: 'CLASSIC', gameType: 'SOLO' })">Create Game</button>
     <input id="joinId" placeholder="Game ID" />
     <button onclick="socket.emit('game:join', { gameId: document.getElementById('joinId').value })">Join Game</button>
     <button onclick="socket.emit('game:start', { gameId: currentGameId })">Start Game</button>
