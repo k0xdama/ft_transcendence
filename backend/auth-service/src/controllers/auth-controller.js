@@ -1,4 +1,4 @@
-import { authService } from '../services/auth.js';
+import { authService } from '../services/auth-service.js';
 import { generateAccessToken } from '../utils/jwt.js';
 import { setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
 
@@ -6,9 +6,9 @@ import { setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
 export async function register(req, res) {
 	try {
 		const { email, username, password } = req.body;
-    
+
 		const newUser = await authService.register({ email, username, password });
-    
+
 		return res.status(201).json({
 			message: `${newUser.username}'s account has been successfully created!`,
 			user: newUser
@@ -16,7 +16,7 @@ export async function register(req, res) {
 	}
 	catch (error) {
 		if (error.isOperational) {	// ex: validation error, duplication...
-			return res.status(error.statusCode).json({ error: error.detail });
+			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
 		console.error('Register:', error);
@@ -28,11 +28,6 @@ export async function register(req, res) {
 export async function login(req, res) {
 	try {
 		const { identifier, password } = req.body;
-
-		if (!identifier || !password) {
-			return res.status(400).json({ error: 'Identifier and password required' });
-		}
-    
 		const { user, refreshToken } = await authService.login(identifier, password);
 
 		const accessToken = generateAccessToken(user);
@@ -46,7 +41,7 @@ export async function login(req, res) {
 	}
 	catch (error) {
 		if (error.isOperational) {
-			return res.status(error.statusCode).json({ error: error.detail });
+			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
 		console.error('Login:', error);
@@ -60,7 +55,6 @@ export async function logout(req, res) {
 		const refreshToken = req.cookies.refreshToken;
 
 		await authService.logout(refreshToken);
-
 		clearRefreshCookie(res);
 
 		return res.status(200).json({ message: 'Logout successful' });
@@ -69,9 +63,4 @@ export async function logout(req, res) {
 		console.error('Logout:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
-}
-
-// GET /auth/test (debug route)
-export async function testToken(req, res) {
-	return res.status(200).json({ user: req.user });
 }

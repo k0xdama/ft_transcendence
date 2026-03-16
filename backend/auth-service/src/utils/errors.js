@@ -1,63 +1,47 @@
 class AppError extends Error {
-	constructor(detail, statusCode) {
-		super(detail);
-		this.detail = detail;
+	constructor(message, statusCode) {
+		super(message);
+		this.reason = message;
 		this.statusCode = statusCode;
 		this.isOperational = true;
 		Error.captureStackTrace(this, this.constructor);
 	}
 }
 
-class ValidationError extends AppError {
-	constructor(detail = 'Validation failed') {
-		super(detail, 400);
-		this.code = 'VALIDATION_ERROR';
+export class ValidationError extends AppError {
+	constructor(message = 'Validation failed') {
+		super(message, 400);
 	}
 }
 
-class EmailAlreadyExistsError extends AppError {
-	constructor(detail = 'This email is linked to an existing account') {
-		super(detail, 400);
-		this.code = 'EMAIL_EXISTS';
+export class EmailAlreadyExistsError extends AppError {
+	constructor(message = 'This email is linked to an existing account') {
+		super(message, 400);
 	}
 }
 
-class UsernameAlreadyExistsError extends AppError {
-	constructor(detail = 'This username is already taken') {
-		super(detail, 400);
-		this.code = 'USERNAME_EXISTS';
+export class UsernameAlreadyExistsError extends AppError {
+	constructor(message = 'This username is already taken') {
+		super(message, 400);
 	}
 }
 
-class InvalidCredentialsError extends AppError {
-	constructor(detail = 'Invalid credentials') {
-		super(detail, 401);
-		this.code = 'INVALID_CREDENTIALS';
+export class InvalidCredentialsError extends AppError {
+	constructor(message = 'Invalid credentials') {
+		super(message, 401);
 	}
 }
 
 // TO DELETE BEFORE CORRECTION --> use InvalidCredentialsError instead
-class UserNotFoundError extends AppError {
-	constructor(detail = 'User not found') {
-		super(detail, 401);
-		this.code = 'USER_NOT_FOUND';
+export class UserNotFoundError extends AppError {
+	constructor(message = 'User not found') {
+		super(message, 401);
 	}
 }
 
 // TO DELETE BEFORE CORRECTION --> use InvalidCredentialsError instead
-class InvalidPasswordError extends AppError {
-	constructor(detail = 'Invalid password') {
-		super(detail, 401);
-		this.code = 'INVALID_PASSWORD';
+export class InvalidPasswordError extends AppError {
+	constructor(message = 'Invalid password') {
+		super(message, 401);
 	}
 }
-
-export {
-	AppError,
-	ValidationError,
-	EmailAlreadyExistsError,
-	UsernameAlreadyExistsError,
-	InvalidCredentialsError,
-	UserNotFoundError,
-	InvalidPasswordError
-};

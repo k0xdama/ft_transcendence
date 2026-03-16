@@ -1,9 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { use, useState } from 'react';
+import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './LoginView.css'
 
 function LoginView() {
 	const navigate = useNavigate()
+	const { login } = useAuth()
+
 	const [formData, setFormData] = useState({
 		id: '',
 		password: '',
@@ -31,15 +34,6 @@ function LoginView() {
 
 		setLoading(true)
 
-		// try {
-		// 	//REPLACE BY AUTH SERVICE API CALL
-		// 	await new Promise(resolve => setTimeout(resolve, 2000))
-		// 	console.log('Log in successful!', {formData})
-		// } catch (error) {
-		// 	setError('Invalid username/email or password')
-		// } finally {
-		// 	setLoading(false)
-		// }
 		try {
 			const response = await fetch('http://localhost:3000/auth/login', {
 				method: 'POST',
@@ -61,12 +55,14 @@ function LoginView() {
 
 			setSuccess(data.message)
 
+			login(data.user, data.accessToken)
+
 			setFormData({
 				id: '',
 				password: ''
 			})
 			
-			setTimeout(() => {navigate('/')}, 2000)
+			setTimeout(() => {navigate('/')}, 1000)
 		} catch (error) {
 			console.error('Log in error:', error)
 			setError('Log in failed. Please try again.')
@@ -80,18 +76,20 @@ function LoginView() {
 			<h2 className='title'>Log in</h2>
 			{error && <div className='error'>{error}</div>}
 			{success && <div className='success'>{success}</div>}
-			<div className='inputs'>
-				<label>Username/Email:</label>
-				<input name= 'id' value={formData.id} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
-				<label>Password:</label>
-				<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
-			</div>
-			<button className='comBut'
-			onClick={handleLogin}
-			disabled={loading}
-			>
-				{loading ? 'Logging in...' : 'Log in'}
-			</button>
+			<form onSubmit={handleLogin}>
+				<div className='inputs'>
+					<label>Username/Email:</label>
+					<input name= 'id' value={formData.id} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
+					<label>Password:</label>
+					<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
+				</div>
+				<button className='comBut'
+				type='submit'
+				disabled={loading}
+				>
+					{loading ? 'Logging in...' : 'Log in'}
+				</button>
+			</form>
 			<p>Don't have an account? <Link to="/register">Sign up</Link></p>
 		</div>
 	);

@@ -5,29 +5,48 @@ import { MemoryRouter } from 'react-router-dom'
 
 import NavBar from '../src/components/NavBar'
 import HomeView from '../src/components/HomeView'
-import CreateGameView from '../src/components/CreateGameView'
-import JoinGameView from '../src/components/JoinGameView'
-import LoginView from '../src/components/LoginView'
-import RegisterView from '../src/components/RegisterView'
-import TestView from '../src/components/TestView'
+import CreateGameView from '../src/components/lobby/CreateGameView'
+import JoinGameView from '../src/components/lobby/JoinGameView'
+import LoginView from '../src/components/auth/LoginView'
+import RegisterView from '../src/components/auth/RegisterView'
+import { AuthProvider } from '../src/context/AuthContext'
 
 afterEach(cleanup)
 
-const withRouter = (component, initialPath = '/') => (
-	render(<MemoryRouter initialEntries={[initialPath]}>{component}</MemoryRouter>)
+const withRouterAndAuth = (component, initialPath = '/') => (
+	render(
+		<MemoryRouter initialEntries={[initialPath]}>
+			<AuthProvider>
+				{component}
+			</AuthProvider>
+		</MemoryRouter>
+	)
 )
+
+beforeEach(() => {
+	vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+		ok: false,
+		json: () => Promise.resolve({})
+	}))
+})
+
+afterEach(() => {
+	vi.unstubAllGlobals()
+	cleanup()
+})
+
 // ##############
 // ### NavBar ###
 // ##############
 describe('NavBar', () => {
 	it('affiche le nom du jeu comme lien vers /', () => {
-		withRouter(<NavBar />)
-		const brand = screen.getByText('Garou Loup')
+		withRouterAndAuth(<NavBar />)
+		const brand = screen.getByText('Trois Cartes')
 		expect(brand).toBeDefined()
 	})
 
 	it('affiche les liens Login et Register', () => {
-		withRouter(<NavBar />)
+		withRouterAndAuth(<NavBar />)
 		expect(screen.getByText('Log in')).toBeDefined()
 		expect(screen.getByText('Register')).toBeDefined()
 	})
@@ -38,12 +57,12 @@ describe('NavBar', () => {
 // ################
 describe('HomeView', () => {
 	it('affiche le titre du jeu', () => {
-		withRouter(<HomeView />)
+		withRouterAndAuth(<HomeView />)
 		expect(screen.getByText('Trois Cartes')).toBeDefined()
 	})
 
 	it('affiche les boutons de navigation', () => {
-		withRouter(<HomeView />)
+		withRouterAndAuth(<HomeView />)
 		expect(screen.getByText('Create game')).toBeDefined()
 		expect(screen.getByText('Join game')).toBeDefined()
 		expect(screen.getByText('Test Game')).toBeDefined()
@@ -54,20 +73,19 @@ describe('HomeView', () => {
 // ### CreateGameView ###
 // ######################
 describe('CreateGameView', () => {
-	it('affiche le titre et le champ Max Players', () => {
-		withRouter(<CreateGameView />)
+	it('affiche le titre', () => {
+		withRouterAndAuth(<CreateGameView />)
 		expect(screen.getByText('Create New Game')).toBeDefined()
-		expect(screen.getByText('Max players')).toBeDefined()
 	})
 
-	it('le champ nombre de joueurs a une valeur pas défaut de 4', () => {
-		withRouter(<CreateGameView />)
+	it('le champ nombre de joueurs a une valeur par défaut de 3', () => {
+		withRouterAndAuth(<CreateGameView />)
 		const input = screen.getByRole('spinbutton')
-		expect(input.defaultValue).toBe('4')
+		expect(input.defaultValue).toBe('3')
 	})
 
 	it('affiche le bouton Create', () => {
-		withRouter(<CreateGameView />)
+		withRouterAndAuth(<CreateGameView />)
 		expect(screen.getByRole('button', { name: 'Create' })).toBeDefined()
 	})
 })
@@ -77,13 +95,13 @@ describe('CreateGameView', () => {
 // ####################
 describe('JoinGameView', () => {
 	it('affiche le titre et le champ Game ID', () => {
-		withRouter(<JoinGameView />)
+		withRouterAndAuth(<JoinGameView />)
 		expect(screen.getByText('Join Game')).toBeDefined()
 		expect(screen.getByText('Game ID')).toBeDefined()
 	})
 
 	it('affiche le bouton Join', () => {
-		withRouter(<JoinGameView />)
+		withRouterAndAuth(<JoinGameView />)
 		expect(screen.getByRole('button', {name: 'Join'})).toBeDefined()
 	})
 })
@@ -93,14 +111,14 @@ describe('JoinGameView', () => {
 // #################
 describe('LoginView', () => {
 	it('affiche les champs et le bouton de connexion', () => {
-		withRouter(<LoginView />)
+		withRouterAndAuth(<LoginView />)
 		expect(screen.getByRole('button', {name: 'Log in'})).toBeDefined()
 		const inputs = document.querySelectorAll('input')
 		expect(inputs.length).toBe(2)
 	})
 
 	it('affiche une erreur si les champs sont vides à la soumission', async () => {
-		withRouter(<LoginView />)
+		withRouterAndAuth(<LoginView />)
 		fireEvent.click(screen.getByRole('button', { name : 'Log in'}))
 		await waitFor(() => {
 			expect(screen.getByText('Please enter username/email and password')).toBeDefined()
@@ -113,7 +131,7 @@ describe('LoginView', () => {
 			json: () => Promise.resolve({message: 'Login successful'})
 		}))
 
-		withRouter(<LoginView />)
+		withRouterAndAuth(<LoginView />)
 		const inputs = document.querySelectorAll('input')
 		fireEvent.change(inputs[0], { target: { name: 'id', value: 'user1'} })
 		fireEvent.change(inputs[1], {target: {name: 'password', value: 'secret'} })
@@ -132,7 +150,7 @@ describe('LoginView', () => {
 			json: () => Promise.resolve({error: 'Invalid credentials'})
 		}))
 
-		withRouter(<LoginView />)
+		withRouterAndAuth(<LoginView />)
 		const inputs = document.querySelectorAll('input')
 		fireEvent.change(inputs[0], { target: { name: 'id', value: 'user1'}})
 		fireEvent.change(inputs[1], {target: {name: 'password', value: 'wrongpass'}})
@@ -152,7 +170,7 @@ describe('LoginView', () => {
 
 describe('RegisterView', () => {
 	it('affiche tous les champs du formulaire', () => {
-		withRouter(<RegisterView />)
+		withRouterAndAuth(<RegisterView />)
         expect(screen.getByText('Create a new account')).toBeDefined()
         expect(screen.getByRole('button', { name: 'Register'})).toBeDefined()
 		const inputs = document.querySelectorAll('input')
@@ -160,7 +178,7 @@ describe('RegisterView', () => {
 	})
 
 	it('affiche une erreur si les mots de passe ne correspondent pas', async () => {
-        withRouter(<RegisterView />)
+        withRouterAndAuth(<RegisterView />)
 		const inputs = document.querySelectorAll('input')
         fireEvent.change(inputs[2], { target: { name: 'password', value: 'abcdef' } })
         fireEvent.change(inputs[3], { target: { name: 'confirmPassword', value: 'xxxxxx' } })
@@ -172,7 +190,7 @@ describe('RegisterView', () => {
     })
 
 	it('affiche une erreur si l\'email est invalide', async () => {
-        withRouter(<RegisterView />)
+        withRouterAndAuth(<RegisterView />)
 		const inputs = document.querySelectorAll('input')
         fireEvent.change(inputs[1], { target: { name: 'email', value: 'pasunemail' } })
         fireEvent.change(inputs[2], { target: { name: 'password', value: 'abcdef' } })
@@ -184,8 +202,8 @@ describe('RegisterView', () => {
         })
     })
 
-	it('affiche une erreur si le mot de passe fait moins de 6 caractères', async () => {
-        withRouter(<RegisterView />)
+	it('affiche une erreur si le mot de passe fait moins de 8 caractères', async () => {
+        withRouterAndAuth(<RegisterView />)
 		const inputs = document.querySelectorAll('input')
         fireEvent.change(inputs[1], { target: { name: 'email', value: 'user@test.com' } })
         fireEvent.change(inputs[2], { target: { name: 'password', value: 'abc' } })
@@ -193,43 +211,28 @@ describe('RegisterView', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Register' }))
 
         await waitFor(() => {
-            expect(screen.getByText('Password must be 6 or more characters long')).toBeDefined()
+            expect(screen.getByText('Password must be 8 or more characters')).toBeDefined()
         })
     })
 
 	it('appelle l\'API et affiche un succès si l\'inscription est valide', async () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({ message: 'Registration successful' })
+            json: () => Promise.resolve({ message: "testuser's account has been successfully created!" })
         }))
 
-        withRouter(<RegisterView />)
+        withRouterAndAuth(<RegisterView />)
 		const inputs = document.querySelectorAll('input')
         fireEvent.change(inputs[0], { target: { name: 'username', value: 'testuser' } })
         fireEvent.change(inputs[1], { target: { name: 'email', value: 'user@test.com' } })
-        fireEvent.change(inputs[2], { target: { name: 'password', value: 'abcdef' } })
-        fireEvent.change(inputs[3], { target: { name: 'confirmPassword', value: 'abcdef' } })
+        fireEvent.change(inputs[2], { target: { name: 'password', value: '@Bcd3fgh' } })
+        fireEvent.change(inputs[3], { target: { name: 'confirmPassword', value: '@Bcd3fgh' } })
         fireEvent.click(screen.getByRole('button', { name: 'Register' }))
 
         await waitFor(() => {
-            expect(screen.getByText('Registration successful')).toBeDefined()
+            expect(screen.getByText("testuser's account has been successfully created!")).toBeDefined()
         })
 
         vi.unstubAllGlobals()
     })
-})
-
-// ################
-// ### TestView ###
-// ################
-
-describe('TestView', () => {
-	it('affiche les sections de l\'interface de jeu', () => {
-		withRouter(<TestView />)
-		expect(screen.getByText('PLAYERS')).toBeDefined()
-		expect(screen.getByText('CHAT')).toBeDefined()
-		expect(screen.getByText('CURRENT CYCLE')).toBeDefined()
-		expect(screen.getByText('LOG')).toBeDefined()
-		expect(screen.getByText('ROLES')).toBeDefined()
-	})
 })

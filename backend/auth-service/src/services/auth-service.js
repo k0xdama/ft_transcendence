@@ -3,8 +3,8 @@ import { db } from '../config/db.js';
 import {
 	EmailAlreadyExistsError,
 	UsernameAlreadyExistsError,
-	UserNotFoundError,
-	InvalidPasswordError,
+	UserNotFoundError,			// To delete before correction
+	InvalidPasswordError,		// To delete before correction
 	InvalidCredentialsError } from '../utils/errors.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -19,35 +19,37 @@ class AuthService {
 		validateUsername(username);
 		validatePassword(password);
 
-		const emailExist = await db.oneOrNone(
-			'SELECT id FROM auth.users WHERE email = $1',
-			[email]
-		);
-		if (emailExist) {
-			throw new EmailAlreadyExistsError();
-		}
-		
-		const usernameExist = await db.oneOrNone(
-			'SELECT id FROM auth.users WHERE username = $1',
-			[username]
-		);
-		if (usernameExist) {
-			throw new UsernameAlreadyExistsError();
-		}
-		
 		const passwordHash = await bcrypt.hash(password, 10);
-		
-		const newUser = await db.one(
-			'INSERT INTO auth.users(email, username, password_hash) VALUES($1, $2, $3) RETURNING id, email, username',
-			[email, username, passwordHash]
-		);
-		
-		return newUser;
+
+		try {
+			const newUser = await db.one(
+				`INSERT INTO auth.users(email, username, password_hash)
+				VALUES($1, $2, $3)
+				RETURNING id, email, username`,
+				[email, username, passwordHash]
+			);
+
+			return newUser;
+		}
+		catch (error) {
+			if (error.code === '23505') {
+				if (error.constraint === 'users_email_key') // <table>_<column>_key
+					throw new EmailAlreadyExistsError();
+				if (error.constraint === 'users_username_key') // <table>_<column>_key
+					throw new UsernameAlreadyExistsError();
+			}
+			throw error;
+		}
 	}
 
 	async login(identifier, password) {
+		if (!identifier || !password)
+			throw new InvalidCredentialsError('Identifier and password are required');
+
 		const user = await db.oneOrNone(
-			'SELECT id, email, username, password_hash FROM auth.users WHERE email = $1 OR username = $1',
+			`SELECT id, email, username, password_hash
+			FROM auth.users
+			WHERE email = $1 OR username = $1`,
 			[identifier]
 		);
 		if (!user) {

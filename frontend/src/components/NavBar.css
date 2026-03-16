@@ -12,6 +12,15 @@
 	box-sizing: border-box;
 }
 
+.navbar p {
+	margin-bottom: 2px;
+}
+
+.navbar p:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
 .brand a {
 	color: white;
 	font-weight: bold;
@@ -28,21 +37,40 @@
 	flex-direction: row;
 }
 
-.logBut {
+.user-profile {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.profile-pic {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 2px solid #752586;
+}
+
+.log-btn {
 	color: white;
 	margin-top: 0.5rem;
 }
 
-.logBut:hover {
+.log-btn:hover {
 	cursor: pointer;
 	color: #9d4edd;
 	text-decoration: underline;
 }
 
-.regBut {
+.reg-btn {
 	background-color: #752586;
 }
 
-.regBut:hover {
+.reg-btn:hover {
 	border-color: #9d4edd;
 }
+
+.prof:hover {
+	text-decoration: underline;
+	cursor: pointer;
+}
+

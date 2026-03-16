@@ -1,19 +1,20 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../auth-service.js';
+import app from '../auth-server.js';
 import { db } from '../src/config/db.js';
 
-describe('Auth /auth/login', () => {
-	beforeAll(async () => {		// Create a user before login testing
-		await request(app)
-			.post('/auth/register')
-			.send({
-				email: 'marvin@test.fr',
-				username: 'marvin42',
-				password: 'b00t3ToR00t_'
-			});
-	});
+// Create a user before performing tests
+beforeAll(async () => {
+	await request(app)
+		.post('/auth/register')
+		.send({
+			email: 'marvin@test.fr',
+			username: 'marvin42',
+			password: 'b00t3ToR00t_'
+		});
+});
 
+describe('Auth /auth/login', () => {
 	it('should login with email', async () => {
 		const response = await request(app)
 			.post('/auth/login')
@@ -62,6 +63,22 @@ describe('Auth /auth/login', () => {
 		expect(response.status).toBe(401);
 		// expect(response.body.error).toBe('Invalid credentials');
 		expect(response.body.error).toBe('Invalid password');
+	});
+
+	it('should reject missing identifier', async () => {
+		const response = await request(app)
+			.post('/auth/login')
+			.send({ password: 'b00t3ToR00t_' });
+		expect(response.status).toBe(401);
+		expect(response.body.error).toBeDefined();
+	});
+
+	it('should reject missing password', async () => {
+		const response = await request(app)
+			.post('/auth/login')
+			.send({ identifier: 'marvin42' });
+		expect(response.status).toBe(401);
+		expect(response.body.error).toBeDefined();
 	});
 });
 

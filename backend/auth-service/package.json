@@ -2,22 +2,23 @@
 	"name": "auth-service",
 	"version": "1.0.0",
 	"type": "module",
-	"main": "auth-service.js",
+	"main": "auth-server.js",
 	"scripts": {
-		"start": "node auth-service.js",
-		"dev": "node --watch auth-service.js",
+		"start": "node auth-server.js",
+		"dev": "node --watch auth-server.js",
 		"test": "vitest run",
 		"test:register": "vitest run tests/register.test.js",
-		"test:login": "vitest run tests/login.test.js"
+		"test:login": "vitest run tests/login.test.js",
+		"test:token": "vitest run tests/token.test.js"
 	},
 	"dependencies": {
+		"cors": "^2.8.6",
 		"express": "^5.2.1",
 		"express-validator": "^7.3.1",
+		"cookie-parser": "^1.4.7",
 		"pg-promise": "^12.6.1",
 		"bcrypt": "^6.0.0",
-		"jsonwebtoken": "^9.0.3",
-		"cookie-parser": "^1.4.7",
-		"cors": "^2.8.6"
+		"jsonwebtoken": "^9.0.3"
 	},
 	"devDependencies": {
 		"supertest": "^7.2.2",

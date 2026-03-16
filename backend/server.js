@@ -1,30 +1,34 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+
 const app = express();
-const PORT = 5172;
+
+app.use(cors(
+	{
+		origin: 'http://localhost:5173',
+		credentials: true,
+		methods: ['GET', 'POST', 'DELETE', 'PUT'],
+		allowHeaders: ['Content-Type', 'Authorization']
+	}
+))
 
 // Middleware
 app.use(express.json());  // Parse JSON bodies
 
-app.use(cors ({
-  origin: 'http://localhost:5173',
-  credentials: true,
-  methods: ['GET', 'POST', 'DELETE', 'PUT'],
-  allowHeaders: ['Content-Type', 'Authorization']
-}))
-
 // Test route
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Backend is running',
-    timestamp: new Date().toISOString()
-  });
+	res.json({ 
+		status: 'OK', 
+		message: 'Backend is running',
+		timestamp: new Date().toISOString()
+	});
 });
+
+const port = 5172;
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend server running on port ${PORT}`);
+app.listen(port, '0.0.0.0', () => {
+	console.log(`Backend server running on port ${port}`);
 });
 
-module.exports = app;
+export default app;
