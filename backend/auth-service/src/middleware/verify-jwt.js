@@ -26,6 +26,6 @@ export function verifyAccessToken(req, res, next) {
 		next();
 	}
 	catch (error) {
-		return res.status(401).json({ error: 'Invalid or expired token' });
+		return res.status(401).json({ error: 'Invalid or expired token' }); // ou 498 'Token expired/invalid' ? (nginx http errors)
 	}
 }

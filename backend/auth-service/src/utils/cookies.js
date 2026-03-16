@@ -11,10 +11,6 @@ export function setRefreshCookie(res, token) {
 }
 
 export function clearRefreshCookie(res) {
-	res.clearCookie('refreshToken', {
-		httpOnly: true,
-		secure: false,					// set a true après
-		sameSite: 'strict',
-		path: '/api/auth'
-	});
+	const { maxAge, ...clearOptions } = REFRESH_COOKIE_OPTIONS;
+	res.clearCookie('refreshToken', clearOptions);
 }
