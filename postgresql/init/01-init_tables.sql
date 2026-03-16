@@ -67,7 +67,7 @@ CREATE TRIGGER trg_auth_users_updated_at
 	FOR EACH ROW
 	EXECUTE FUNCTION set_updated_at();
 
-CREATE TRIGGER trg_lobby_sessions_updated_at
-	BEFORE UPDATE ON chat.lobby_sessions
-	FOR EACH ROW
-	EXECUTE FUNCTION set_updated_at();
+-- CREATE TRIGGER trg_lobby_sessions_updated_at
+-- 	BEFORE UPDATE ON chat.lobby_sessions
+-- 	FOR EACH ROW
+-- 	EXECUTE FUNCTION set_updated_at();
