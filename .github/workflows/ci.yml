@@ -1,9 +1,7 @@
 name : CI Pipeline
 
-
 permissions:
   contents: read
-
 
 on:
   push:
@@ -13,7 +11,6 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
 jobs:
     frontend:
@@ -30,7 +27,6 @@ jobs:
         - run: npm run build
           working-directory: ./frontend
 
-
     backend:
       runs-on: ubuntu-24.04
       steps:
@@ -40,8 +36,14 @@ jobs:
             node-version: '22'
         - run: npm install
           working-directory: ./backend
-        - run: npm test
+        - name: Create JWT secret
+          run: |
+            sudo mkdir -p /run/secrets
+            echo "${{ secrets.JWT_ACCESS }}" | sudo tee /run/secrets/jwt_access
+        - run: npm run test:global
           working-directory: ./backend
+        - run: npm test
+          working-directory: ./backend/gateway-service
       
     ci-tests:
       runs-on: ubuntu-24.04
@@ -53,7 +55,6 @@ jobs:
             node-version: '22'
         - run: npm install
           working-directory: ./
-
         - name: Create secrets files
           run: |
             mkdir -p secrets
@@ -63,8 +64,8 @@ jobs:
             echo "${{ secrets.PSQL_SERVICES_PASSWD }}" > secrets/psql_services_passwd.txt
             echo "${{ secrets.REDIS_PASSWD }}" > secrets/redis_passwd.txt
             echo "${{ secrets.JWT_ACCESS }}" > secrets/jwt_access.txt
-
         - run: docker compose up -d
+        - run: docker exec auth npm test
         - run: npx wait-on http://localhost:5172/api/health --timeout 60000
         - run: npx wait-on http://localhost:5173 --timeout 60000
         - run: npm test

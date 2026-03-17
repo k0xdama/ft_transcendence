@@ -1,0 +1,76 @@
+.navbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem 2rem;
+	background-color: #1a1a1a;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.navbar p {
+	margin-bottom: 2px;
+}
+
+.navbar p:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.brand a {
+	color: white;
+	font-weight: bold;
+	font-size: 1.75rem;
+}
+
+.brand a:hover {
+	color: #9d4edd;
+}
+
+.navControl {
+	display: flex;
+	gap: 2rem;
+	flex-direction: row;
+}
+
+.user-profile {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.profile-pic {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 2px solid #752586;
+}
+
+.log-btn {
+	color: white;
+	margin-top: 0.5rem;
+}
+
+.log-btn:hover {
+	cursor: pointer;
+	color: #9d4edd;
+	text-decoration: underline;
+}
+
+.reg-btn {
+	background-color: #752586;
+}
+
+.reg-btn:hover {
+	border-color: #9d4edd;
+}
+
+.prof:hover {
+	text-decoration: underline;
+	cursor: pointer;
+}
+

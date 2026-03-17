@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../auth-service.js';
-import { db } from '../src/db/queries.js';
+import app from '../auth-server.js';
+import { db } from '../src/config/db.js';
 
 describe('Auth /auth/register', () => {
 	it('should register a new user', async () => {
@@ -10,9 +10,8 @@ describe('Auth /auth/register', () => {
 			.send({
 				email: 'miaou@test.fr',
 				username: 'miaou',
-				password: 'kikoolol555'
+				password: 'kiKoolol555$'
 			});
-
 		expect(response.status).toBe(201);
 		expect(response.body.user).toBeDefined();
 		expect(response.body.user.email).toBe('miaou@test.fr');
@@ -25,9 +24,8 @@ describe('Auth /auth/register', () => {
 			.send({
 				email: 'miaou@test.fr',
 				username: 'elpatron',
-				password: 'test2test1test@'
+				password: 'test2Test1test@'
 			});
-
 		expect(response.status).toBe(400);
 		expect(response.body.error).toBeDefined();
 	});
@@ -38,11 +36,84 @@ describe('Auth /auth/register', () => {
 			.send({
 				email: 'oggy@test.fr',
 				username: 'miaou',
-				password: 'test2test1test@'
+				password: 'blaB2bla1*b'
 			});
-
 		expect(response.status).toBe(400);
 		expect(response.body.error).toBeDefined();
+	});
+});
+
+describe('Auth /auth/register — field validation', () => {
+	it('should reject missing email', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ username: 'hellboy42', password: 'Bruuuh3630!' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('Email');
+	});
+
+	it('should reject missing username', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'miaou@test.fr', password: 'Bruuuh3630!' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('Username');
+	});
+
+	it('should reject missing password', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'miaou@test.fr', username: 'hellboy42' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('Password');
+	});
+
+	it('should reject invalid email format', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'born-to-code', username: 'hellboy42', password: 'Bruuuh3630!' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('email');
+	});
+
+	it('should reject username too short (< 3 chars)', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'miaou@test.fr', username: 'ab', password: 'Bruuuh3630!' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('between');
+	});
+
+	it('should reject username with invalid characters', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'miaou@test.fr', username: 'not good!', password: 'Bruuuh3630!' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('Username');
+	});
+
+	it('should reject password too short (< 8 chars)', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'miaou@test.fr', username: 'hellboy42', password: 'Ab1!' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('8');
+	});
+
+	it('should reject password missing uppercase', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'miaou@test.fr', username: 'hellboy42', password: 'nouppercase1!' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('uppercase');
+	});
+
+	it('should reject password missing special character', async () => {
+		const response = await request(app)
+			.post('/auth/register')
+			.send({ email: 'miaou@test.fr', username: 'hellboy42', password: 'NoSpecial123' });
+		expect(response.status).toBe(400);
+		expect(response.body.error).toContain('special');
 	});
 });
 

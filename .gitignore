@@ -5,4 +5,4 @@ secrets/
 .env
 .vscode/
 *.log
-secrets/
+example.tsx

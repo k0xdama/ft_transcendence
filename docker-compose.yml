@@ -12,6 +12,11 @@ services:
       - psql_admin_user
       - psql_admin_passwd
       - psql_services_passwd
+      # - psql_auth_passwd
+      # - psql_player_passwd
+      # - psql_lobby_passwd
+      # - psql_game_passwd
+      # - psql_chat_passwd
     build:
       context: ./postgresql
       dockerfile: Dockerfile
@@ -26,10 +31,10 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - transcendence_network
+      - trio_network
     restart: unless-stopped
 
-  cache:
+  redis:
     image: redis:8.4-v1
     container_name: redis
     pull_policy: never
@@ -48,26 +53,8 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - transcendence_network
+      - trio_network
     restart: unless-stopped
-
-  # backend:
-  #   image: backend:v1
-  #   container_name: backend
-  #   environment:
-  #     - NODE_ENV=development
-  #     - PORT=5172
-  #   build: 
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./backend:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - transcendence_network
-  #   ports:
-  #     - "5172:5172"
-  #   restart: unless-stopped
 
   auth:
     image: auth:v1
@@ -84,10 +71,8 @@ services:
       - PLAYER_SERVICE_URL=http://player:3001 #rajout pour pas seulement ecrire en dur dans auth.js, c'est un test pour le moment
     secrets:
       - psql_dbname
-      - psql_admin_user
-      - psql_admin_passwd
       - psql_services_passwd
-      - redis_passwd
+      # - psql_auth_passwd
       - jwt_access
 #      - service_token #c'etait un test pour un token de header que je vais peut etre refaire
     build:
@@ -96,27 +81,63 @@ services:
     volumes:
       - ./backend/auth-service/src:/app/src:ro
     networks:
-      - transcendence_network
+      - trio_network
     ports:
       - "3000:3000"
     restart: unless-stopped
 
-  # frontend:
-  #   image: frontend:v1
-  #   container_name: frontend
-  #   depends_on:
-  #     - backend
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   networks:
-  #     - transcendence_network
-  #   ports:
-  #     - "5173:5173"
-  #   restart: unless-stopped
+  backend:
+    image: backend:v1
+    container_name: backend
+    environment:
+      - NODE_ENV=development
+      - PORT=5172
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "5172:5172"
+    restart: unless-stopped
+
+  frontend:
+    image: frontend:v1
+    container_name: frontend
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+
+  gateway:
+    image: gateway:v1
+    container_name: gateway
+    depends_on:
+      - backend
+    build:
+      context: ./backend/gateway-service
+      dockerfile: Dockerfile
+    secrets:
+      - jwt_access
+    volumes:
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
 
   player:
     image: player:v1
@@ -182,12 +203,18 @@ secrets:
     file: ./secrets/psql_admin_user.txt
   psql_admin_passwd:
     file: ./secrets/psql_admin_passwd.txt
-  # psql_auth_user:
-  #   file: ./secrets/psql_auth_user.txt
-  # psql_auth_passwd:
-  #   file: ./secrets/psql_auth_passwd.txt
   psql_services_passwd:
     file: ./secrets/psql_services_passwd.txt
+  # psql_auth_passwd:
+  #   file: ./secrets/psql_auth_passwd.txt
+  # psql_player_passwd:
+  #   file: ./secrets/psql_player_passwd.txt
+  # psql_lobby_passwd:
+  #   file: ./secrets/psql_lobby_passwd.txt
+  # psql_game_passwd:
+  #   file: ./secrets/psql_game_passwd.txt 
+  # psql_chat_passwd:
+  #   file: ./secrets/psql_chat_passwd.txt
   redis_passwd:
     file: ./secrets/redis_passwd.txt
   jwt_access:
@@ -196,5 +223,5 @@ secrets:
   #   file:./secrets/service_token.txt
 
 networks:
-  transcendence_network:
+  trio_network:
     driver: bridge
