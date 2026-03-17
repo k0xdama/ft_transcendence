@@ -15,6 +15,5 @@
 	},
 	"devDependencies": {
 		"vitest": "^4.1.0"
-	},
-	"workspaces": ["gateway-service"]
+	}
 }
