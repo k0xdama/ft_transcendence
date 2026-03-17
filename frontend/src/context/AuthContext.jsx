@@ -16,12 +16,17 @@ export const AuthProvider = ({ children }) => {
 	const [accessToken, setAccessToken] = useState(null)
 	const [loading, setLoading] = useState(true)
 
+	const authUrl = 'http://localhost:4000/api/auth'
+
 	useEffect(() => {
 		const	tryRestoreSession = async () => {
 			try {
-				const	response = await fetch('http://localhost:3000/auth/refresh', {
+				const	response = await fetch(`${authUrl}/refresh`, {
 					method: 'POST',
-					credentials: 'include'
+					credentials: 'include',
+					headers: {
+						'Content-Type': 'application/json'
+					}
 				})
 
 				if (response.ok) {
@@ -49,7 +54,7 @@ export const AuthProvider = ({ children }) => {
 
 	const logout = async () => {
 		try {
-			await fetch('http://localhost:3000/auth/logout', {
+			await fetch(`${authUrl}/logout`, {
 				method: 'POST',
 				credentials: 'include'
 			})
@@ -63,19 +68,22 @@ export const AuthProvider = ({ children }) => {
 	}
 
 	const authFetch = async (URL, options = {}) => {
-		const response = fetch(url, {
+		const response = await fetch(URL, {
 			...options,
+			credentials: 'include',
 			headers: {
-				...options.headers,
-				'Authorization': `Bearer ${accessToken}`
+				...options.headers
 			}
 		})
 
 		if (response.status !== 401) return response
 
-		const refreshResponse = await fetch('http://localhost:3000/auth/refresh', {
+		const refreshResponse = await fetch(`${authUrl}/refresh`, {
 			method: 'POST',
-			credentials: 'include'
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			}
 		})
 
 		if (!refreshResponse.ok) {
@@ -87,11 +95,11 @@ export const AuthProvider = ({ children }) => {
 		const newToken = data.accessToken
 		setAccessToken(newToken)
 
-		return fetch(url, {
+		return fetch(URL, {
 			...options,
+			credentials: 'include',
 			headers: {
-				...options.headers,
-				'Authorization': `Bearer ${newToken}`
+				...options.headers
 			}
 		})
 	}

@@ -36,8 +36,14 @@ jobs:
             node-version: '22'
         - run: npm install
           working-directory: ./backend
+        - name: Create JWT secret
+          run: |
+            sudo mkdir -p /run/secrets
+            echo "${{ secrets.JWT_ACCESS }}" | sudo tee /run/secrets/jwt_access
         - run: npm run test:global
           working-directory: ./backend
+        - run: npm test
+          working-directory: ./backend/gateway-service
       
     ci-tests:
       runs-on: ubuntu-24.04
