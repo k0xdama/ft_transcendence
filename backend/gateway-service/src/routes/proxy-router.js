@@ -16,4 +16,19 @@ router.use('/chat', authGuard, createProxyMiddleware({
 	pathRewrite: { '^/': '/chat/' }
 }))
 
-export { router }
+const lobbyProxy = createProxyMiddleware({
+	target: 'http://lobby:3001',
+	ws: true,
+	changeOrigin: true
+});
+
+const gameProxy = createProxyMiddleware({
+	target: 'http://game:3002',
+	ws: true,
+	changeOrigin: true
+});
+
+router.use('/lobby', lobbyProxy);
+router.use('/game', gameProxy);
+
+export { router, lobbyProxy, gameProxy }
