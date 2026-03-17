@@ -1,0 +1,113 @@
+# Contrat API WebSocket — Lobby & Game Services
+
+## Connexion
+
+Les deux services requièrent un JWT au handshake :
+```javascript
+io('http://host:port', { auth: { token: accessToken } })
+```
+
+---
+
+## LOBBY-SERVICE (port 3001)
+
+### Events client → serveur
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `lobby:create` | `{ gameMode: "CLASSIC"|"LINKED", gameType: "SOLO"|"TEAM_UP", maxUsers: 3|4|5|6 }` | Crée un lobby privé |
+| `lobby:join` | `{ lobbyId: "A3F9K2" }` | Rejoint un lobby existant |
+| `lobby:ready` | `{ lobbyId: "A3F9K2" }` | Toggle ready/pas ready |
+| `lobby:start` | `{ lobbyId: "A3F9K2" }` | Lance la partie (hôte uniquement) |
+
+### Events serveur → client
+
+| Event | Payload | Destinataire | Description |
+|-------|---------|-------------|-------------|
+| `lobby:created` | `{ lobbyId: "A3F9K2" }` | Créateur uniquement | Lobby créé, voici le code |
+| `lobby:joined` | `{ lobbyStruct }` | Tout le lobby | Un joueur a rejoint |
+| `lobby:readyChanged` | `{ lobbyStruct }` | Tout le lobby | Un joueur a toggle ready |
+| `lobby:disconnected` | `{ userId: "uuid" }` | Reste du lobby | Un joueur a quitté |
+| `lobby:gameStarting` | `{ gameId: "uuid" }` | Tout le lobby | Partie créée, connectez-vous au game-service |
+| `error` | `"message d'erreur"` | Socket concerné | Erreur |
+
+### Structure lobbyStruct
+```json
+{
+  "lobbyId": "A3F9K2",
+  "lobbyType": "PRIVATE",
+  "creatorId": "user-uuid",
+  "createdAt": 1710000000000,
+  "state": "WAITING|FULL|GAME_STARTED",
+  "gameId": null,
+  "users": [
+    { "id": "user-uuid", "ready": false }
+  ],
+  "rules": {
+    "gameMode": "CLASSIC|LINKED",
+    "gameType": "SOLO|TEAM_UP",
+    "maxUsers": 3
+  },
+  "teams": {}
+}
+```
+
+---
+
+## GAME-SERVICE (port 3002)
+
+### Connexion au game-service
+
+Après réception de `lobby:gameStarting`, le client ouvre une deuxième connexion Socket.io vers le game-service avec le même token JWT.
+
+### Events client → serveur
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `game:join` | `{ gameId: "uuid" }` | Rejoint la partie |
+| `game:action` | `{ gameId: "uuid", actionType: "PLAYER_HIGHEST"|"PLAYER_LOWEST"|"FLIP_MIDDLE", target: "user-uuid"|"0" }` | Joue une action |
+
+### Events serveur → client
+
+| Event | Payload | Destinataire | Description |
+|-------|---------|-------------|-------------|
+| `game:joined` | `{ gameId: "uuid" }` | Tout le monde | Un joueur a rejoint |
+| `game:started` | `{ gameStruct }` | Tout le monde | Partie lancée, voici l'état initial |
+| `game:update` | `{ action_result, gameStruct }` | Tout le monde | Une action a été jouée |
+| `error` | `"message d'erreur"` | Socket concerné | Erreur |
+
+### Structure gameStruct (champs utiles au front)
+```json
+{
+  "gameId": "uuid",
+  "currentPlayer": "user-uuid",
+  "currentAction": "ACTION_1|ACTION_2|ACTION_3",
+  "players": [
+    {
+      "id": "user-uuid",
+      "hand": [ { "value": 7 }, { "value": 3 } ]
+    }
+  ],
+  "cardsInMiddle": [
+    { "value": 5, "revealed": false },
+    { "value": 9, "revealed": true }
+  ],
+  "cardsRevealed": [
+    { "value": 7 }
+  ]
+}
+```
+
+### Flux complet
+```
+1. Client login → auth-service → reçoit accessToken
+2. Client connecte → lobby-service (avec token)
+3. lobby:create ou lobby:join
+4. lobby:ready (tous les joueurs)
+5. lobby:start (hôte)
+6. Client reçoit lobby:gameStarting { gameId }
+7. Client connecte → game-service (avec token)
+8. game:join { gameId }
+9. Quand tous les joueurs ont rejoint → game:started automatique
+10. game:action pour jouer
+```
