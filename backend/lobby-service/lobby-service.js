@@ -1,4 +1,6 @@
 import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import fs from 'fs';
 
 const LOBBY_TYPES = {
 	PUBLIC: 'PUBLIC',
@@ -21,6 +23,9 @@ const GAME_TYPES = {
 	TEAM_UP: 'TEAM_UP'
 };
 
+//Remove process.env.JWT_SECRET when local test isn't needed anymore
+const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
+
 const io = new Server(3001, {
 	cors: {
 		origin: '*',
@@ -29,6 +34,18 @@ const io = new Server(3001, {
 });
 
 console.log('LOBBY-SERVICE started on port 3001');
+
+io.use((socket, next) => {
+	const token = socket.handshake.auth.token;
+	if (!token) return next(new Error('Token manquant'));
+	try {
+		const decoded = jwt.verify(token, jwtSecret);
+		socket.user = decoded;
+		next();
+	} catch (e) {
+		next(new Error('Token invalide'));
+	}
+});
 
 const lobbys = new Map();
 const lobbyBySocket = new Map();
@@ -90,12 +107,12 @@ io.on('connection', (socket) => {
 
 	socket.on('lobby:create', (data) => {
 		const lobbyId = generateLobbyId(lobbys);
-		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType, socket.id, data.maxUsers);
+		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType, socket.user.id, data.maxUsers);
 		lobbys.set(lobbyId, lobbyStruct);
 		socket.join(lobbyId);
-		addUser(lobbyStruct, socket.id);
+		addUser(lobbyStruct, socket.user.id);
 		console.log(`Lobby created: ${lobbyId}`);
-		console.log(`User ${socket.id} joined the lobby ${lobbyId}`);
+		console.log(`Client ${socket.id} (user: ${socket.user.username}) joined the lobby ${lobbyId}`);
 		lobbyBySocket.set(socket.id, lobbyId);
 		socket.emit('lobby:created', { lobbyId });
 	});
@@ -107,7 +124,7 @@ io.on('connection', (socket) => {
 			return;
 		}
 		for (const user of lobbyStruct.users) {
-			if (socket.id === user.id) {
+			if (socket.user.id === user.id) {
 				socket.emit('error', 'Vous avez déjà rejoint ce lobby');
 				return;
 			}
@@ -121,8 +138,8 @@ io.on('connection', (socket) => {
 			return;
 		}
 		socket.join(data.lobbyId);
-		addUser(lobbyStruct, socket.id);
-		console.log(`User ${socket.id} joined the lobby ${data.lobbyId}`);
+		addUser(lobbyStruct, socket.user.id);
+		console.log(`User ${socket.id} (user: ${socket.user.username}) joined the lobby ${data.lobbyId}`);
 		lobbyBySocket.set(socket.id, data.lobbyId);
 		if (lobbyStruct.users.length === lobbyStruct.rules.maxUsers)
 			lobbyStruct.state = LOBBY_STATE.FULL;
@@ -135,9 +152,9 @@ io.on('connection', (socket) => {
 			socket.emit('error', `Aucun lobby avec cet identifiant n'existe`);
 			return;
 		}
-		const user = lobbyStruct.users.find(user => user.id === socket.id);
+		const user = lobbyStruct.users.find(user => user.id === socket.user.id);
 		if (user === undefined) {
-			socket.emit('error', `L'utilisateur ${socket.id} ne fait pas parti du lobby ${data.lobbyId}`);
+			socket.emit('error', `L'utilisateur ${socket.user.id} ne fait pas parti du lobby ${data.lobbyId}`);
 			return;
 		}
 		user.ready = !user.ready;
@@ -150,7 +167,7 @@ io.on('connection', (socket) => {
 			socket.emit('error', `Aucun lobby avec cet identifiant n'existe`);
 			return;
 		}
-		if (socket.id !== lobbyStruct.creatorId) {
+		if (socket.user.id !== lobbyStruct.creatorId) {
 			socket.emit('error', `Seul l'hôte du lobby peut lancer la partie`);
 			return;
 		}
@@ -198,13 +215,13 @@ io.on('connection', (socket) => {
 			lobbyBySocket.delete(socket.id);
 		}
 		else {
-			if (lobbyStruct.creatorId === socket.id)
+			if (lobbyStruct.creatorId === socket.user.id)
 				lobbyStruct.creatorId = lobbyStruct.users[0].id;
 			if (lobbyStruct.state === LOBBY_STATE.FULL)
 				lobbyStruct.state = LOBBY_STATE.WAITING;
 			lobbyBySocket.delete(socket.id);
 			io.to(lobbyId).emit('lobby:disconnected', { userId: socket.id });
-			console.log(`Client disconnected: ${socket.id}`);
+			console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
 		}
 	});
 });

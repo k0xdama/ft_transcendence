@@ -8,6 +8,7 @@
         "dev": "node --watch game-service.js"
     },
     "dependencies": {
+        "jsonwebtoken": "^9.0.3",
         "socket.io": "^4.8.1"
     }
 }

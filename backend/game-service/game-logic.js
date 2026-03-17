@@ -51,6 +51,7 @@ export function createGame(gameId, gameMode, gameType, creatorId) {
 		gameMode: gameMode,
 		gameType: gameType,
 		players: [],
+		expectedUsersIds: [],
 		expectedPlayers: null,
 		cardsInMiddle: [],
 		cardsRevealed: [],
@@ -274,7 +275,7 @@ export function executeAction(gameStruct, actionType, target) {
 }
 
 export function nextPlayer(gameStruct) {
-	const nextIndex = (gameStruct.currentPlayerIndex + 1) % gameStruct.length;
+	const nextIndex = (gameStruct.currentPlayerIndex + 1) % gameStruct.players.length;
 	gameStruct.currentPlayerIndex = nextIndex;
 	gameStruct.currentPlayer = gameStruct.players[nextIndex].id;
 }

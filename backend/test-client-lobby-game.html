@@ -16,7 +16,19 @@
     <h1>Test Lobby + Game</h1>
     <div id="status">Déconnecté</div>
 
-    <div class="section">
+    <div class="section" id="authSection">
+        <h2>Auth</h2>
+        <input id="regEmail" placeholder="Email">
+        <input id="regUsername" placeholder="Username">
+        <input id="regPassword" placeholder="Password" type="password">
+        <button onclick="register()">Register</button>
+        <hr>
+        <input id="loginId" placeholder="Email ou Username">
+        <input id="loginPwd" placeholder="Password" type="password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div class="section" id="lobbySection" style="display:none">
         <h2>Lobby</h2>
         <button onclick="createLobby()">Créer Lobby</button>
         <input id="joinCode" placeholder="Code lobby (6 chars)">
@@ -28,6 +40,7 @@
     <div class="section" id="gameSection" style="display:none">
         <h2>Game</h2>
         <p>Mon ID : <strong id="myId"></strong></p>
+        <p>Username : <strong id="myUsername"></strong></p>
         <p>Tour de : <strong id="currentPlayer"></strong></p>
         <p>Action : <strong id="currentAction"></strong></p>
 
@@ -53,10 +66,14 @@
     <div id="logs"></div>
 
     <script>
+        let token = null;
+        let userId = null;
         let currentLobbyId = null;
         let currentGameId = null;
         let lobbySocket = null;
         let gameSocket = null;
+
+        const AUTH_URL = 'http://localhost:3000';
 
         function log(msg) {
             const el = document.getElementById('logs');
@@ -64,56 +81,115 @@
             el.scrollTop = el.scrollHeight;
         }
 
+        // ========== AUTH ==========
+
+        async function register() {
+            try {
+                const res = await fetch(AUTH_URL + '/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('regEmail').value,
+                        username: document.getElementById('regUsername').value,
+                        password: document.getElementById('regPassword').value
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) { log('ERREUR REGISTER: ' + data.error); return; }
+                log('Compte créé : ' + data.user.username + ' — Maintenant login');
+            } catch (e) {
+                log('ERREUR REGISTER: ' + e.message);
+            }
+        }
+
+        async function login() {
+            try {
+                const res = await fetch(AUTH_URL + '/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        identifier: document.getElementById('loginId').value,
+                        password: document.getElementById('loginPwd').value
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) { log('ERREUR LOGIN: ' + data.error); return; }
+                token = data.accessToken;
+                userId = data.user.id;
+                log('Login OK — ' + data.user.username);
+                document.getElementById('myId').innerText = data.user.id;
+                document.getElementById('myUsername').innerText = data.user.username;
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('lobbySection').style.display = 'block';
+                connectToLobby();
+            } catch (e) {
+                log('ERREUR LOGIN: ' + e.message);
+            }
+        }
+
         // ========== LOBBY CONNECTION ==========
 
-        lobbySocket = io('http://localhost:3001');
+        function connectToLobby() {
+            lobbySocket = io('http://localhost:3001', {
+                auth: { token: token }
+            });
 
-        lobbySocket.on('connect', () => {
-            document.getElementById('status').innerText = '✅ Connecté au lobby — ' + lobbySocket.id;
-            document.getElementById('myId').innerText = lobbySocket.id;
-            log('Connecté au lobby-service');
-        });
+            lobbySocket.on('connect', () => {
+                document.getElementById('status').innerText = '✅ Connecté au lobby — ' + userId;
+                log('Connecté au lobby-service');
+            });
 
-        lobbySocket.on('disconnect', () => {
-            document.getElementById('status').innerText = '❌ Déconnecté du lobby';
-            log('Déconnecté du lobby-service');
-        });
+            lobbySocket.on('connect_error', (err) => {
+                log('ERREUR CONNEXION LOBBY: ' + err.message);
+            });
 
-        lobbySocket.on('lobby:created', (data) => {
-            currentLobbyId = data.lobbyId;
-            log('Lobby créé : ' + data.lobbyId);
-        });
+            lobbySocket.on('disconnect', () => {
+                document.getElementById('status').innerText = '❌ Déconnecté du lobby';
+                log('Déconnecté du lobby-service');
+            });
 
-        lobbySocket.on('lobby:joined', (data) => {
-            log('Joueur a rejoint — Users: ' + JSON.stringify(data.lobbyStruct.users));
-        });
+            lobbySocket.on('lobby:created', (data) => {
+                currentLobbyId = data.lobbyId;
+                log('Lobby créé : ' + data.lobbyId);
+            });
 
-        lobbySocket.on('lobby:readyChanged', (data) => {
-            log('Ready changé — Users: ' + JSON.stringify(data.lobbyStruct.users));
-        });
+            lobbySocket.on('lobby:joined', (data) => {
+                log('Joueur a rejoint — Users: ' + JSON.stringify(data.lobbyStruct.users));
+            });
 
-        lobbySocket.on('lobby:disconnected', (data) => {
-            log('Joueur déconnecté du lobby: ' + data.userId);
-        });
+            lobbySocket.on('lobby:readyChanged', (data) => {
+                log('Ready changé — Users: ' + JSON.stringify(data.lobbyStruct.users));
+            });
 
-        lobbySocket.on('lobby:gameStarting', (data) => {
-            currentGameId = data.gameId;
-            log('PARTIE LANCÉE — gameId: ' + data.gameId + ' — Connexion au game-service...');
-            connectToGame(data.gameId);
-        });
+            lobbySocket.on('lobby:disconnected', (data) => {
+                log('Joueur déconnecté du lobby: ' + data.userId);
+            });
 
-        lobbySocket.on('error', (msg) => {
-            log('ERREUR LOBBY: ' + msg);
-        });
+            lobbySocket.on('lobby:gameStarting', (data) => {
+                currentGameId = data.gameId;
+                log('PARTIE LANCÉE — gameId: ' + data.gameId + ' — Connexion au game-service...');
+                connectToGame(data.gameId);
+            });
+
+            lobbySocket.on('error', (msg) => {
+                log('ERREUR LOBBY: ' + msg);
+            });
+        }
 
         // ========== GAME CONNECTION ==========
 
         function connectToGame(gameId) {
-            gameSocket = io('http://localhost:3002');
+            gameSocket = io('http://localhost:3002', {
+                auth: { token: token }
+            });
 
             gameSocket.on('connect', () => {
                 log('Connecté au game-service — ' + gameSocket.id);
                 gameSocket.emit('game:join', { gameId: gameId });
+            });
+
+            gameSocket.on('connect_error', (err) => {
+                log('ERREUR CONNEXION GAME: ' + err.message);
             });
 
             gameSocket.on('game:joined', (data) => {
@@ -184,8 +260,7 @@
             document.getElementById('currentPlayer').innerText = gameStruct.currentPlayer;
             document.getElementById('currentAction').innerText = gameStruct.currentAction;
 
-            const myId = gameSocket.id;
-            const me = gameStruct.players.find(p => p.id === myId);
+            const me = gameStruct.players.find(p => p.id === userId);
             if (me) {
                 document.getElementById('hand').innerText =
                     me.hand.map(c => '[' + c.value + ']').join(' ');
