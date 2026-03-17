@@ -1,0 +1,14 @@
+{
+    "name": "lobby-service",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "lobby-service.js",
+    "scripts": {
+        "start": "node lobby-service.js",
+        "dev": "node --watch lobby-service.js"
+    },
+    "dependencies": {
+        "jsonwebtoken": "^9.0.3",
+        "socket.io": "^4.8.1"
+    }
+}
