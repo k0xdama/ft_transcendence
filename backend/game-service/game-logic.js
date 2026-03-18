@@ -1,4 +1,4 @@
-import { randomInt } from 'crypto'
+import { randomInt } from 'crypto';
 
 export const GAME_MODES = {
 	CLASSIC: 'CLASSIC',
