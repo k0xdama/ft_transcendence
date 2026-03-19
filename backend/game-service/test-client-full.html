@@ -40,7 +40,7 @@
     </div>
 
     <script>
-        const socket = io('http://localhost:3001');
+        const socket = io('http://localhost:3002');
         socket.onAny((event, data) => console.log('event reçu:', event, data));
 
         let currentGameId = null;

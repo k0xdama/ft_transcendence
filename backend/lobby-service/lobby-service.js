@@ -26,14 +26,14 @@ const GAME_TYPES = {
 //Remove process.env.JWT_SECRET when local test isn't needed anymore
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
-const io = new Server(3001, {
+const io = new Server(3002, {
 	cors: {
 		origin: '*',
 		methods: ['GET', 'POST']
 	}
 });
 
-console.log('LOBBY-SERVICE started on port 3001');
+console.log('LOBBY-SERVICE started on port 3002');
 
 io.use((socket, next) => {
 	const token = socket.handshake.auth.token;

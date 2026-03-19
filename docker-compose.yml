@@ -62,7 +62,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      cache:
+      redis:
         condition: service_healthy
       # player:
       #   condition: service_started #rajout d'une dependance comme le auth/register fait appel a player/
@@ -145,7 +145,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      cache:
+      redis:
         condition: service_healthy
     secrets:
       - psql_dbname
@@ -163,35 +163,36 @@ services:
     ports:
       - "3001:3001"
     networks:
-      - transcendence_network
+      - trio_network
     restart: unless-stopped
 
-  lobby-service:
-    image: lobby-service:v1
-    container_name: lobby-service
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
-    secrets:
-      - psql_dbname
-      - psql_admin_user
-      - psql_admin_passwd
-      - psql_services_passwd
-      - redis_passwd
-#      - service_token
-    build:
-      context: ./backend/lobby-service
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend/lobby-service/src:/app/src:ro
-    ports:
-      - "3002:3002"
-    networks:
-      - transcendence_network
-    restart: unless-stopped
-
+# PLACEHOLDER NE MARCHE PAS
+#   lobby-service:
+#     image: lobby-service:v1
+#     container_name: lobby-service
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#       redi:
+#         condition: service_healthy
+#     secrets:
+#       - psql_dbname
+#       - psql_admin_user
+#       - psql_admin_passwd
+#       - psql_services_passwd
+#       - redis_passwd
+# #      - service_token
+#     build:
+#       context: ./backend/lobby-service
+#       dockerfile: Dockerfile
+#     volumes:
+#       - ./backend/lobby-service/src:/app/src:ro
+#     ports:
+#       - "3002:3002"
+#     networks:
+#       - trio_network
+#     restart: unless-stopped
+# PLACEHOLDER NE MARCHE PAS
 volumes:
   postgres_data:
   redis_data:
