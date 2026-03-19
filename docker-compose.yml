@@ -86,6 +86,31 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
+  chat:
+    image: chat:v1
+    container_name: chat
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    secrets:
+      - psql_dbname
+      - psql_services_passwd
+      # - psql_chat_passwd
+      - redis_passwd
+      - jwt_access
+    build:
+      context: ./backend/chat-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/chat-service/src:/app/src:ro
+    networks:
+      - trio_network
+    ports:
+      - "2000:2000"
+    restart: unless-stopped
+
   backend:
     image: backend:v1
     container_name: backend
@@ -127,7 +152,7 @@ services:
     depends_on:
       - backend
     build:
-      context: ./backend/gateway-service
+      context: ./backend/api-gateway
       dockerfile: Dockerfile
     secrets:
       - jwt_access

@@ -19,9 +19,9 @@ export const AuthProvider = ({ children }) => {
 	const authUrl = 'http://localhost:4000/api/auth'
 
 	useEffect(() => {
-		const	tryRestoreSession = async () => {
+		const tryRestoreSession = async () => {
 			try {
-				const	response = await fetch(`${authUrl}/refresh`, {
+				const response = await fetch(`${authUrl}/refresh`, {
 					method: 'POST',
 					credentials: 'include',
 					headers: {
@@ -85,7 +85,6 @@ export const AuthProvider = ({ children }) => {
 				'Content-Type': 'application/json'
 			}
 		})
-
 		if (!refreshResponse.ok) {
 			logout()
 			return response
@@ -95,7 +94,7 @@ export const AuthProvider = ({ children }) => {
 		const newToken = data.accessToken
 		setAccessToken(newToken)
 
-		return fetch(URL, {
+		return await fetch(URL, {
 			...options,
 			credentials: 'include',
 			headers: {

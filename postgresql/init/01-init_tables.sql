@@ -43,6 +43,96 @@ CREATE TABLE auth.refresh_tokens (
 
 RESET ROLE;
 
+
+-- ==============================================
+--					CHAT SCHEMA
+--					 5 tables
+-- ==============================================
+
+SET ROLE chat_user;
+
+-- Lobby-related lifecycle
+CREATE TABLE chat.lobby_sessions (
+	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	room_id			UUID NOT NULL UNIQUE,
+	status			TEXT NOT NULL DEFAULT 'open'
+		CONSTRAINT check_lobby_session_status
+		CHECK (status IN ('open', 'closing', 'closed')),
+	opened_at		TIMESTAMPTZ DEFAULT NOW(),
+	game_ended_at	TIMESTAMPTZ,
+	closes_at		TIMESTAMPTZ,
+	updated_at		TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_lobby_session_lookup
+	ON chat.lobby_sessions(room_id, status);
+
+-- Chat in-game
+CREATE TABLE chat.lobby_messages (
+	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	room_id			UUID NOT NULL REFERENCES chat.lobby_sessions(room_id) ON DELETE CASCADE,
+	sender_id		UUID NOT NULL,
+	username		TEXT NOT NULL,
+	content			TEXT NOT NULL
+		CONSTRAINT check_lobby_msg_content_length
+		CHECK (char_length(content) BETWEEN 1 AND 500),
+	message_type	TEXT NOT NULL DEFAULT 'user_text'
+		CONSTRAINT check_lobby_msg_type
+		CHECK (message_type IN ('user_text', 'suggestion')),
+	created_at		TIMESTAMPTZ DEFAULT NOW(),
+	expires_at		TIMESTAMPTZ
+);
+
+CREATE INDEX idx_lobby_recent
+	ON chat.lobby_messages(room_id, created_at DESC);
+
+CREATE INDEX idx_lobby_expiry
+	ON chat.lobby_messages(expires_at);
+
+-------------------------------------------------
+-- Chat DM
+CREATE TABLE chat.direct_conversations (
+	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	user1_id		UUID NOT NULL,
+	user2_id		UUID NOT NULL,
+	created_at 		TIMESTAMPTZ DEFAULT NOW(),
+	CONSTRAINT check_different_users	-- Prevents a user from DMing themselves
+		CHECK (user1_id <> user2_id),
+	CONSTRAINT check_user_order			-- Require user1 < user2 to avoid duplicates (1-2, 2-1)
+		CHECK (user1_id < user2_id),
+	CONSTRAINT check_one_conversation_per_pair
+		UNIQUE (user1_id, user2_id)
+);
+
+CREATE TABLE chat.direct_messages (
+	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	conversation_id	UUID NOT NULL REFERENCES chat.direct_conversations(id) ON DELETE CASCADE,
+	sender_id		UUID NOT NULL,
+	content			TEXT NOT NULL
+		CONSTRAINT check_dm_content_length
+		CHECK (char_length(content) BETWEEN 1 AND 500),
+	created_at		TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_dm_recent
+	ON chat.direct_messages(conversation_id, created_at DESC);
+
+-------------------------------------------------
+CREATE TABLE chat.blocked_users (
+	blocker_id		UUID NOT NULL,
+	blocked_id		UUID NOT NULL,
+	created_at		TIMESTAMPTZ DEFAULT NOW(),
+	PRIMARY KEY (blocker_id, blocked_id),
+	CONSTRAINT check_no_self_block
+	CHECK (blocker_id != blocked_id)
+);
+
+CREATE INDEX idx_blocker_lookup
+	ON chat.blocked_users(blocker_id, blocked_id);
+
+RESET ROLE;
+
+
 -- ==============================================
 --			TRIGGER SHARED FUNCTIONS
 --
@@ -193,3 +283,41 @@ RESET ROLE;
 -- 	BEFORE UPDATE ON chat.lobby_sessions
 -- 	FOR EACH ROW
 -- 	EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER trg_lobby_sessions_updated_at
+	BEFORE UPDATE ON chat.lobby_sessions
+	FOR EACH ROW
+	EXECUTE FUNCTION set_updated_at();
+
+-------------------------------------------------
+CREATE OR REPLACE FUNCTION chat.set_lobby_closes_at()
+RETURNS TRIGGER AS $$
+BEGIN
+	-- Triggers only when game_ended_at changes from NULL to a value
+	IF NEW.game_ended_at IS NOT NULL AND OLD.game_ended_at IS NULL THEN
+		NEW.closes_at = NEW.game_ended_at + INTERVAL '3 minutes';
+		NEW.status	  = 'closing';
+	END IF;
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+---
+CREATE TRIGGER trg_lobby_session_closes_at
+	BEFORE UPDATE ON chat.lobby_sessions
+	FOR EACH ROW
+	EXECUTE FUNCTION chat.set_lobby_closes_at();
+
+-------------------------------------------------
+CREATE OR REPLACE FUNCTION chat.set_lobby_message_expiry()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+	NEW.expires_at := NEW.created_at + INTERVAL '7 days';
+	RETURN NEW;
+END;
+$$;
+
+--
+CREATE TRIGGER trg_lobby_messages_expiry
+	BEFORE INSERT ON chat.lobby_messages
+	FOR EACH ROW
+	EXECUTE FUNCTION chat.set_lobby_message_expiry();
