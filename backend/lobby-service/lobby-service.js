@@ -122,7 +122,6 @@ io.on('connection', (socket) => {
 
 	socket.on('matchmaking:join', async (data) => {
 		const matchedPlayers = joinQueue(socket, data);
-		queueBySocket.set();
 		if (matchedPlayers === null)
 				return;
 		const lobbyId = generateLobbyId(lobbys);
