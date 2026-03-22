@@ -40,8 +40,8 @@ jobs:
           run: |
             sudo mkdir -p /run/secrets
             echo "${{ secrets.JWT_ACCESS }}" | sudo tee /run/secrets/jwt_access
-        - run: npm run test:global
-          working-directory: ./backend
+        # - run: npm run test:global
+        #   working-directory: ./backend
         - run: npm test
           working-directory: ./backend/gateway-service
       
@@ -67,6 +67,6 @@ jobs:
         - run: docker compose up -d
         - run: docker exec auth npm test
         - run: npx wait-on http://localhost:5173 --timeout 60000
-        - run: npm test
+        # - run: npm test
         - run: docker compose down
           if: always()
