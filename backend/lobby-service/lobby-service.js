@@ -1,9 +1,9 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
-import { joinQueue } from './src/matchmaking';
-import { queueBySocket } from './src/matchmaking';
-import { queues } from './src/matchmaking';
+import { joinQueue } from './src/matchmaking.js';
+import { queueBySocket } from './src/matchmaking.js';
+import { queues } from './src/matchmaking.js';
 
 const LOBBY_TYPES = {
 	PUBLIC: 'PUBLIC',
@@ -29,14 +29,14 @@ export const GAME_TYPES = {
 //Remove process.env.JWT_SECRET when local test isn't needed anymore
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
-export const io = new Server(3001, {
+export const io = new Server(3003, {
 	cors: {
 		origin: '*',
 		methods: ['GET', 'POST']
 	}
 });
 
-console.log('LOBBY-SERVICE started on port 3001');
+console.log('LOBBY-SERVICE started on port 3003');
 
 io.use((socket, next) => {
 	const token = socket.handshake.auth.token;

@@ -7,8 +7,12 @@ import { GAME_MODES, GAME_TYPES } from '../lobby-service.js';
 export const queues = new Map();
 export const queueBySocket = new Map();
 
-function generateCompositeKey() {
-	
+function generateCompositeKey(data) {
+	const mode = data.gameMode;
+	const type = data.gameType;
+	const number = data.maxUsers;
+	const key = mode + "-" + type + "-" + number;
+	return (key);
 }
 
 export function joinQueue(socket, data) {
@@ -29,8 +33,4 @@ export function joinQueue(socket, data) {
 		return matchedPlayers;
 	}
 	return null;
-}
-
-function checkMatch() {
-
 }
