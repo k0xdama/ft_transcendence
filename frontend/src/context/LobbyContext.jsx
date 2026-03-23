@@ -15,7 +15,7 @@ export function LobbyProvider({ children }) {
 	const socketRef = useRef(null)
 	const { user } = useAuth()
 
-	const connect = (token, onLobbyCreated) => {
+	const connect = (token, onLobbyCreated, onLobbyJoined) => {
 		if (socketRef.current) return
 
 		socketRef.current = io('http://localhost:4000/api/lobby', {
@@ -23,12 +23,13 @@ export function LobbyProvider({ children }) {
 		})
 
 		socketRef.current.on('lobby:created', ({ lobbyId }) => {
-			console.log('Lobby created: ', lobbyId)
-			onLobbyCreated(lobbyId)
+			setLobbyId(lobbyId)
+			if (onLobbyCreated) onLobbyCreated(lobbyId)
 		})
 
 		socketRef.current.on('lobby:joined', (struct) => {
 			setLobbyStruct(struct)
+			if (onLobbyJoined) onLobbyJoined(struct.lobbyId)
 		})
 
 		socketRef.current.on('lobby:readyChanged', (struct) => {
@@ -66,11 +67,6 @@ export function LobbyProvider({ children }) {
 	const startGame = (lobbyId) => {
 		socketRef.current.emit('lobby:start', { lobbyId })
 	}
-
-	socketRef.current.on('lobby:created', ({ lobbyId }) => {
-		setLobbyId(lobbyId);
-		onLobbyCreated(lobbyId)
-	})
 
 	return (
 		<LobbyContext.Provider value={{
