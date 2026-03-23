@@ -78,7 +78,7 @@ export function startGame(gameStruct) {
 		};
 	}
 	const deck = createDeck();
-	shuffleAndDistribute(gameStruct, deck);
+	shuffleAndDeal(gameStruct, deck);
 }
 
 export function addPlayer(gameStruct, playerId) {
@@ -87,7 +87,8 @@ export function addPlayer(gameStruct, playerId) {
 		hand: [],
 		connected: true,
 		eliminated: false,
-		disconnectTimer: null
+		disconnectTimer: null,
+		turnTimer: null
 	};
 	gameStruct.players.push(player);
 }
@@ -153,7 +154,26 @@ export function removeCard(gameStruct, cardId) {
 	}
 }
 
-export function shuffleAndDistribute(gameStruct, deck) {
+function	sortPlayerHand(hand) {
+	let sortedHand = [];
+	let lowerIndex = 0;
+	let i = 0;
+
+	while (hand.length !== 0) {
+		if (i === hand.length) {
+			sortedHand.push(hand.splice(lowerIndex, 1)[0]);
+			i = 0;
+			lowerIndex = 0;
+			continue;
+		}
+		if (hand[i].value < hand[lowerIndex].value)
+			lowerIndex = i;
+		i++;
+	}
+	return sortedHand;
+}
+
+export function shuffleAndDeal(gameStruct, deck) {
 	const players = gameStruct.players;
 	let nbInMiddle = 0;
 	let nbByPlayer = 0;
@@ -187,7 +207,11 @@ export function shuffleAndDistribute(gameStruct, deck) {
 			player.hand.push(shuffled.shift());
 		}
 	}
+
+	for (const player of gameStruct.players)
+		player.hand = sortPlayerHand(player.hand);
 	console.log('deck après distribution:', shuffled.map(c => c.value));
+
 	gameStruct.cardsInMiddle = shuffled;
 }
 // if action is FLIP_MIDDLE target parameter gonna be the card position, else if action is ASK_LOWEST/HIGHEST so target gonna be the player's id targeted by the action
