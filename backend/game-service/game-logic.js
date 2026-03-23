@@ -84,7 +84,10 @@ export function startGame(gameStruct) {
 export function addPlayer(gameStruct, playerId) {
 	const player = {
 		id: playerId,
-		hand: []
+		hand: [],
+		connected: true,
+		eliminated: false,
+		disconnectTimer: null
 	};
 	gameStruct.players.push(player);
 }
@@ -197,6 +200,7 @@ export function executeAction(gameStruct, actionType, target) {
 		target: null,
 		turnEnded: false,
 		nextAction: null,
+		winner: null
 	}
 	let card = null;
 	let players = gameStruct.players;
@@ -258,6 +262,9 @@ export function executeAction(gameStruct, actionType, target) {
 				for (const cardToRemove of gameStruct.cardsRevealed) {
 					removeCard(gameStruct, cardToRemove.id);
 				}
+				return_object.winner = checkWinConditions(gameStruct);
+				if (return_object.winner !== null)
+					return return_object;
 			}
 			else
 				return_object.event = EVENTS.TRIO_MISSED;
@@ -270,18 +277,21 @@ export function executeAction(gameStruct, actionType, target) {
 	}
 
 	gameStruct.currentAction = return_object.nextAction;
-
 	return return_object;
 }
 
 export function nextPlayer(gameStruct) {
-	const nextIndex = (gameStruct.currentPlayerIndex + 1) % gameStruct.players.length;
+	let attempt = 0;
+	let nextIndex = (gameStruct.currentPlayerIndex + 1) % gameStruct.players.length;
+	while (gameStruct.players[nextIndex].connected === false || gameStruct.players[nextIndex].eliminated === true) {
+		nextIndex = (nextIndex + 1) % gameStruct.players.length;
+		attempt++;
+		if (attempt === gameStruct.players.length)
+			return ;
+	}
 	gameStruct.currentPlayerIndex = nextIndex;
 	gameStruct.currentPlayer = gameStruct.players[nextIndex].id;
-}
-
-export function endTurn() {
-
+	return ;
 }
 
 export function checkForPair(cards) {
@@ -304,14 +314,23 @@ export function checkForTrio(cards) {
 }
 
 export function checkWinConditions(gameStruct) {
+	let win_object = {
+		winnerId : null,
+		reason: null
+	};
 	for (const player of gameStruct.players) {
 		const trios = gameStruct.trioWonArray[player.id];
-
-		if (trios.length === 3)
-			return (player);
+		if (trios.length === 3) {
+			win_object.winnerId = player.id;
+			win_object.reason = 'THREE_TRIOS';
+			return (win_object);
+		}
 		for (let i = 0; i < trios.length; ++i) {
-			if (trios[i].value === 7)
-				return (player);
+			if (trios[i] === 7) {
+				win_object.winnerId = player.id,
+				win_object.reason = 'TRIO_OF_7';
+				return (win_object);
+			}
 		}
 	}
 	return null;

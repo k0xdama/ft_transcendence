@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
-import { createGame, executeAction } from './game-logic.js';
+import { createGame, executeAction, nextPlayer } from './game-logic.js';
 import { startGame } from './game-logic.js';
 import { addPlayer } from './game-logic.js';
 
@@ -12,6 +12,7 @@ import { addPlayer } from './game-logic.js';
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
 const games = new Map();
+const gameBySocket = new Map();
 
 const app  = express();
 app.use(express.json());
@@ -64,19 +65,35 @@ io.on('connection', (socket) => {
 			socket.emit('error', `Vous n'êtes pas attendu dans cette partie`);
 			return;
 		}
+		const existingPlayer = gameStruct.players.find(player => player.id === socket.user.id);
+		if (existingPlayer) {
+			if (existingPlayer.connected === true) {
+				socket.emit('error', 'Vous êtes déjà connecté à cette partie');
+				return;
+			}
+			clearTimeout(existingPlayer.disconnectTimer);
+			existingPlayer.connected = true;
+			socket.join(data.gameId);
+			gameBySocket.set(socket.id, data.gameId);
+			socket.emit('game:reconnected', { gameStruct });
+			socket.to(data.gameId).emit('game:playerReconnected', { userId : socket.user.id });
+			return;
+		}
 		for (const player of gameStruct.players) {
 			if (socket.user.id === player.id) {
 				socket.emit('error', 'Vous avez déjà rejoint cette partie');
-				return ;
+				return;
 			}
 		}
 		socket.join(data.gameId);
 		addPlayer(gameStruct, socket.user.id);
 		io.to(data.gameId).emit('game:joined', { gameId: data.gameId });
 		console.log(`Player ${socket.user.id} (client: ${socket.id}) joined the game ${data.gameId}`);
+		gameBySocket.set(socket.id, data.gameId);
 		// console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
 		if (gameStruct.players.length === gameStruct.expectedPlayers) {
 			startGame(gameStruct);
+
 			io.to(data.gameId).emit('game:started', { gameStruct });
 		}
 	});
@@ -94,9 +111,40 @@ io.on('connection', (socket) => {
 		}
 		const action_result = executeAction(gameStruct, data.actionType, data.target);
 		io.to(data.gameId).emit('game:update', { action_result, gameStruct });
+		if (action_result.winner != null) {
+			io.to(data.gameId).emit('game:ended', action_result.winner);
+			setTimeout(() => { games.delete(data.gameId); }, 5000);
+		}
 	});
 
 	socket.on('disconnect', () => {
+		const gameId = gameBySocket.get(socket.id);
+		if (gameId === undefined)
+			return;
+		const gameStruct = games.get(gameId);
+		const playerIndex = gameStruct.players.findIndex(player => player.id === socket.user.id);
+		if (gameStruct.currentPlayerIndex === playerIndex)
+			nextPlayer(gameStruct);
+		const player = gameStruct.players[playerIndex];
+		player.connected = false;
+		io.to(gameId).emit('game:playerDisconnected', { userId: socket.user.id });
+		player.disconnectTimer = setTimeout(() => {
+			player.eliminated = true;
+			gameBySocket.delete(socket.id);
+			io.to(gameId).emit('game:playerEliminated', { userId: socket.user.id });
+			const activePlayers = gameStruct.players.filter(player => player.connected && !player.eliminated);
+			if (activePlayers.length <= 1) {
+				if (activePlayers.length === 1) {
+					io.to(gameId).emit('game:ended', {winnerId: activePlayers[0].id, reason: 'FORFEIT'});
+					setTimeout(() => {
+						games.delete(gameId);
+					}, 5000);
+				}
+				else {
+					games.delete(gameId);
+				}
+			}
+		}, 30000);
 		console.log(`Client disconnected: ${socket.id}`);
 	})
 });

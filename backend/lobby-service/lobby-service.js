@@ -1,6 +1,9 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import { joinQueue } from './src/matchmaking.js';
+import { queueBySocket } from './src/matchmaking.js';
+import { queues } from './src/matchmaking.js';
 
 const LOBBY_TYPES = {
 	PUBLIC: 'PUBLIC',
@@ -13,12 +16,12 @@ const LOBBY_STATE = {
 	GAME_STARTED: 'GAME_STARTED'
 };
 
-const GAME_MODES = {
+export const GAME_MODES = {
 	CLASSIC: 'CLASSIC',
 	LINKED: 'LINKED'
 };
 
-const GAME_TYPES = {
+export const GAME_TYPES = {
 	SOLO: 'SOLO',
 	TEAM_UP: 'TEAM_UP'
 };
@@ -26,14 +29,14 @@ const GAME_TYPES = {
 //Remove process.env.JWT_SECRET when local test isn't needed anymore
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
-const io = new Server(3001, {
+export const io = new Server(3003, {
 	cors: {
 		origin: '*',
 		methods: ['GET', 'POST']
 	}
 });
 
-console.log('LOBBY-SERVICE started on port 3001');
+console.log('LOBBY-SERVICE started on port 3003');
 
 io.use((socket, next) => {
 	const token = socket.handshake.auth.token;
@@ -115,6 +118,46 @@ io.on('connection', (socket) => {
 		console.log(`Client ${socket.id} (user: ${socket.user.username}) joined the lobby ${lobbyId}`);
 		lobbyBySocket.set(socket.id, lobbyId);
 		socket.emit('lobby:created', { lobbyId });
+	});
+
+	socket.on('matchmaking:join', async (data) => {
+		const matchedPlayers = joinQueue(socket, data);
+		if (matchedPlayers === null)
+				return;
+		const lobbyId = generateLobbyId(lobbys);
+		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType, 
+										matchedPlayers[0].userId, data.maxUsers);
+		lobbyStruct.lobbyType = LOBBY_TYPES.PUBLIC;
+		lobbys.set(lobbyId, lobbyStruct);
+		for (const player of matchedPlayers) {
+			addUser(lobbyStruct, player.userId);
+			player.socket.join(lobbyId);
+			lobbyBySocket.set(player.socket.id, lobbyId);
+		}
+		try {
+			//http://game-service:3002/create avec docker (env var later)
+			const response = await fetch("http://localhost:3002/create", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					gameMode: lobbyStruct.rules.gameMode,
+					gameType: lobbyStruct.rules.gameType,
+					creatorId: lobbyStruct.creatorId,
+					users: lobbyStruct.users.map(user => user.id)
+				})
+			});
+			const gameData = await response.json();
+			lobbyStruct.gameId = gameData.gameId;
+			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
+			io.to(lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
+		}
+		catch {
+			for (const player of matchedPlayers)
+				player.socket.emit('error', 'Impossible de lancer la partie, le game-service est injoignable.');
+		}
+
 	});
 
 	socket.on('lobby:join', (data) => {
@@ -203,25 +246,45 @@ io.on('connection', (socket) => {
 		}
 	});
 
+	socket.on('matchmaking:leave', () => {
+		const queueKey = queueBySocket.get(socket.id);
+		if (queueKey === undefined)
+			return;
+		const users = queues.get(queueKey);
+		const userIndex = users.findIndex(player => player.socket.id === socket.id);
+		users.splice(userIndex, 1);
+		queueBySocket.delete(socket.id);
+	});
+
 	socket.on('disconnect', () => {
 		const lobbyId = lobbyBySocket.get(socket.id);
-		if (!lobbyId)
-			return ;
-		const lobbyStruct = lobbys.get(lobbyId);
-		const userIndex = lobbyStruct.users.findIndex(user => user.id === socket.id);
-		lobbyStruct.users.splice(userIndex, 1);
-		if (lobbyStruct.users.length === 0) {
-			lobbys.delete(lobbyId);
-			lobbyBySocket.delete(socket.id);
+		if (lobbyId != undefined) {
+			const lobbyStruct = lobbys.get(lobbyId);
+			const userIndex = lobbyStruct.users.findIndex(user => user.id === socket.user.id);
+			lobbyStruct.users.splice(userIndex, 1);
+			if (lobbyStruct.users.length === 0) {
+				lobbys.delete(lobbyId);
+				lobbyBySocket.delete(socket.id);
+			}
+			else {
+				if (lobbyStruct.creatorId === socket.user.id)
+					lobbyStruct.creatorId = lobbyStruct.users[0].id;
+				if (lobbyStruct.state === LOBBY_STATE.FULL)
+					lobbyStruct.state = LOBBY_STATE.WAITING;
+				lobbyBySocket.delete(socket.id);
+				io.to(lobbyId).emit('lobby:disconnected', { userId: socket.user.id });
+				console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
+			}
 		}
 		else {
-			if (lobbyStruct.creatorId === socket.user.id)
-				lobbyStruct.creatorId = lobbyStruct.users[0].id;
-			if (lobbyStruct.state === LOBBY_STATE.FULL)
-				lobbyStruct.state = LOBBY_STATE.WAITING;
-			lobbyBySocket.delete(socket.id);
-			io.to(lobbyId).emit('lobby:disconnected', { userId: socket.id });
-			console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
+			const queueKey = queueBySocket.get(socket.id);
+			if (queueKey === undefined) 
+				return;
+			const queue = queues.get(queueKey);
+			const index = queue.findIndex(p => p.socket.id === socket.id);
+       	 	queue.splice(index, 1);
+       		queueBySocket.delete(socket.id);
 		}
 	});
 });
+
