@@ -14,6 +14,10 @@ function JoinGameView() {
 	const	handleJoin = () => {
 		setError(null)
 		setLobbyError(null)
+		if (!accessToken) {
+			setError('You must be logged in to join a game!')
+			return
+		}
 		if (!inputLobbyId.trim()) {
 			setError('Enter lobby ID!')
 			return

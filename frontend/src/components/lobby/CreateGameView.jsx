@@ -8,22 +8,31 @@ function CreateGameView() {
 	const	[maxUsers, setMaxUsers] = useState(3)
 	const	[gameMode, setGameMode] = useState('CLASSIC')
 	const	[gameType, setGameType] = useState('SOLO')
+	const	[error, setError] = useState(null)
 
 	const	{ connect, createLobby } = useLobby()
 	const	{ accessToken } = useAuth()
 	const	navigate = useNavigate()
 
 	const	handleCreate = () => {
+		setError(null)
+		if (!accessToken) {
+			setError('You must be logged in to create a room!')
+			return
+		}
 		connect(
 			accessToken,
 			() => createLobby(gameMode, gameType, maxUsers),
-			(lobbyId) => navigate(`/lobby/${lobbyId}`))
+			(msg) => setError(msg),
+			(lobbyId) => navigate(`/lobby/${lobbyId}`)
+		)
 	}
 
 	return (
 		<div className='createGameView'>
 			<div className='createBox'>
 				<h2 className='boxTitle'>Create New Game</h2>
+				{error && <p className="error-msg">{error}</p>}
 				<div className='createInputs'>
 					<label className>Players</label>
 					<input
