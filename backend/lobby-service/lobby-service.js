@@ -1,3 +1,6 @@
+
+import express from 'express';
+import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
@@ -29,14 +32,20 @@ export const GAME_TYPES = {
 //Remove process.env.JWT_SECRET when local test isn't needed anymore
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
-export const io = new Server(3003, {
+const lobbys = new Map();
+const lobbyBySocket = new Map();
+
+const app = express();
+app.use(express.json());
+
+const server = createServer(app);
+
+export const io = new Server(server, {
 	cors: {
 		origin: '*',
 		methods: ['GET', 'POST']
 	}
 });
-
-console.log('LOBBY-SERVICE started on port 3003');
 
 io.use((socket, next) => {
 	const token = socket.handshake.auth.token;
@@ -50,8 +59,9 @@ io.use((socket, next) => {
 	}
 });
 
-const lobbys = new Map();
-const lobbyBySocket = new Map();
+server.listen(3003, () => {
+	console.log('LOBBY-SERVICE started on port 3003');
+});
 
 function createLobby(lobbyId, gameMode, gameType, creatorId, maxUsers) {
 	const lobbyStruct = {
