@@ -12,14 +12,16 @@ export function useLobby() {
 export function LobbyProvider({ children }) {
 	const [lobbyStruct, setLobbyStruct] = useState(null)
 	const [lobbyId, setLobbyId] = useState(null)
+	const [lobbyError, setLobbyError] = useState(null)
 	const socketRef = useRef(null)
 	const { user } = useAuth()
 
-	const connect = (token, onLobbyCreated, onLobbyJoined) => {
+	const connect = (token, onConnected, onConnectionError, onLobbyCreated, onLobbyJoined) => {
 		if (socketRef.current) return
 
 		socketRef.current = io('http://localhost:4000/api/lobby', {
-			auth: { token }
+			auth: { token },
+			reconnection: false
 		})
 
 		socketRef.current.on('lobby:created', ({ lobbyId }) => {
@@ -27,13 +29,14 @@ export function LobbyProvider({ children }) {
 			if (onLobbyCreated) onLobbyCreated(lobbyId)
 		})
 
-		socketRef.current.on('lobby:joined', (struct) => {
-			setLobbyStruct(struct)
-			if (onLobbyJoined) onLobbyJoined(struct.lobbyId)
+		socketRef.current.on('lobby:joined', ({ lobbyStruct }) => {
+			setLobbyStruct(lobbyStruct)
+			setLobbyId(lobbyStruct.lobbyId)
+			if (onLobbyJoined) onLobbyJoined(lobbyStruct.lobbyId)
 		})
 
 		socketRef.current.on('lobby:readyChanged', (struct) => {
-			setLobbyStruct(struct)
+			setLobbyStruct(struct.lobbyStruct)
 		})
 
 		socketRef.current.on('lobby:disconnected', ({ userId }) => {
@@ -47,8 +50,18 @@ export function LobbyProvider({ children }) {
 			console.log('Game created: ', gameId)
 		})
 
+		socketRef.current.on('connect', () => {
+			if(onConnected) onConnected()
+		})
+
+		socketRef.current.on('connect_error', (err) => {
+			console.error('Connection failed:', err.message)
+			socketRef.current = null
+			if (onConnectionError) onConnectionError(err.message)
+		})
+
 		socketRef.current.on('error', (message) => {
-			console.error('Lobby error: ', message)
+			setLobbyError(message)
 		})
 	}
 
@@ -71,6 +84,8 @@ export function LobbyProvider({ children }) {
 	return (
 		<LobbyContext.Provider value={{
 			lobbyStruct,
+			lobbyError,
+			setLobbyError,
 			lobbyId,
 			connect,
 			createLobby,

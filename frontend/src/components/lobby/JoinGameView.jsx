@@ -6,28 +6,46 @@ import { useState } from 'react'
 
 function JoinGameView() {
 	const	[inputLobbyId, setInputLobbyId] = useState('')
-	const	{ connect, joinLobby } = useLobby()
+	const	[error, setError] = useState(null)
+	const	{ connect, joinLobby, lobbyError, setLobbyError } = useLobby()
 	const	{ accessToken } = useAuth()
 	const	navigate = useNavigate()
 
 	const	handleJoin = () => {
-		connect(accessToken, null, (lobbyId) => {
-			navigate(`/lobby/${lobbyId}`)
-		})
-
-		joinLobby(inputLobbyId)
+		setError(null)
+		setLobbyError(null)
+		if (!inputLobbyId.trim()) {
+			setError('Enter lobby ID!')
+			return
+		}
+		if (!/^[A-Z2-9]{6}$/.test(inputLobbyId)) {
+			setError('Enter valid ID!')
+			return
+		}
+		connect(
+			accessToken,
+			() => joinLobby(inputLobbyId),
+			(msg) => setError(msg),
+			null,
+			(lobbyId) => navigate(`/lobby/${lobbyId}`)
+		)
 	}
 	return (
 		<div className='joinGameView'>
 			<div className='joinBox'>
 				<h2 className='boxTitle'>Join Game</h2>
+				{(error || lobbyError) && (<p className='error-msg'>{error || lobbyError}</p>)}
 				<div className='joinInputs'>
 					<label className>Game ID</label>
 					<input
 						type='text'
 						className='gameID' 
 						value={inputLobbyId}
-						onChange={e => setInputLobbyId(e.target.value)}
+						onChange={e => {
+							setInputLobbyId(e.target.value)
+							setLobbyError(null)
+							setError(null)
+						}}
 					/>
 				</div>
 				<button onClick={handleJoin}>Join</button>

@@ -14,11 +14,10 @@ function CreateGameView() {
 	const	navigate = useNavigate()
 
 	const	handleCreate = () => {
-		connect(accessToken, (lobbyId) => {
-			navigate(`/lobby/${lobbyId}`)
-		})
-
-		createLobby(gameMode, gameType, maxUsers)
+		connect(
+			accessToken,
+			() => createLobby(gameMode, gameType, maxUsers),
+			(lobbyId) => navigate(`/lobby/${lobbyId}`))
 	}
 
 	return (
@@ -29,8 +28,10 @@ function CreateGameView() {
 					<label className>Players</label>
 					<input
 						type='number'
-						min={3} max={7}
+						min={3} max={6}
 						defaultValue={3}
+						value={maxUsers}
+						onChange={e => setMaxUsers(parseInt(e.target.value))}
 						className='maxPlayers'
 					/>
 				</div>
