@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { createGame, executeAction, nextPlayer } from './game-logic.js';
 import { startGame } from './game-logic.js';
 import { addPlayer } from './game-logic.js';
+import { ACTIONS_NUMBER } from './game-logic.js';
 
 //Remove process.env.JWT_SECRET when local test isn't needed anymore
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
@@ -71,6 +72,10 @@ io.on('connection', (socket) => {
 				socket.emit('error', 'Vous êtes déjà connecté à cette partie');
 				return;
 			}
+			if (existingPlayer.turnTimer) {
+				clearTimeout(existingPlayer.turnTimer);
+				existingPlayer.turnTimer = null;
+			}
 			clearTimeout(existingPlayer.disconnectTimer);
 			existingPlayer.connected = true;
 			socket.join(data.gameId);
@@ -123,8 +128,14 @@ io.on('connection', (socket) => {
 			return;
 		const gameStruct = games.get(gameId);
 		const playerIndex = gameStruct.players.findIndex(player => player.id === socket.user.id);
-		if (gameStruct.currentPlayerIndex === playerIndex)
-			nextPlayer(gameStruct);
+		if (gameStruct.currentPlayerIndex === playerIndex) {
+			player.turnTimer = setTimeout(() => {
+				gameStruct.cardsRevealed = [];
+				gameStruct.currentAction = ACTIONS_NUMBER.FIRST;
+				nextPlayer(gameStruct);
+				io.to(gameId).emit('game:update', { action_result: null, gameStruct });
+			}, 15000);
+		}
 		const player = gameStruct.players[playerIndex];
 		player.connected = false;
 		io.to(gameId).emit('game:playerDisconnected', { userId: socket.user.id });
