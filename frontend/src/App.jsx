@@ -18,23 +18,23 @@ function App() {
   const [currentView, setCurrentView] = useState('home')
   const {user, logout, isAuthenticated} = useAuth()
 
-  useEffect(() => {
-    fetch('/api/health')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-        return response.json()
-      })
-      .then(data => {
-        setBackendStatus(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [])
+  // useEffect(() => {
+  //   fetch('/api/health')
+  //     .then(response => {
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP ${response.status}`)
+  //       }
+  //       return response.json()
+  //     })
+  //     .then(data => {
+  //       setBackendStatus(data)
+  //       setLoading(false)
+  //     })
+  //     .catch(err => {
+  //       setError(err.message)
+  //       setLoading(false)
+  //     })
+  // }, [])
 
   const handleNav = (viewName) => {
     setCurrentView(viewName)
