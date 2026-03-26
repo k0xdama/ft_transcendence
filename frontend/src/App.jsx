@@ -10,6 +10,7 @@ import LoginView from './components/auth/LoginView'
 import JoinGameView from './components/lobby/JoinGameView'
 import TestView from './components/gameboard/TestView'
 import ProfileView from './components/ProfileView'
+import LobbyView from './components/lobby/LobbyView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -17,24 +18,6 @@ function App() {
   const [error, setError] = useState(null)
   const [currentView, setCurrentView] = useState('home')
   const {user, logout, isAuthenticated} = useAuth()
-
-  // useEffect(() => {
-  //   fetch('/api/health')
-  //     .then(response => {
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP ${response.status}`)
-  //       }
-  //       return response.json()
-  //     })
-  //     .then(data => {
-  //       setBackendStatus(data)
-  //       setLoading(false)
-  //     })
-  //     .catch(err => {
-  //       setError(err.message)
-  //       setLoading(false)
-  //     })
-  // }, [])
 
   const handleNav = (viewName) => {
     setCurrentView(viewName)
@@ -53,6 +36,7 @@ function App() {
           <Route path="/login" element={<LoginView />} />
           <Route path="/test" element={<TestView />} />
           <Route path="/profile" element={<ProfileView />} />
+          <Route path="/lobby/:lobbyId" element={<LobbyView />} />
         </Routes>
       </div>
     </>

@@ -128,6 +128,7 @@ io.on('connection', (socket) => {
 		console.log(`Client ${socket.id} (user: ${socket.user.username}) joined the lobby ${lobbyId}`);
 		lobbyBySocket.set(socket.id, lobbyId);
 		socket.emit('lobby:created', { lobbyId });
+		socket.emit('lobby:joined', { lobbyStruct });
 	});
 
 	socket.on('matchmaking:join', async (data) => {
