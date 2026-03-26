@@ -19,8 +19,8 @@ export function LobbyProvider({ children }) {
 	const connect = (token, onConnected, onConnectionError, onLobbyCreated, onLobbyJoined) => {
 		if (socketRef.current) return
 
-		socketRef.current = io('http://localhost:4000', {
-			path: '/lobby/socket.io',
+		socketRef.current = io('http://localhost:4000/', {
+			path: '/api/lobby/socket.io',
 			auth: { token },
 			transports: ['websocket'],
 			reconnection: false
