@@ -53,6 +53,15 @@ server.listen(3002, () => {
 	console.log('GAME-SERVICE started on port 3002');
 });
 
+function endTurn(gameStruct, gameId) {
+	gameStruct.cardsRevealed = [];
+	gameStruct.currentAction = 'FIRST';
+	gameStruct.pendingAcks = null;
+	gameStruct.revealTimer = null;
+	nextPlayer(gameStruct);
+	io.to(gameId).emit('game:turnChanged', { gameStruct });
+}
+
 io.on('connection', (socket) => {
 	console.log(`Client connected: ${socket.id}`);
 
@@ -120,6 +129,24 @@ io.on('connection', (socket) => {
 			io.to(data.gameId).emit('game:ended', action_result.winner);
 			setTimeout(() => { games.delete(data.gameId); }, 5000);
 		}
+		else if (action_result.turnEnded) {
+			gameStruct.pendingAcks = new Set();
+			gameStruct.revealTimer = setTimeout(() => {
+				endTurn(gameStruct, data.gameId);
+			}, 7000);
+		}
+	});
+
+	socket.on('game:check', (data) => {
+		const gameStruct = games.get(data.gameId);
+		if (!gameStruct || !gameStruct.pendingAcks)
+			return;
+		gameStruct.pendingAcks.add(socket.user.id);
+		const connectedPlayers = gameStruct.players.filter(player => player.connected && !player.eliminated);
+		if (gameStruct.pendingAcks.size === connectedPlayers.length) {
+			clearTimeout(gameStruct.revealTimer);
+			endTurn(gameStruct, data.gameId);
+		}
 	});
 
 	socket.on('disconnect', () => {
@@ -128,7 +155,13 @@ io.on('connection', (socket) => {
 			return;
 		const gameStruct = games.get(gameId);
 		const playerIndex = gameStruct.players.findIndex(player => player.id === socket.user.id);
+		const player = gameStruct.players[playerIndex];
 		if (gameStruct.currentPlayerIndex === playerIndex) {
+			if (gameStruct.revealTimer) {
+				clearTimeout(gameStruct.revealTimer);
+				gameStruct.revealTimer = null;
+				gameStruct.pendingAcks = null;
+			}
 			player.turnTimer = setTimeout(() => {
 				gameStruct.cardsRevealed = [];
 				gameStruct.currentAction = ACTIONS_NUMBER.FIRST;
@@ -136,7 +169,6 @@ io.on('connection', (socket) => {
 				io.to(gameId).emit('game:update', { action_result: null, gameStruct });
 			}, 15000);
 		}
-		const player = gameStruct.players[playerIndex];
 		player.connected = false;
 		io.to(gameId).emit('game:playerDisconnected', { userId: socket.user.id });
 		player.disconnectTimer = setTimeout(() => {
