@@ -274,8 +274,6 @@ export function executeAction(gameStruct, actionType, target) {
 				return_object.event = EVENTS.PAIR_MISSED;
 				return_object.turnEnded = true;
 				return_object.nextAction = ACTIONS_NUMBER.FIRST;
-				gameStruct.cardsRevealed = [];
-				nextPlayer(gameStruct);
 			}
 			break;
 		case ACTIONS_NUMBER.BONUS: {
@@ -294,8 +292,6 @@ export function executeAction(gameStruct, actionType, target) {
 				return_object.event = EVENTS.TRIO_MISSED;
 			return_object.turnEnded = true;
 			return_object.nextAction = ACTIONS_NUMBER.FIRST;
-			gameStruct.cardsRevealed = [];
-			nextPlayer(gameStruct);
 			break;
 		}
 	}
