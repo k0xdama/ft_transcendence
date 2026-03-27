@@ -2,12 +2,17 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
 import './LobbyView.css'
+import { useEffect } from 'react'
 
 function LobbyView() {
 	const	{ lobbyId } = useParams()
-	const	{ lobbyStruct, toggleReady, startGame, lobbyError } = useLobby()
+	const	{ lobbyStruct, toggleReady, startGame, lobbyError, gameId } = useLobby()
 	const	{ user } = useAuth()
 	const	navigate = useNavigate()
+
+	useEffect(() => {
+		if (gameId) navigate(`/game/${gameId}`)
+	}, [gameId])
 
 	if (!lobbyStruct) {
 		return <p>Connecting to lobby...</p>

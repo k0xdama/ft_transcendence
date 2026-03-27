@@ -12,6 +12,7 @@ export function useLobby() {
 export function LobbyProvider({ children }) {
 	const [lobbyStruct, setLobbyStruct] = useState(null)
 	const [lobbyId, setLobbyId] = useState(null)
+	const [gameId, setGameId] = useState(null)
 	const [lobbyError, setLobbyError] = useState(null)
 	const socketRef = useRef(null)
 	const { user } = useAuth()
@@ -49,7 +50,7 @@ export function LobbyProvider({ children }) {
 		})
 
 		socketRef.current.on('lobby:gameStarting', ({ gameId }) => {
-			console.log('Game created: ', gameId)
+			setGameId(gameId)
 		})
 
 		socketRef.current.on('connect', () => {
@@ -94,6 +95,7 @@ export function LobbyProvider({ children }) {
 			joinLobby,
 			toggleReady,
 			startGame,
+			gameId
 		}}>
 			{children}
 		</LobbyContext.Provider>

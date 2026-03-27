@@ -11,6 +11,7 @@ import JoinGameView from './components/lobby/JoinGameView'
 import TestView from './components/gameboard/TestView'
 import ProfileView from './components/ProfileView'
 import LobbyView from './components/lobby/LobbyView'
+import GameView from './components/gameboard/GameView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -37,6 +38,7 @@ function App() {
           <Route path="/test" element={<TestView />} />
           <Route path="/profile" element={<ProfileView />} />
           <Route path="/lobby/:lobbyId" element={<LobbyView />} />
+          <Route path="/game/:gameId" element={<GameView />} />
         </Routes>
       </div>
     </>

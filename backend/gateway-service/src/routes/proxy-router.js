@@ -26,7 +26,8 @@ const lobbyProxy = createProxyMiddleware({
 const gameProxy = createProxyMiddleware({
 	target: 'http://game:3002',
 	ws: true,
-	changeOrigin: true
+	changeOrigin: true,
+	pathRewrite: { '^/api/game': '' }
 });
 
 router.use('/lobby', lobbyProxy);
