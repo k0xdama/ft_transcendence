@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
-import { createGame, executeAction, nextPlayer } from './game-logic.js';
+import { buildGameStats, createGame, executeAction, nextPlayer } from './game-logic.js';
 import { startGame } from './game-logic.js';
 import { addPlayer } from './game-logic.js';
 import { ACTIONS_NUMBER } from './game-logic.js';
@@ -126,6 +126,8 @@ io.on('connection', (socket) => {
 		const action_result = executeAction(gameStruct, data.actionType, data.target);
 		io.to(data.gameId).emit('game:update', { action_result, gameStruct });
 		if (action_result.winner != null) {
+			const stats = buildGameStats(gameStruct, action_result.winner.winnerId);
+			//redis publish
 			io.to(data.gameId).emit('game:ended', action_result.winner);
 			setTimeout(() => { games.delete(data.gameId); }, 5000);
 		}

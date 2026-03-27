@@ -56,6 +56,8 @@ export function createGame(gameId, gameMode, gameType, creatorId) {
 		cardsInMiddle: [],
 		cardsRevealed: [],
 		trioWonArray: {},
+		lastTrioWinner: null,
+		eliminationOrder: [],
 		stats: {}
 	};
 
@@ -228,6 +230,7 @@ export function executeAction(gameStruct, actionType, target) {
 	}
 	let card = null;
 	let players = gameStruct.players;
+	gameStruct.stats[gameStruct.currentPlayer].actionsPlayed++;
 
 	switch (actionType) {
 		case ACTIONS.FLIP_MIDDLE:
@@ -284,6 +287,11 @@ export function executeAction(gameStruct, actionType, target) {
 				for (const cardToRemove of gameStruct.cardsRevealed) {
 					removeCard(gameStruct, cardToRemove.id);
 				}
+				if (gameStruct.lastTrioWinner === gameStruct.currentPlayer)
+					gameStruct.stats[gameStruct.currentPlayer].combo++;
+				else
+					gameStruct.lastTrioWinner = gameStruct.currentPlayer;
+				gameStruct.lastTrioWinner = gameStruct.currentPlayer;
 				return_object.winner = checkWinConditions(gameStruct);
 				if (return_object.winner !== null)
 					return return_object;
@@ -338,19 +346,40 @@ export function checkWinConditions(gameStruct) {
 		winnerId : null,
 		reason: null
 	};
-	for (const player of gameStruct.players) {
-		const trios = gameStruct.trioWonArray[player.id];
-		if (trios.length === 3) {
-			win_object.winnerId = player.id;
-			win_object.reason = 'THREE_TRIOS';
-			return (win_object);
-		}
-		for (let i = 0; i < trios.length; ++i) {
-			if (trios[i] === 7) {
-				win_object.winnerId = player.id,
-				win_object.reason = 'TRIO_OF_7';
+
+	const currentPlayer = gameStruct.currentPlayer;
+	const triosWonArray = gameStruct.trioWonArray[currentPlayer];
+
+	switch (gameStruct.gameMode) {
+		case GAME_MODES.CLASSIC : {
+			if (triosWonArray.length === 3) {
+				win_object.winnerId = currentPlayer;
+				win_object.reason = 'THREE_TRIOS';
 				return (win_object);
 			}
+			break;
+		}
+		case GAME_MODES.LINKED : {
+			const lastTrioValue = triosWonArray[triosWonArray.length - 1];
+			for (let i = 0; i < triosWonArray.length - 1; ++i) {
+				const valueArray = getLinkedValues(triosWonArray[i]);
+				for (const value of valueArray) {
+					if (value === lastTrioValue) {
+						win_object.winnerId = currentPlayer;
+						win_object.reason = 'LINKED_TRIOS';
+						return (win_object);
+					}
+				}
+			}
+			break;
+		}
+	}
+	
+	for (let i = 0; i < triosWonArray.length; ++i) {
+		if (triosWonArray[i] === 7) {
+			win_object.winnerId = player.id,
+			win_object.reason = 'TRIO_OF_7';
+			return (win_object);
 		}
 	}
 	return null;
@@ -373,3 +402,8 @@ export function getLinkedValues(cardValue) {
 	};
 	return LINKS[cardValue] || [];
 }
+
+export function buildGameStats(gameStruct, winnerId) {
+	//...
+}
+
