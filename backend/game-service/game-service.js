@@ -1,4 +1,5 @@
 import express from 'express';
+import { createClient } from 'redis';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
@@ -26,6 +27,12 @@ const io = new Server(server, {
 		methods: ['GET', 'POST']
 	}
 });
+
+const redisClient = createClient({
+	url: 'redis://redis:6379',
+	password: process.env.REDIS_PASSWORD || fdatasync.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim();
+});
+redisClient.connect();
 
 io.use((socket, next) => {
 	const token = socket.handshake.auth.token;
@@ -128,6 +135,7 @@ io.on('connection', (socket) => {
 		if (action_result.winner != null) {
 			const stats = buildGameStats(gameStruct, action_result.winner.winnerId);
 			//redis publish
+			await redisClient.lPush('game:results', JSON.stringify(stats));
 			io.to(data.gameId).emit('game:ended', action_result.winner);
 			setTimeout(() => { games.delete(data.gameId); }, 5000);
 		}

@@ -61,7 +61,7 @@ export function createGame(gameId, gameMode, gameType, creatorId) {
 		stats: {}
 	};
 
-	return gameStruct;
+	return (gameStruct);
 }
 
 export function startGame(gameStruct) {
@@ -74,6 +74,9 @@ export function startGame(gameStruct) {
 	for (const player of gameStruct.players) {
 		gameStruct.trioWonArray[player.id] = [];
 		gameStruct.stats[player.id] = {
+			won: false,
+			rank: 0,
+			score: 0,
 			actionsPlayed: 0,
 			combo: 0,
 			trioOf7: 0
@@ -108,7 +111,7 @@ export function createDeck() {
 		}
 	}
 
-	return deck;
+	return (deck);
 }
 
 export function getHighestCard(gameStruct, cards) {
@@ -120,7 +123,7 @@ export function getHighestCard(gameStruct, cards) {
 	}
 	highestCard.revealed = true;
 	gameStruct.cardsRevealed.push(highestCard);
-	return highestCard;
+	return (highestCard);
 }
 
 export function getLowestCard(gameStruct, cards) {
@@ -132,7 +135,7 @@ export function getLowestCard(gameStruct, cards) {
 	}
 	lowestCard.revealed = true;
 	gameStruct.cardsRevealed.push(lowestCard);
-	return lowestCard;
+	return (lowestCard);
 }
 
 export function flipMiddleCard(gameStruct, position) {
@@ -145,7 +148,7 @@ export function flipMiddleCard(gameStruct, position) {
 	const card = gameStruct.cardsInMiddle[position];
 	card.revealed = true;
 	gameStruct.cardsRevealed.push(card);
-	return card;
+	return (card);
 }
 
 export function removeCard(gameStruct, cardId) {
@@ -172,7 +175,7 @@ function	sortPlayerHand(hand) {
 			lowerIndex = i;
 		i++;
 	}
-	return sortedHand;
+	return (sortedHand);
 }
 
 export function shuffleAndDeal(gameStruct, deck) {
@@ -289,12 +292,16 @@ export function executeAction(gameStruct, actionType, target) {
 				}
 				if (gameStruct.lastTrioWinner === gameStruct.currentPlayer)
 					gameStruct.stats[gameStruct.currentPlayer].combo++;
-				else
-					gameStruct.lastTrioWinner = gameStruct.currentPlayer;
 				gameStruct.lastTrioWinner = gameStruct.currentPlayer;
 				return_object.winner = checkWinConditions(gameStruct);
-				if (return_object.winner !== null)
-					return return_object;
+				if (return_object.winner !== null) {
+					if (return_object.winner.reason === 'TRIO_OF_7') {
+						gameStruct.stats[gameStruct.currentPlayer].score += 2;
+						gameStruct.stats[gameStruct.currentPlayer].trioOf7 = 1;
+					}
+					return (return_object);
+				}
+				gameStruct.stats[gameStruct.currentPlayer].score++;
 			}
 			else
 				return_object.event = EVENTS.TRIO_MISSED;
@@ -305,7 +312,7 @@ export function executeAction(gameStruct, actionType, target) {
 	}
 
 	gameStruct.currentAction = return_object.nextAction;
-	return return_object;
+	return (return_object);
 }
 
 export function nextPlayer(gameStruct) {
@@ -350,6 +357,14 @@ export function checkWinConditions(gameStruct) {
 	const currentPlayer = gameStruct.currentPlayer;
 	const triosWonArray = gameStruct.trioWonArray[currentPlayer];
 
+	for (let i = 0; i < triosWonArray.length; ++i) {
+		if (triosWonArray[i] === 7) {
+			win_object.winnerId = currentPlayer.id;
+			win_object.reason = 'TRIO_OF_7';
+			return (win_object);
+		}
+	}
+
 	switch (gameStruct.gameMode) {
 		case GAME_MODES.CLASSIC : {
 			if (triosWonArray.length === 3) {
@@ -374,14 +389,6 @@ export function checkWinConditions(gameStruct) {
 			break;
 		}
 	}
-	
-	for (let i = 0; i < triosWonArray.length; ++i) {
-		if (triosWonArray[i] === 7) {
-			win_object.winnerId = player.id,
-			win_object.reason = 'TRIO_OF_7';
-			return (win_object);
-		}
-	}
 	return null;
 }
 
@@ -400,10 +407,84 @@ export function getLinkedValues(cardValue) {
 		11: [4],
 		12: [5]
 	};
-	return LINKS[cardValue] || [];
+	return (LINKS[cardValue] || []);
+}
+// j'ai besoin d'iterer sur les joueurs et de trouver leur rang (le winner doit etre rank 1 quoiqu'il arrive)\
+// pour ce faire il me faut un tableau de la meme taille que le nombre de joueur et je dois placer leur nombre de trio gagne a l'interieur
+
+function	setPlayersRank(gameStruct, winnerId) {
+	const stats = gameStruct.stats;
+	const rankArray = [];
+	for (const player of gameStruct.players) {
+		if (player.id === winnerId) {
+			stats[player.id].rank = 1;
+			stats[player.id].won = true;
+		}
+		else {
+			rankArray.push({
+				id: player.id,
+				trios: gameStruct.trioWonArray[player.id].length
+			});
+		}
+	}
+
+	for (let i = 0; i < rankArray.length; ++i) {
+		for (let j = (i + 1); j < rankArray.length; ++j) {
+			if (rankArray[i].trios < rankArray[j].trios) {
+				let tmp = rankArray[i];
+				rankArray[i] = rankArray[j];
+				rankArray[j] = tmp;
+			}
+		}
+	}
+
+	let currentRank = 2;
+	for (let i = 0; i < rankArray.length; ++i) {
+		if (i > 0 && rankArray[i].trios < rankArray[i - 1].trios)
+			currentRank = currentRank + 1;
+		stats[rankArray[i].id].rank = currentRank;
+	}
 }
 
-export function buildGameStats(gameStruct, winnerId) {
-	//...
+function checkForPerfectGame(gameStruct, winnerId) {
+	for (const player of gameStruct.players) {
+		if (player.id === winnerId)
+			continue;
+		if (gameStruct.trioWonArray[player.id].length !== 0)
+			return (false);
+	}
+	return (true);
+}
+
+export function buildGameStats(gameStruct, winner) {
+	const dateObject = new Date(Date.now());
+	const gameStats_object = {
+		gameId: gameStruct.gameId,
+		gameType: gameStruct.gameType,
+		gameMode: gameStruct.gameMode,
+		ended: dateObject.toISOString(),
+		duration: Math.floor((dateObject.getTime() - gameStruct.start) / 1000),
+		players: []
+	};
+	const stats = gameStruct.stats;
+	const perfectGame = checkForPerfectGame(gameStruct, winner.winnerId);
+	setPlayersRank(gameStruct, winner.winnerId);
+	for (const player of gameStruct.players) {
+		const playerStats = stats[player.id];
+		const playerObject = {
+			userId: player.id,
+			won: playerStats.won,
+			rank: playerStats.rank,
+			score: playerStats.score,
+			actionsPlayed: playerStats.actionsPlayed,
+			achievements: {
+				TRIO_OF_7: playerStats.trioOf7,
+				COMBO: playerStats.combo,
+				PERFECT_GAME: (player.id === winner.winnerId && perfectGame) ? 1 : 0
+			}
+		};
+		gameStats_object.players.push(playerObject);
+	}
+	return (gameStats_object);
 }
 
