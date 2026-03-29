@@ -147,7 +147,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//http://game-service:3002/create avec docker (env var later)
-			const response = await fetch("http://localhost:3002/create", {
+			const response = await fetch("http://game:3002/create", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

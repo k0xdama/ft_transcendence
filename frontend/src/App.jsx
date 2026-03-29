@@ -13,6 +13,7 @@ import ProfileView from './components/ProfileView'
 import LobbyView from './components/lobby/LobbyView'
 import GameView from './components/gameboard/GameView'
 import PublicMatchmakingView from './components/matchmaking/PublicMatchmakingView'
+import WaitingMatchmakingView from './components/matchmaking/WaitingMatchmakingView'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)
@@ -40,6 +41,7 @@ function App() {
           <Route path="/lobby/:lobbyId" element={<LobbyView />} />
           <Route path="/game/:gameId" element={<GameView />} />
           <Route path="/matchmaking" element={<PublicMatchmakingView />} />
+          <Route path="/matchmaking/waiting" element={<WaitingMatchmakingView />} />
         </Routes>
       </div>
     </>
