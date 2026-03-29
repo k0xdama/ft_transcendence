@@ -14,8 +14,8 @@ function PlayerHand({ cards, seat, trios }) {
 				{cards.map(card => (
 					<div key={card.id} className="card card-front">
 						<img
-							src={getCardImage(card.label)}
-							alt={`Card ${card.label}`}
+							src={getCardImage(card.value)}
+							alt={`Card ${card.value}`}
 							className="card-img"
 						/>
 					</div>

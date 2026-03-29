@@ -21,7 +21,7 @@ services:
       context: ./postgresql
       dockerfile: Dockerfile
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/
       - ./postgresql/init:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
@@ -86,6 +86,7 @@ services:
       dockerfile: Dockerfile
     secrets:
       - jwt_access
+      - redis_passwd
     volumes:
       - ./backend/game-service:/app
       - /app/node_modules
