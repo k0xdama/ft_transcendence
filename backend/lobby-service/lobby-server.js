@@ -139,6 +139,7 @@ io.on('connection', (socket) => {
 		console.log(`Client ${socket.id} (user: ${socket.user.username}) joined the lobby ${lobbyId}`);
 		lobbyBySocket.set(socket.id, lobbyId);
 		socket.emit('lobby:created', { lobbyId });
+		socket.emit('lobby:joined', { lobbyStruct });
 	});
 
 	socket.on('matchmaking:join', async (data) => {
@@ -245,7 +246,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//http://game-service:3002/create avec docker (env var later)
-			const response = await fetch("http://localhost:3002/create", {
+			const response = await fetch("http://game:3002/create", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

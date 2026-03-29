@@ -24,13 +24,15 @@ router.use('/chat', authGuard, (req, res, next) => {
 const lobbyProxy = createProxyMiddleware({
 	target: 'http://lobby:3003',
 	ws: true,
-	changeOrigin: true
+	changeOrigin: true,
+	pathRewrite: { '^/api/lobby': '' }
 });
 
 const gameProxy = createProxyMiddleware({
 	target: 'http://game:3002',
 	ws: true,
-	changeOrigin: true
+	changeOrigin: true,
+	pathRewrite: { '^/api/game': '' }
 });
 
 router.use('/lobby', lobbyProxy);

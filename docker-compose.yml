@@ -21,7 +21,7 @@ services:
       context: ./postgresql
       dockerfile: Dockerfile
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/
       - ./postgresql/init:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
