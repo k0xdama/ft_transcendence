@@ -13,6 +13,9 @@ function HomeView() {
           <Link to="/join">
             <button className='But'>Join game</button>
           </Link>
+          <Link to="/matchmaking">
+            <button className='But'>Public Match</button>
+          </Link>
           <Link to="/test">
             <button className='But'>Test Game</button>
           </Link>
