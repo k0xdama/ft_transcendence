@@ -30,7 +30,7 @@ const io = new Server(server, {
 
 const redisClient = createClient({
 	url: 'redis://redis:6379',
-	password: process.env.REDIS_PASSWORD || fdatasync.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim();
+	password: process.env.REDIS_PASSWORD || fs.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim()
 });
 redisClient.connect();
 
@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('game:action', (data) => {
+	socket.on('game:action', async (data) => {
 		console.log('game:action reçu', data);
 		const gameStruct = games.get(data.gameId);
 		if (!gameStruct) {
