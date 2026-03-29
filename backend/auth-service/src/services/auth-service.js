@@ -3,8 +3,6 @@ import { db } from '../config/db.js';
 import {
 	EmailAlreadyExistsError,
 	UsernameAlreadyExistsError,
-	UserNotFoundError,			// To delete before correction
-	InvalidPasswordError,		// To delete before correction
 	InvalidCredentialsError } from '../utils/errors.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -53,14 +51,12 @@ class AuthService {
 			[identifier]
 		);
 		if (!user) {
-			// throw new InvalidCredentialsError();
-			throw new UserNotFoundError();
+			throw new InvalidCredentialsError();
 		}
 
 		const isValidPassword = await bcrypt.compare(password, user.password_hash);
 		if (!isValidPassword) {
-			// throw new InvalidCredentialsError();
-			throw new InvalidPasswordError();
+			throw new InvalidCredentialsError();
 		}
 
 		const refreshToken = crypto.randomBytes(64).toString('hex');
@@ -70,6 +66,11 @@ class AuthService {
 			`INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at)
 			VALUES ($1, $2, NOW() + INTERVAL '7 days')`,
 			[user.id, tokenHash]
+		);
+
+		await db.none(
+			`UPDATE auth.users SET is_online = true WHERE id = $1`,
+			[user.id]
 		);
 
 		return {
@@ -122,10 +123,17 @@ class AuthService {
 
 		const tokenHash = hashToken(refreshToken);
 
-		await db.none(
-			`DELETE FROM auth.refresh_tokens WHERE token_hash = $1`,
+		const record = await db.oneOrNone(
+			`DELETE FROM auth.refresh_tokens WHERE token_hash = $1 RETURNING user_id`,
 			[tokenHash]
 		);
+
+		if (record) {
+			await db.none(
+				`UPDATE auth.users SET is_online = false WHERE id = $1`,
+				[record.user_id]
+			);
+		}
 	}
 }
 

@@ -31,17 +31,3 @@ export class InvalidCredentialsError extends AppError {
 		super(message, 401);
 	}
 }
-
-// TO DELETE BEFORE CORRECTION --> use InvalidCredentialsError instead
-export class UserNotFoundError extends AppError {
-	constructor(message = 'User not found') {
-		super(message, 401);
-	}
-}
-
-// TO DELETE BEFORE CORRECTION --> use InvalidCredentialsError instead
-export class InvalidPasswordError extends AppError {
-	constructor(message = 'Invalid password') {
-		super(message, 401);
-	}
-}
