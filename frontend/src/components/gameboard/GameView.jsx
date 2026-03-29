@@ -6,6 +6,7 @@ import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
 import ChatOverlay from './ChatOverlay'
+import './GameView.css'
 
 const LAYOUTS = {
 	3: {
@@ -32,7 +33,9 @@ function	GameView() {
 	const	{ user, accessToken } = useAuth()
 
 	useEffect(() => {
+		document.body.classList.add('gameboard-active')
 		connect(accessToken, gameId)
+		return () => document.body.classList.remove('gameboard-active')
 	}, [])
 
 	if (!gameStruct) return <p>Waiting for all players to connect...</p>

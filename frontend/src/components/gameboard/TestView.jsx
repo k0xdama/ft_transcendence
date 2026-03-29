@@ -3,7 +3,7 @@ import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
 import ChatOverlay from './ChatOverlay'
-import './TestView.css'
+
 
 const LAYOUTS = {
 	3: {

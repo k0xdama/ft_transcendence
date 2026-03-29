@@ -36,7 +36,6 @@ function App() {
           <Route path="/join" element={<JoinGameView />} />
           <Route path="/register" element={<RegisterView />} />
           <Route path="/login" element={<LoginView />} />
-          <Route path="/test" element={<TestView />} />
           <Route path="/profile" element={<ProfileView />} />
           <Route path="/lobby/:lobbyId" element={<LobbyView />} />
           <Route path="/game/:gameId" element={<GameView />} />
