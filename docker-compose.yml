@@ -103,29 +103,43 @@ services:
       - "2000:2000"
     restart: unless-stopped
 
-  backend:
-    image: backend:v1
-    container_name: backend
-    environment:
-      - NODE_ENV=development
-      - PORT=5172
-    build: 
-      context: ./backend
+  game:
+    image: game:v1
+    container_name: game
+    build:
+      context: ./backend/game-service
       dockerfile: Dockerfile
+    secrets:
+      - jwt_access
     volumes:
-      - ./backend:/app
+      - ./backend/game-service:/app
       - /app/node_modules
     networks:
       - trio_network
     ports:
-      - "5172:5172"
+      - "3002:3002"
+    restart: unless-stopped
+
+  lobby:
+    image: lobby:v1
+    container_name: lobby
+    build:
+      context: ./backend/lobby-service
+      dockerfile: Dockerfile
+    secrets:
+      - jwt_access
+    volumes:
+      - ./backend/lobby-service:/app
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "3003:3003"
     restart: unless-stopped
 
   frontend:
     image: frontend:v1
     container_name: frontend
-    depends_on:
-      - backend
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -141,8 +155,6 @@ services:
   gateway:
     image: gateway:v1
     container_name: gateway
-    depends_on:
-      - backend
     build:
       context: ./backend/api-gateway
       dockerfile: Dockerfile
