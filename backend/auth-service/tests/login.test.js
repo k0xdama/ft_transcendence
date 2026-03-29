@@ -3,7 +3,8 @@ import request from 'supertest';
 import app from '../auth-server.js';
 import { db } from '../src/config/db.js';
 
-// Create a user before performing tests
+// ─── Setup / Teardown ────────────────────────────────────────────────────────
+
 beforeAll(async () => {
 	await request(app)
 		.post('/auth/register')
@@ -14,7 +15,14 @@ beforeAll(async () => {
 		});
 });
 
-describe('Auth /auth/login', () => {
+afterAll(async () => {
+	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
+	await db.$pool.end();
+});
+
+// ─── POST /auth/login ─────────────────────────────────────────────────────────
+
+describe('POST /auth/login', () => {
 	it('should login with email', async () => {
 		const response = await request(app)
 			.post('/auth/login')
@@ -25,7 +33,7 @@ describe('Auth /auth/login', () => {
 		expect(response.status).toBe(200);
 		expect(response.body.message).toBe('Login successful');
 		expect(response.body.user).toBeDefined();
-		expect(response.body.accessToken).toBeDefined();
+		expect(response.headers['set-cookie']).toBeDefined();
 	});
 
 	it('should login with username', async () => {
@@ -38,7 +46,6 @@ describe('Auth /auth/login', () => {
 		expect(response.status).toBe(200);
 		expect(response.body.message).toBe('Login successful');
 		expect(response.body.user).toBeDefined();
-		expect(response.body.accessToken).toBeDefined();
 	});
 
 	it('should reject unknown user', async () => {
@@ -49,8 +56,7 @@ describe('Auth /auth/login', () => {
 				password: 'd4tIsLife!'
 			});
 		expect(response.status).toBe(401);
-		// expect(response.body.error).toBe('Invalid credentials');
-		expect(response.body.error).toBe('User not found');
+		expect(response.body.error).toBe('Invalid credentials');
 	});
 
 	it('should reject wrong password', async () => {
@@ -61,8 +67,7 @@ describe('Auth /auth/login', () => {
 				password: '1dT2345@@'
 			});
 		expect(response.status).toBe(401);
-		// expect(response.body.error).toBe('Invalid credentials');
-		expect(response.body.error).toBe('Invalid password');
+		expect(response.body.error).toBe('Invalid credentials');
 	});
 
 	it('should reject missing identifier', async () => {
@@ -80,10 +85,4 @@ describe('Auth /auth/login', () => {
 		expect(response.status).toBe(401);
 		expect(response.body.error).toBeDefined();
 	});
-});
-
-// Clean after performing tests
-afterAll(async () => {
-	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
-	await db.$pool.end();
 });

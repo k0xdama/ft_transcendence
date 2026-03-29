@@ -55,7 +55,7 @@ function LoginView() {
 
 			setSuccess(data.message)
 
-			login(data.user, data.accessToken)
+			login(data.user)
 
 			setFormData({
 				id: '',

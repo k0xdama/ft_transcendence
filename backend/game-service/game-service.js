@@ -10,7 +10,7 @@ import { startGame } from './game-logic.js';
 import { addPlayer } from './game-logic.js';
 import { ACTIONS_NUMBER } from './game-logic.js';
 
-//Remove process.env.JWT_SECRET when local test isn't needed anymore
+// Remove process.env.JWT_SECRET when local test isn't needed anymore
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
 const games = new Map();
