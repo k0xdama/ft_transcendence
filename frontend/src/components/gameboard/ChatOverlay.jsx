@@ -13,7 +13,7 @@ function ChatOverlay({ roomId }) {
 
 		const fetchHistory = async () => {
 			try {
-				const res = await authFetch(`http://localhost:2000/chat/lobby/${roomId}/history`)
+				const res = await authFetch(`/api/chat/lobby/${roomId}/history`)
 				if (!res || !res.ok) return
 
 				const data = await res.json()
@@ -45,7 +45,7 @@ function ChatOverlay({ roomId }) {
 		setDraft("")
 
 		try {
-			await authFetch('http://localhost:2000/chat/lobby/send', {
+			await authFetch('/api/chat/lobby/send', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ roomId, content, messageType: 'user_text' })
@@ -83,7 +83,6 @@ function ChatOverlay({ roomId }) {
 			</div>
 		</div>
 	)
-
 }
 
 export default ChatOverlay

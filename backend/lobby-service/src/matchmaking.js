@@ -1,8 +1,6 @@
-import { GAME_MODES, GAME_TYPES } from '../lobby-service.js';
+import { GAME_MODES, GAME_TYPES } from '../lobby-server.js';
 //la map se compose comme suit : key [MODE-TYPE-NOMBREDEJOUEURS] -> value [object: socket.user.id & socket]
 //exemple : CLASSIC/LINKED-SOLO/TEAM_UP-3/4/5/6
-
-
 
 export const queues = new Map();
 export const queueBySocket = new Map();

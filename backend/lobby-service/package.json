@@ -2,10 +2,10 @@
     "name": "lobby-service",
     "version": "1.0.0",
     "type": "module",
-    "main": "lobby-service.js",
+    "main": "lobby-server.js",
     "scripts": {
-        "start": "node lobby-service.js",
-        "dev": "node --watch lobby-service.js"
+        "start": "node lobby-server.js",
+        "dev": "node --watch lobby-server.js"
     },
     "dependencies": {
         "express": "^5.2.1",

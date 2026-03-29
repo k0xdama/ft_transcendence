@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useContext, useState, useRef, useEffect } from "react";
 
 const AuthContext = createContext();
 
@@ -13,6 +13,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null)
 	const [loading, setLoading] = useState(true)
+	const refreshPromiseRef = useRef(null)
 
 	const authUrl = 'http://localhost:4000/api/auth'
 
@@ -63,38 +64,38 @@ export const AuthProvider = ({ children }) => {
 		}
 	}
 
-	// Wrapper for authenticated requests — cookies handle the token automatically
 	const authFetch = async (URL, options = {}) => {
 		const response = await fetch(URL, {
 			...options,
 			credentials: 'include',
-			headers: {
-				...options.headers
-			}
+			headers: { ...options.headers }
 		})
 
 		if (response.status !== 401) return response
 
-		const refreshResponse = await fetch(`${authUrl}/refresh`, {
-			method: 'POST',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
+		// One refresh at a time
+		if (!refreshPromiseRef.current) {
+			refreshPromiseRef.current = fetch(`${authUrl}/refresh`, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' }
+			})
+		}
+
+		const refreshResponse = await refreshPromiseRef.current
+		refreshPromiseRef.current = null
+
 		if (!refreshResponse.ok) {
 			logout()
 			return response
 		}
 
-		// Refresh succeeded — new access_token cookie is set automatically
+		// Refresh succeeded — new accessToken cookie is set automatically
 		// Retry the original request
 		return await fetch(URL, {
 			...options,
 			credentials: 'include',
-			headers: {
-				...options.headers
-			}
+			headers: { ...options.headers }
 		})
 	}
 
@@ -111,7 +112,7 @@ export const AuthProvider = ({ children }) => {
 
 	return (
 		<AuthContext.Provider value={value}>
-			{children}
+			{loading ? null : children}
 		</AuthContext.Provider>
 	)
 }

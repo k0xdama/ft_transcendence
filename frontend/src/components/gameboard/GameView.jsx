@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useGame } from "../../context/GameContext"
 import { useAuth } from '../../context/AuthContext'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
@@ -26,13 +26,13 @@ const LAYOUTS = {
 	}
 }
 
-function	GameView() {
+function GameView() {
 	const	{ gameId } = useParams()
 	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck } = useGame()
-	const	{ user, accessToken } = useAuth()
+	const	{ user } = useAuth()
 
 	useEffect(() => {
-		connect(accessToken, gameId)
+		connect(gameId)
 	}, [])
 
 	if (!gameStruct) return <p>Waiting for all players to connect...</p>
@@ -66,7 +66,7 @@ function	GameView() {
 				trio={gameStruct.trioWonArray[me.id] ?? []}
 			/>
 
-			<ChatOverlay />
+			<ChatOverlay roomId={gameId}/>
 
 			{pendingCheck && (
 				<button onClick={() => sendCheck(gameId)}>

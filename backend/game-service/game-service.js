@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import cookie from 'cookie';
 import { randomUUID } from 'crypto';
 import { buildGameStats, createGame, executeAction, nextPlayer } from './game-logic.js';
 import { startGame } from './game-logic.js';
@@ -23,7 +24,8 @@ const server = createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: '*',
+		origin: 'http://localhost:5173',
+		credentials: true,
 		methods: ['GET', 'POST']
 	}
 });
@@ -35,14 +37,16 @@ const redisClient = createClient({
 redisClient.connect();
 
 io.use((socket, next) => {
-	const token = socket.handshake.auth.token;
-	if (!token) return next(new Error('Token manquant'));
+	const accessToken = cookie.parse(socket.handshake.headers.cookie || '');
+	if (!accessToken)
+		return next(new Error('Access token manquant'));
+
 	try {
-		const decoded = jwt.verify(token, jwtSecret);
+		const decoded = jwt.verify(accessToken, jwtSecret);
 		socket.user = decoded;
 		next();
 	} catch (e) {
-		next(new Error('Token invalide'));
+		next(new Error('Access token invalide'));
 	}
 });
 
