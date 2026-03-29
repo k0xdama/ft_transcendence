@@ -7,6 +7,20 @@ import { userA, userB, generateTestToken } from './helpers.js';
 
 const tokenA = generateTestToken(userA);
 
+// ─── Teardown ────────────────────────────────────────────────────────────────
+
+afterAll(async () => {
+	await db.none(
+		'DELETE FROM chat.blocked_users WHERE blocker_id = $1',
+		[userA.id]
+	);
+	await redisClient.del(`chat:blocked:${userA.id}`);
+	await db.$pool.end();
+	await redisClient.quit();
+});
+
+// ─── POST /chat/block ─────────────────────────────────────────────────────────
+
 describe('POST /chat/block', () => {
 	it('should block a user', async () => {
 		const response = await request(app)
@@ -65,6 +79,8 @@ describe('POST /chat/block', () => {
 	});
 });
 
+// ─── DELETE /chat/unblock/:userId ─────────────────────────────────────────────
+
 describe('DELETE /chat/unblock/:userId', () => {
 	it('should unblock a user', async () => {
 		const response = await request(app)
@@ -94,15 +110,4 @@ describe('DELETE /chat/unblock/:userId', () => {
 			.set('Authorization', `Bearer ${tokenA}`);
 		expect(response.status).toBe(200);
 	});
-});
-
-// Clean after performing tests
-afterAll(async () => {
-	await db.none(
-		'DELETE FROM chat.blocked_users WHERE blocker_id = $1',
-		[userA.id]
-	);
-	await redisClient.del(`chat:blocked:${userA.id}`);
-	await db.$pool.end();
-	await redisClient.quit();
 });

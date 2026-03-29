@@ -103,23 +103,6 @@ services:
       - "2000:2000"
     restart: unless-stopped
 
-  game:
-    image: game:v1
-    container_name: game
-    build:
-      context: ./backend/game-service
-      dockerfile: Dockerfile
-    secrets:
-      - jwt_access
-    volumes:
-      - ./backend/game-service:/app
-      - /app/node_modules
-    networks:
-      - trio_network
-    ports:
-      - "3002:3002"
-    restart: unless-stopped
-
   lobby:
     image: lobby:v1
     container_name: lobby

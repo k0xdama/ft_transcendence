@@ -1,13 +1,10 @@
-import { db } from '../config/db.js';
+const LOBBY_SERVICE_URL = process.env.LOBBY_SERVICE_URL || 'http://lobby:3003';
 
-export async function checkLobbyMembership(roomId, userId, accessToken) {
-	// Mock: cree la session lobby en DB si elle n'existe pas
-	await db.none(
-		`INSERT INTO chat.lobby_sessions (room_id)
-		VALUES ($1)
-		ON CONFLICT (room_id) DO NOTHING`,
-		[roomId]
-	);
+export async function checkLobbyMembership(roomId, userId) {
+	const response = await fetch(`${LOBBY_SERVICE_URL}/rooms/${roomId}/members/${userId}`);
+	if (!response.ok)
+		return false;
 
-	return true;
+	const data = await response.json();
+	return data.isMember === true;
 }

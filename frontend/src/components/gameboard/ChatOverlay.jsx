@@ -6,10 +6,10 @@ function ChatOverlay({ roomId }) {
 	const [messages, setMessages] = useState([])
 	const [draft, setDraft] = useState("")
 	const bottomRef = useRef(null)
-	const { authFetch, user, accessToken } = useAuth()
+	const { authFetch, user } = useAuth()
 
 	useEffect(() => {
-		if (!accessToken) return
+		if (!user) return
 
 		const fetchHistory = async () => {
 			try {
@@ -31,7 +31,7 @@ function ChatOverlay({ roomId }) {
 		fetchHistory()
 		const interval = setInterval(fetchHistory, 3000)
 		return () => clearInterval(interval)
-	}, [roomId, accessToken])
+	}, [roomId, user])
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" }) 

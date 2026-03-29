@@ -12,8 +12,6 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null)
-	const userData = localStorage.getItem('user')
-	const [accessToken, setAccessToken] = useState(null)
 	const [loading, setLoading] = useState(true)
 
 	const authUrl = 'http://localhost:4000/api/auth'
@@ -31,8 +29,8 @@ export const AuthProvider = ({ children }) => {
 
 				if (response.ok) {
 					const data = await response.json()
-					setAccessToken(data.accessToken)
-					if (userData) setUser(JSON.parse(userData))
+					localStorage.setItem('user', JSON.stringify(data.user))
+					setUser(data.user)
 				} else {
 					localStorage.removeItem('user')
 				}
@@ -46,9 +44,8 @@ export const AuthProvider = ({ children }) => {
 		tryRestoreSession()
 	}, [])
 
-	const login = (userData, token) => {
+	const login = (userData) => {
 		localStorage.setItem('user', JSON.stringify(userData))
-		setAccessToken(token)
 		setUser(userData)
 	}
 
@@ -62,11 +59,11 @@ export const AuthProvider = ({ children }) => {
 			console.error('Logout failed:', err)
 		} finally {
 			localStorage.removeItem('user')
-			setAccessToken(null)
 			setUser(null)
 		}
 	}
 
+	// Wrapper for authenticated requests — cookies handle the token automatically
 	const authFetch = async (URL, options = {}) => {
 		const response = await fetch(URL, {
 			...options,
@@ -90,10 +87,8 @@ export const AuthProvider = ({ children }) => {
 			return response
 		}
 
-		const data = await refreshResponse.json()
-		const newToken = data.accessToken
-		setAccessToken(newToken)
-
+		// Refresh succeeded — new access_token cookie is set automatically
+		// Retry the original request
 		return await fetch(URL, {
 			...options,
 			credentials: 'include',
@@ -103,11 +98,10 @@ export const AuthProvider = ({ children }) => {
 		})
 	}
 
-	const isAuthenticated = () => user !== null && accessToken !== null
+	const isAuthenticated = () => user !== null
 
 	const value = {
 		user,
-		accessToken,
 		login,
 		logout,
 		isAuthenticated,

@@ -8,6 +8,7 @@
 		"dev": "node --watch chat-server.js",
 		"test": "vitest run",
 		"test:block": "vitest run tests/block.test.js",
+		"test:lobby": "vitest run tests/lobby.test.js",
 		"test:dm": "vitest run tests/dm.test.js"
 	},
 	"dependencies": {

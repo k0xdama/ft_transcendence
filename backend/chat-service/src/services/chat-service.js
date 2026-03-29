@@ -16,10 +16,10 @@ const VALID_MSG_TYPES = ['user_text', 'suggestion'];
 
 class ChatService {
 	// Private methods
-	async #verifyLobbyMember(roomId, userId, accessToken) {
+	async #verifyLobbyMember(roomId, userId) {
 		let isMember;
 		try {
-			isMember = await checkLobbyMembership(roomId, userId, accessToken);
+			isMember = await checkLobbyMembership(roomId, userId);
 		}
 		catch (error) {
 			throw new LobbyServiceUnavailableError();
@@ -71,7 +71,7 @@ class ChatService {
 		await redisClient.sRem(`chat:blocked:${blockerId}`, blockedId);
 	}
 
-	async sendLobbyMessage({ roomId, userId, username, content, messageType = 'user_text', accessToken }) {
+	async sendLobbyMessage({ roomId, userId, username, content, messageType = 'user_text' }) {
 		if (!roomId)
 			throw new MissingFieldError('Lobby room ID');
 
@@ -81,7 +81,7 @@ class ChatService {
 		if (!VALID_MSG_TYPES.includes(messageType))
 			throw new InvalidFieldError('Message type must be user_text or suggestion');
 
-		await this.#verifyLobbyMember(roomId, userId, accessToken);
+		await this.#verifyLobbyMember(roomId, userId);
 
 		const message = await db.one(
 			`INSERT INTO chat.lobby_messages (room_id, sender_id, username, content, message_type)
@@ -98,11 +98,11 @@ class ChatService {
 		return payload;
 	}
 
-	async getLobbyHistory({ roomId, limit = 50, userId, accessToken }) {
+	async getLobbyHistory({ roomId, limit = 50, userId }) {
 		if (!roomId)
 			throw new MissingFieldError('Lobby room ID');
 
-		await this.#verifyLobbyMember(roomId, userId, accessToken);
+		await this.#verifyLobbyMember(roomId, userId);
 
 		const blockedIds = await redisClient.sMembers(`chat:blocked:${userId}`);
 

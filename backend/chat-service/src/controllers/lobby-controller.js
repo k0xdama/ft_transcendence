@@ -10,8 +10,7 @@ export async function sendLobbyMessage(req, res) {
 		const message = await chatService.sendLobbyMessage({
 			roomId,
 			userId, username,
-			content, messageType,
-			accessToken: req.accessToken
+			content, messageType
 		});
 
 		return res.status(201).json(message);
@@ -39,7 +38,7 @@ export async function getLobbyHistory(req, res) {
 				return res.status(400).json({ error: 'limit must be a positive integer' });
 		}
 
-		const history = await chatService.getLobbyHistory({ roomId, limit, userId, accessToken: req.accessToken });
+		const history = await chatService.getLobbyHistory({ roomId, limit, userId });
 
 		return res.status(200).json(history);
 	}

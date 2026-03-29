@@ -29,7 +29,7 @@ export const GAME_TYPES = {
 	TEAM_UP: 'TEAM_UP'
 };
 
-//Remove process.env.JWT_SECRET when local test isn't needed anymore
+// Remove process.env.JWT_SECRET when local test isn't needed anymore
 const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
 
 const lobbys = new Map();
@@ -37,6 +37,16 @@ const lobbyBySocket = new Map();
 
 const app = express();
 app.use(express.json());
+
+// Internal REST endpoint used by chat-service to verify lobby membership
+app.get('/rooms/:roomId/members/:userId', (req, res) => {
+	const lobby = lobbys.get(req.params.roomId);
+	if (!lobby)
+		return res.status(404).json({ isMember: false });
+
+	const isMember = lobby.users.some(u => u.id === req.params.userId);
+	return res.status(200).json({ isMember });
+});
 
 const server = createServer(app);
 
@@ -54,7 +64,8 @@ io.use((socket, next) => {
 		const decoded = jwt.verify(token, jwtSecret);
 		socket.user = decoded;
 		next();
-	} catch (e) {
+	}
+	catch (e) {
 		next(new Error('Token invalide'));
 	}
 });

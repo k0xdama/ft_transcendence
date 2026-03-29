@@ -13,7 +13,8 @@ const FAKE_UUID = '00000000-0000-0000-0000-000000000000';
 
 let conversationId;
 
-// Create a conversation between A and B before performing tests
+// ─── Setup / Teardown ────────────────────────────────────────────────────────
+
 beforeAll(async () => {
 	const response = await request(app)
 		.post('/chat/dm')
@@ -21,6 +22,19 @@ beforeAll(async () => {
 		.send({ targetId: userB.id });
 	conversationId = response.body.id;
 });
+
+afterAll(async () => {
+	await db.none(
+		`DELETE FROM chat.direct_conversations
+		WHERE (user1_id = $1 OR user2_id = $1)
+		OR (user1_id = $2 OR user2_id = $2)`,
+		[userA.id, userC.id]
+	);
+	await db.$pool.end();
+	await redisClient.quit();
+});
+
+// ─── POST /chat/dm ────────────────────────────────────────────────────────────
 
 describe('POST /chat/dm', () => {
 	it('should create a new conversation', async () => {
@@ -68,6 +82,8 @@ describe('POST /chat/dm', () => {
 		expect(response.status).toBe(401);
 	});
 });
+
+// ─── POST /chat/dm/:conversationId/send ───────────────────────────────────────
 
 describe('POST /chat/dm/:conversationId/send', () => {
 	it('should send a message', async () => {
@@ -150,6 +166,8 @@ describe('POST /chat/dm/:conversationId/send', () => {
 	});
 });
 
+// ─── GET /chat/dm/:conversationId/history ─────────────────────────────────────
+
 describe('GET /chat/dm/:conversationId/history', () => {
 	it('should return message history', async () => {
 		const response = await request(app)
@@ -194,6 +212,8 @@ describe('GET /chat/dm/:conversationId/history', () => {
 	});
 });
 
+// ─── GET /chat/dm ─────────────────────────────────────────────────────────────
+
 describe('GET /chat/dm', () => {
 	it('should return list of conversations with last message', async () => {
 		const response = await request(app)
@@ -208,16 +228,4 @@ describe('GET /chat/dm', () => {
 		expect(response.body[0]).toHaveProperty('last_message');
 		expect(response.body[0]).toHaveProperty('last_message_at');
 	});
-});
-
-// Clean after performing tests
-afterAll(async () => {
-	await db.none(
-		`DELETE FROM chat.direct_conversations
-		WHERE (user1_id = $1 OR user2_id = $1)
-		OR (user1_id = $2 OR user2_id = $2)`,
-		[userA.id, userC.id]
-	);
-	await db.$pool.end();
-	await redisClient.quit();
 });
