@@ -123,7 +123,7 @@ io.on('connection', (socket) => {
 		io.to(data.gameId).emit('game:joined', { gameId: data.gameId });
 		console.log(`Player ${socket.user.id} (client: ${socket.id}) joined the game ${data.gameId}`);
 		gameBySocket.set(socket.id, data.gameId);
-		// console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
+		console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
 		if (gameStruct.players.length === gameStruct.expectedPlayers) {
 			startGame(gameStruct);
 
