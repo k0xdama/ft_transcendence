@@ -16,6 +16,8 @@ const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_ac
 
 const games = new Map();
 const gameBySocket = new Map();
+const playersTimers = new Map();
+const gameTimers = new Map();
 
 const app  = express();
 app.use(express.json());
@@ -67,10 +69,23 @@ server.listen(3002, () => {
 function endTurn(gameStruct, gameId) {
 	gameStruct.cardsRevealed = [];
 	gameStruct.currentAction = 'FIRST';
-	gameStruct.pendingAcks = null;
-	gameStruct.revealTimer = null;
+	gameTimers.delete(gameId);
 	nextPlayer(gameStruct);
 	io.to(gameId).emit('game:turnChanged', { gameStruct });
+}
+
+function	setPlayerTimer(userId, timerName, timer) {
+	if (!playersTimers.has(userId))
+		playersTimers.set(userId, {});
+	playersTimers.get(userId)[timerName] = timer;
+}
+
+function	clearPlayerTimer(userId, timerName) {
+	const timers = playersTimers.get(userId);
+	if (timers && timers[timerName]) {
+		clearTimeout(timers[timerName]);
+		timers[timerName] = null;
+	}
 }
 
 io.on('connection', (socket) => {
@@ -92,11 +107,8 @@ io.on('connection', (socket) => {
 				socket.emit('error', 'Vous êtes déjà connecté à cette partie');
 				return;
 			}
-			if (existingPlayer.turnTimer) {
-				clearTimeout(existingPlayer.turnTimer);
-				existingPlayer.turnTimer = null;
-			}
-			clearTimeout(existingPlayer.disconnectTimer);
+			clearPlayerTimer(existingPlayer.id, 'turnTimer');
+			clearPlayerTimer(existingPlayer.id, 'disconnectTimer');
 			existingPlayer.connected = true;
 			socket.join(data.gameId);
 			gameBySocket.set(socket.id, data.gameId);
@@ -144,21 +156,24 @@ io.on('connection', (socket) => {
 			setTimeout(() => { games.delete(data.gameId); }, 5000);
 		}
 		else if (action_result.turnEnded) {
-			gameStruct.pendingAcks = new Set();
-			gameStruct.revealTimer = setTimeout(() => {
+			const timers = { pendingAcks: new Set() };
+			timers.revealTimer = setTimeout(() => {
 				endTurn(gameStruct, data.gameId);
 			}, 7000);
+			gameTimers.set(data.gameId, timers);
 		}
 	});
 
 	socket.on('game:check', (data) => {
 		const gameStruct = games.get(data.gameId);
-		if (!gameStruct || !gameStruct.pendingAcks)
+		const timers = gameTimers.get(data.gameId);
+		if (!gameStruct || !timers || !timers.pendingAcks)
 			return;
-		gameStruct.pendingAcks.add(socket.user.id);
+		timers.pendingAcks.add(socket.user.id);
 		const connectedPlayers = gameStruct.players.filter(player => player.connected && !player.eliminated);
-		if (gameStruct.pendingAcks.size === connectedPlayers.length) {
-			clearTimeout(gameStruct.revealTimer);
+		if (timers.pendingAcks.size === connectedPlayers.length) {
+			clearTimeout(timers.revealTimer);
+			gameTimers.delete(data.gameId);
 			endTurn(gameStruct, data.gameId);
 		}
 	});
@@ -171,21 +186,21 @@ io.on('connection', (socket) => {
 		const playerIndex = gameStruct.players.findIndex(player => player.id === socket.user.id);
 		const player = gameStruct.players[playerIndex];
 		if (gameStruct.currentPlayerIndex === playerIndex) {
-			if (gameStruct.revealTimer) {
-				clearTimeout(gameStruct.revealTimer);
-				gameStruct.revealTimer = null;
-				gameStruct.pendingAcks = null;
+			const timers = gameTimers.get(gameId);
+			if (timers && timers.revealTimer) {
+				clearTimeout(timers.revealTimer);
+				gameTimers.delete(gameId);
 			}
-			player.turnTimer = setTimeout(() => {
+			setPlayerTimer(player.id, 'turnTimer', setTimeout(() => {
 				gameStruct.cardsRevealed = [];
 				gameStruct.currentAction = ACTIONS_NUMBER.FIRST;
 				nextPlayer(gameStruct);
 				io.to(gameId).emit('game:update', { action_result: null, gameStruct });
-			}, 15000);
+			}, 15000));
 		}
 		player.connected = false;
 		io.to(gameId).emit('game:playerDisconnected', { userId: socket.user.id });
-		player.disconnectTimer = setTimeout(() => {
+		setPlayerTimer(player.id, 'disconnectTimer', setTimeout(() => {
 			player.eliminated = true;
 			gameBySocket.delete(socket.id);
 			io.to(gameId).emit('game:playerEliminated', { userId: socket.user.id });
@@ -195,13 +210,17 @@ io.on('connection', (socket) => {
 					io.to(gameId).emit('game:ended', {winnerId: activePlayers[0].id, reason: 'FORFEIT'});
 					setTimeout(() => {
 						games.delete(gameId);
+						gameTimers.delete(gameId);
+						playersTimers.delete(player.id);
 					}, 5000);
 				}
 				else {
 					games.delete(gameId);
+					gameTimers.delete(gameId);
+					playersTimers.delete(player.id);
 				}
 			}
-		}, 30000);
+		}, 30000));
 		console.log(`Client disconnected: ${socket.id}`);
 	})
 });
