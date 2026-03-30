@@ -1,9 +1,9 @@
-
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import cookie from 'cookie';
 import { joinQueue } from './src/matchmaking.js';
 import { queueBySocket } from './src/matchmaking.js';
 import { queues } from './src/matchmaking.js';
@@ -38,29 +38,45 @@ const lobbyBySocket = new Map();
 const app = express();
 app.use(express.json());
 
+// Internal REST endpoint used by chat-service to verify lobby membership
+app.get('/rooms/:roomId/members/:userId', (req, res) => {
+	const lobby = lobbys.get(req.params.roomId);
+	if (!lobby)
+		return res.status(404).json({ isMember: false });
+
+	const isMember = lobby.users.some(u => u.id === req.params.userId);
+	return res.status(200).json({ isMember });
+});
+
 const server = createServer(app);
 
 export const io = new Server(server, {
 	cors: {
-		origin: '*',
+		origin: 'http://localhost:5173',
+		credentials: true,
 		methods: ['GET', 'POST']
 	}
 });
 
 io.use((socket, next) => {
-	const token = socket.handshake.auth.token;
-	if (!token) return next(new Error('Token manquant'));
+	// const accessToken = cookie.parse(socket.handshake.headers.cookie || '');
+	const cookies = cookie.parse(socket.handshake.headers.cookie || '');
+
+	const accessToken = cookies.accessToken;
+	if (!accessToken)
+		return next(new Error('Missing access token'));
+
 	try {
-		const decoded = jwt.verify(token, jwtSecret);
+		const decoded = jwt.verify(accessToken, jwtSecret);
 		socket.user = decoded;
 		next();
 	} catch (e) {
-		next(new Error('Token invalide'));
+		next(new Error('Invalid access token'));
 	}
 });
 
 server.listen(3003, () => {
-	console.log('LOBBY-SERVICE started on port 3003');
+	console.log('LOBBY-SERVICE running on port 3003');
 });
 
 function createLobby(lobbyId, gameMode, gameType, creatorId, maxUsers) {
@@ -146,12 +162,10 @@ io.on('connection', (socket) => {
 			lobbyBySocket.set(player.socket.id, lobbyId);
 		}
 		try {
-			//http://game-service:3002/create avec docker (env var later)
-			const response = await fetch("http://localhost:3002/create", {
+			//http://game:3002/create avec docker (env var later) ??
+			const response = await fetch("http://game:3002/create", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					gameMode: lobbyStruct.rules.gameMode,
 					gameType: lobbyStruct.rules.gameType,
@@ -166,7 +180,7 @@ io.on('connection', (socket) => {
 		}
 		catch {
 			for (const player of matchedPlayers)
-				player.socket.emit('error', 'Impossible de lancer la partie, le game-service est injoignable.');
+				player.socket.emit('error', 'Unable to start the game, the game server is unreachable');
 		}
 
 	});
@@ -174,21 +188,21 @@ io.on('connection', (socket) => {
 	socket.on('lobby:join', (data) => {
 		const lobbyStruct = lobbys.get(data.lobbyId);
 		if (!lobbyStruct) {
-			socket.emit('error', `Aucun lobby avec cet identifiant n'existe`);
+			socket.emit('error', `No lobby with this ID exists`);
 			return;
 		}
 		for (const user of lobbyStruct.users) {
 			if (socket.user.id === user.id) {
-				socket.emit('error', 'Vous avez déjà rejoint ce lobby');
+				socket.emit('error', 'You have already joined this lobby');
 				return;
 			}
 		}
 		if (lobbyStruct.state === LOBBY_STATE.FULL) {
-			socket.emit('error', 'Ce lobby est déjà complet');
+			socket.emit('error', 'This lobby is already full');
 			return;
 		}
 		else if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED) {
-			socket.emit('error', 'Vous ne pouvez pas rejoindre ce lobby, la partie a déjà commencé');
+			socket.emit('error', 'You cannot join this lobby, the game has already started');
 			return;
 		}
 		socket.join(data.lobbyId);
@@ -203,12 +217,13 @@ io.on('connection', (socket) => {
 	socket.on('lobby:ready', (data) => {
 		const lobbyStruct = lobbys.get(data.lobbyId);
 		if (!lobbyStruct) {
-			socket.emit('error', `Aucun lobby avec cet identifiant n'existe`);
+			socket.emit('error', `Something went wrong...`);
+			// ajouter console.log(error)
 			return;
 		}
 		const user = lobbyStruct.users.find(user => user.id === socket.user.id);
 		if (user === undefined) {
-			socket.emit('error', `L'utilisateur ${socket.user.id} ne fait pas parti du lobby ${data.lobbyId}`);
+			socket.emit('error', `${socket.user.username} is not a member of the lobby ${data.lobbyId}`);
 			return;
 		}
 		user.ready = !user.ready;
@@ -218,28 +233,27 @@ io.on('connection', (socket) => {
 	socket.on('lobby:start', async (data) => {
 		const lobbyStruct = lobbys.get(data.lobbyId);
 		if (!lobbyStruct) {
-			socket.emit('error', `Aucun lobby avec cet identifiant n'existe`);
+			socket.emit('error', `Something went wrong...`);
+			// ajouter console.log(error)
 			return;
 		}
 		if (socket.user.id !== lobbyStruct.creatorId) {
-			socket.emit('error', `Seul l'hôte du lobby peut lancer la partie`);
+			socket.emit('error', `Only the lobby host can start the game`);
 			return;
 		}
 		else if (lobbyStruct.users.length !== lobbyStruct.rules.maxUsers) {
-			socket.emit('error', `Le lobby n'est pas complet au vu du nombre de joueur voulu dans les règles de la partie`);
+			socket.emit('error', `The lobby is not full, given the number of players required by the game rules`);
 			return;
 		}
 		else if (checkIfUsersReady(lobbyStruct.users) === false) {
-			socket.emit('error', `Tout les joueurs du lobby se sont pas prêts, la partie ne peut être lancée`);
+			socket.emit('error', `Not all players in the lobby are ready, the game cannot start`);
 			return;
 		}
 		try {
-			//http://game-service:3002/create avec docker (env var later)
+			//http://game:3002/create avec docker (env var later)
 			const response = await fetch("http://game:3002/create", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					gameMode: lobbyStruct.rules.gameMode,
 					gameType: lobbyStruct.rules.gameType,
@@ -253,7 +267,7 @@ io.on('connection', (socket) => {
 			io.to(data.lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
 		}
 		catch {
-			socket.emit('error', 'Impossible de lancer la partie, le game-service est injoignable.');
+			socket.emit('error', 'Unable to start the game, the game server is unreachable');
 		}
 	});
 

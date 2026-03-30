@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import cookie from 'cookie';
 import { randomUUID } from 'crypto';
 import { buildGameStats, createGame, executeAction, nextPlayer } from './game-logic.js';
 import { startGame } from './game-logic.js';
@@ -25,7 +26,8 @@ const server = createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: '*',
+		origin: 'http://localhost:5173',
+		credentials: true,
 		methods: ['GET', 'POST']
 	}
 });
@@ -37,14 +39,19 @@ const redisClient = createClient({
 redisClient.connect();
 
 io.use((socket, next) => {
-	const token = socket.handshake.auth.token;
-	if (!token) return next(new Error('Token manquant'));
+	// const accessToken = cookie.parse(socket.handshake.headers.cookie || '');
+	const cookies = cookie.parse(socket.handshake.headers.cookie || '');
+
+	const accessToken = cookies.accessToken;
+	if (!accessToken)
+		return next(new Error('Missing access token'));
+
 	try {
-		const decoded = jwt.verify(token, jwtSecret);
+		const decoded = jwt.verify(accessToken, jwtSecret);
 		socket.user = decoded;
 		next();
 	} catch (e) {
-		next(new Error('Token invalide'));
+		next(new Error('Invalid access token'));
 	}
 });
 
@@ -59,7 +66,7 @@ app.post('/create', (req, res) => {
 });
 
 server.listen(3002, () => {
-	console.log('GAME-SERVICE started on port 3002');
+	console.log('GAME-SERVICE running on port 3002');
 });
 
 function endTurn(gameStruct, gameId) {
@@ -90,17 +97,17 @@ io.on('connection', (socket) => {
 	socket.on('game:join', (data) => {
 		const gameStruct = games.get(data.gameId);
 		if (!gameStruct) {
-			socket.emit('error', `Aucune partie avec cet identifiant n'existe`);
+			socket.emit('error', `No game with that ID exists`);
 			return;
 		}
 		if (!gameStruct.expectedUsersIds.includes(socket.user.id)) {
-			socket.emit('error', `Vous n'êtes pas attendu dans cette partie`);
+			socket.emit('error', `You're not expected here`);
 			return;
 		}
 		const existingPlayer = gameStruct.players.find(player => player.id === socket.user.id);
 		if (existingPlayer) {
 			if (existingPlayer.connected === true) {
-				socket.emit('error', 'Vous êtes déjà connecté à cette partie');
+				socket.emit('error', 'You are already logged in to this game');
 				return;
 			}
 			clearPlayerTimer(existingPlayer.id, 'turnTimer');
@@ -114,7 +121,7 @@ io.on('connection', (socket) => {
 		}
 		for (const player of gameStruct.players) {
 			if (socket.user.id === player.id) {
-				socket.emit('error', 'Vous avez déjà rejoint cette partie');
+				socket.emit('error', 'You have already joined this game');
 				return;
 			}
 		}
@@ -135,11 +142,11 @@ io.on('connection', (socket) => {
 		console.log('game:action reçu', data);
 		const gameStruct = games.get(data.gameId);
 		if (!gameStruct) {
-			socket.emit('error', `La partie n'existe plus...Quelque chose a tourné au vinaigre...`);
+			socket.emit('error', `Something went wrong... The game is over...`);
 			return;
 		}
 		if (socket.user.id !== gameStruct.currentPlayer) {
-			socket.emit('error', `Ce n'est pas ton tour !`);
+			socket.emit('error', `Don't you dare! That is not your turn!`);
 			return;
 		}
 		const action_result = executeAction(gameStruct, data.actionType, data.target);

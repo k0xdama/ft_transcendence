@@ -11,6 +11,7 @@ app.use(cors({
 	origin: 'http://localhost:5173',
 	credentials: true
 }));
+// app.use(express.json());
 app.use(cookieParser());
 app.use('/api', router);
 
@@ -29,5 +30,5 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.listen(PORT, () => {
-	console.log(`Gateway running on port ${PORT}`)
+	console.log(`GATEWAY running on port ${PORT}`)
 });

@@ -1,71 +1,69 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import './RegisterView.css'
+import './RegisterView.css';
 
 function RegisterView() {
-	const navigate = useNavigate()	
+	const navigate = useNavigate();
 	const [formData, setFormData] = useState({
 		username: '',
 		email: '',
 		password: '',
 		confirmPassword:''
-	})
-	const [error, setError] = useState('')
-	const [loading, setLoading] = useState(false)
-	const [success, setSuccess] = useState('')
+	});
+	const [error, setError] = useState('');
+	const [loading, setLoading] = useState(false);
+	const [success, setSuccess] = useState('');
 
 	const handleChange = (e) => {
 		setFormData({
 			...formData,
 			[e.target.name]: e.target.value
-		})
-	}
+		});
+	};
 
 	const handleRegister = async (e) => {
-		e.preventDefault()
-		setError('')
-		setSuccess('')
+		e.preventDefault();
+		setError('');
+		setSuccess('');
 
 		if (formData.password !== formData.confirmPassword) {
-			setError('Passwords do not match')
-			return
+			setError('Passwords do not match');
+			return;
 		}
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
 		if (!emailRegex.test(formData.email)) {
-			setError('Email must be valid')
-			return
+			setError('Email must be valid');
+			return;
 		}
 
 		if (formData.password.length < 8) {
-			setError('Password must be 8 or more characters')
-			return
+			setError('Password must be 8 or more characters');
+			return;
 		}
 
 		else {
-			console.log('Validation passed ! Registration Data:', {formData})
+			console.log('Validation passed ! Registration Data:', {formData});
 		}
 
-		setLoading(true)
+		setLoading(true);
 
 		try {
-			const response = await fetch('http://localhost:4000/api/auth/register', {
+			const response = await fetch('api/auth/register', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email: formData.email,
 					username: formData.username,
 					password: formData.password
 				}),
-			})
+			});
 
-			const data = await response.json()
+			const data = await response.json();
 
 			if (!response.ok) {
-				setError(data.error || 'Registration failed')
-				return
+				setError(data.error || 'Registration failed');
+				return;
 			}
 
 			setSuccess(data.message)
@@ -75,14 +73,14 @@ function RegisterView() {
 				email: '',
 				password: '',
 				confirmPassword: ''
-			})
+			});
 			
-			setTimeout(() => {navigate('/login')}, 1000)
+			setTimeout(() => {navigate('/login')}, 1000);
 		} catch (error) {
-			console.error('Register error:', error)
-			setError('Registration failed. Please try again.')
+			console.error('Register error:', error);
+			setError('Registration failed. Please try again.');
 		} finally {
-			setLoading(false)
+			setLoading(false);
 		}
 	}
 
@@ -114,4 +112,4 @@ function RegisterView() {
 	);
 }
 
-export default RegisterView
+export default RegisterView;

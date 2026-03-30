@@ -11,7 +11,8 @@ const testUser = {
 
 let refreshCookie;
 
-// Create a user before performing tests
+// ─── Setup / Teardown ────────────────────────────────────────────────────────
+
 beforeAll(async () => {
 	await request(app).post('/auth/register').send(testUser);
 
@@ -19,16 +20,26 @@ beforeAll(async () => {
 		.post('/auth/login')
 		.send({ identifier: testUser.email, password: testUser.password });
 
+	// set-cookie contains both refreshToken and accessToken cookies
 	refreshCookie = response.headers['set-cookie'];
 });
 
+afterAll(async () => {
+	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
+	await db.$pool.end();
+});
+
+// ─── POST /auth/refresh ───────────────────────────────────────────────────────
+
 describe('POST /auth/refresh', () => {
-	it('should return a new access token', async () => {
+	it('should return refreshed user and set new cookies', async () => {
 		const response = await request(app)
 			.post('/auth/refresh')
 			.set('Cookie', refreshCookie);
 		expect(response.status).toBe(200);
-		expect(response.body.accessToken).toBeDefined();
+		expect(response.body.user).toBeDefined();
+		// Both accessToken and refreshToken cookies must be renewed
+		expect(response.headers['set-cookie']).toBeDefined();
 
 		// Update cookie for subsequent tests (token rotation)
 		refreshCookie = response.headers['set-cookie'];
@@ -49,6 +60,8 @@ describe('POST /auth/refresh', () => {
 		expect(response.body.error).toBeDefined();
 	});
 });
+
+// ─── POST /auth/logout ────────────────────────────────────────────────────────
 
 describe('POST /auth/logout', () => {
 	it('should logout successfully', async () => {
@@ -81,10 +94,4 @@ describe('POST /auth/logout', () => {
 			.set('Cookie', cookie);
 		expect(refreshResponse.status).toBe(401);
 	});
-});
-
-// Clean after performing tests
-afterAll(async () => {
-	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
-	await db.$pool.end();
 });

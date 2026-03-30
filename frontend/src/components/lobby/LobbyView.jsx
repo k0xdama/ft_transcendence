@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
-import './LobbyView.css'
 import { useEffect } from 'react'
+import './LobbyView.css'
 
 function LobbyView() {
 	const	{ lobbyId } = useParams()
@@ -62,6 +62,9 @@ function LobbyView() {
 					)}
 				</div>
 			</div>
+	
+			<ChatOverlay roomId={lobbyId} />
+
 		</div>
 	)
 }

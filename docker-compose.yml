@@ -56,6 +56,22 @@ services:
       - trio_network
     restart: unless-stopped
 
+  gateway:
+    image: gateway:v1
+    container_name: gateway
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    secrets:
+      - jwt_access
+    volumes:
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
   auth:
     image: auth:v1
     container_name: auth
@@ -78,22 +94,29 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  game:
-    image: game:v1
-    container_name: game
-    build:
-      context: ./backend/game-service
-      dockerfile: Dockerfile
+  chat:
+    image: chat:v1
+    container_name: chat
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     secrets:
-      - jwt_access
+      - psql_dbname
+      - psql_services_passwd
+      # - psql_chat_passwd
       - redis_passwd
+      - jwt_access
+    build:
+      context: ./backend/chat-service
+      dockerfile: Dockerfile
     volumes:
-      - ./backend/game-service:/app
-      - /app/node_modules
+      - ./backend/chat-service/src:/app/src:ro
     networks:
       - trio_network
     ports:
-      - "3002:3002"
+      - "2000:2000"
     restart: unless-stopped
 
   lobby:
@@ -113,6 +136,23 @@ services:
       - "3003:3003"
     restart: unless-stopped
 
+  game:
+    image: game:v1
+    container_name: game
+    build:
+      context: ./backend/game-service
+      dockerfile: Dockerfile
+    secrets:
+      - jwt_access
+      - redis_passwd
+    volumes:
+      - ./backend/game-service:/app
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
 
   frontend:
     image: frontend:v1
@@ -127,22 +167,6 @@ services:
       - trio_network
     ports:
       - "5173:5173"
-    restart: unless-stopped
-
-  gateway:
-    image: gateway:v1
-    container_name: gateway
-    build:
-      context: ./backend/gateway-service
-      dockerfile: Dockerfile
-    secrets:
-      - jwt_access
-    volumes:
-      - /app/node_modules
-    networks:
-      - trio_network
-    ports:
-      - "4000:4000"
     restart: unless-stopped
 
 volumes:

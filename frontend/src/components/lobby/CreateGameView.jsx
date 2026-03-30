@@ -11,17 +11,16 @@ function CreateGameView() {
 	const	[error, setError] = useState(null)
 
 	const	{ connect, createLobby } = useLobby()
-	const	{ accessToken } = useAuth()
+	const	{ isAuthenticated } = useAuth()
 	const	navigate = useNavigate()
 
 	const	handleCreate = () => {
 		setError(null)
-		if (!accessToken) {
+		if (!isAuthenticated()) {
 			setError('You must be logged in to create a room!')
 			return
 		}
 		connect(
-			accessToken,
 			() => createLobby(gameMode, gameType, maxUsers),
 			(msg) => setError(msg),
 			(lobbyId) => navigate(`/lobby/${lobbyId}`)

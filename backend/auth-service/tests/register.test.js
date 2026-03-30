@@ -3,7 +3,16 @@ import request from 'supertest';
 import app from '../auth-server.js';
 import { db } from '../src/config/db.js';
 
-describe('Auth /auth/register', () => {
+// ─── Teardown ────────────────────────────────────────────────────────────────
+
+afterAll(async () => {
+	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
+	await db.$pool.end();
+});
+
+// ─── POST /auth/register ──────────────────────────────────────────────────────
+
+describe('POST /auth/register', () => {
 	it('should register a new user', async () => {
 		const response = await request(app)
 			.post('/auth/register')
@@ -43,7 +52,9 @@ describe('Auth /auth/register', () => {
 	});
 });
 
-describe('Auth /auth/register — field validation', () => {
+// ─── POST /auth/register — field validation ───────────────────────────────────
+
+describe('POST /auth/register — field validation', () => {
 	it('should reject missing email', async () => {
 		const response = await request(app)
 			.post('/auth/register')
@@ -115,10 +126,4 @@ describe('Auth /auth/register — field validation', () => {
 		expect(response.status).toBe(400);
 		expect(response.body.error).toContain('special');
 	});
-});
-
-// Clean after performing tests
-afterAll(async () => {
-	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
-	await db.$pool.end();
 });
