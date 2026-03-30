@@ -309,3 +309,29 @@ body.gameboard-active .main-container {
 .prompt-cancel:hover {
 	color: rgba(200, 160, 255, 0.8);
 }
+
+.check-prompt {
+	position: absolute;
+	bottom: 120px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 40;
+}
+
+.btn-check {
+	padding: 12px 36px;
+	border-radius: 8px;
+	border: 1px solid rgba(0, 220, 255, 0.5);
+	background: rgba(0, 200, 255, 0.1);
+	color: #00dcff;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	font-size: 0.8rem;
+	cursor: pointer;
+	animation: pulse-check 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-check {
+	0%, 100%	{ box-shadow: 0 0 10px rgba(0, 220, 255, 0.3); }
+	50%			{ box-shadow: 0 0 24px rgba(0, 220, 255, 0.7); }
+}

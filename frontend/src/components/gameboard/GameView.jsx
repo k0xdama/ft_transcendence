@@ -29,9 +29,9 @@ const LAYOUTS = {
 
 function	GameView() {
 	const	{ gameId } = useParams()
-	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck } = useGame()
+	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction } = useGame()
 	const	{ user, accessToken } = useAuth()
-	const [selectedOpponent, setSelectedOpponent] = useState(null)
+	const	[selectedOpponent, setSelectedOpponent] = useState(null)
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
@@ -52,6 +52,8 @@ function	GameView() {
 	const	layout = LAYOUTS[gameStruct.players.length]
 	const	river = gameStruct.cardsInMiddle
 	const	currentAction = gameStruct.currentAction
+	const	expectedRevealed = { FIRST: 0, SECOND: 1, BONUS: 2 }
+	const	canAct = isMyTurn && gameStruct.cardsRevealed.length === expectedRevealed[currentAction]
 
 	return (
 		<div className='gameboard'>
@@ -65,29 +67,37 @@ function	GameView() {
 					}}
 					seat={layout.seats[index]}
 					isCurrentPlayer={gameStruct.currentPlayer === player.id}
-					isMyTurn={isMyTurn}
+					isMyTurn={canAct}
+					cardsRevealed={gameStruct.cardsRevealed}
 					onSelect={(opponentId) => setSelectedOpponent(opponentId)}
+					lastAction={lastAction}
 				/>
 			))}
 
 			<TableArea
 				cards={river}
 				isMyTurn={isMyTurn}
+				currentAction={currentAction}
+				cardsRevealed={gameStruct.cardsRevealed}
 				onFlip={(index) => sendAction(gameId, 'FLIP_MIDDLE', index)}
 			/>
 
 			<PlayerHand
 				cards={me.hand}
 				seat={layout.playerSeat}
-				trio={gameStruct.trioWonArray[me.id] ?? []}
+				trios={gameStruct.trioWonArray[me.id] ?? []}
+				isMyTurn={canAct}
+				onSelectSelf={() => setSelectedOpponent(me.id)}
 			/>
 
 			<ChatOverlay />
 
 			{pendingCheck && (
-				<button onClick={() => sendCheck(gameId)}>
-					Continue
-				</button>
+				<div className="check-prompt">
+					<button className="btn-check" onClick={() => sendCheck(gameId)}>
+						Continue →
+					</button>
+				</div>
 			)}
 
 			{selectedOpponent && (
