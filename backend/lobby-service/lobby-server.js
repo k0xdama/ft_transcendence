@@ -60,10 +60,10 @@ export const io = new Server(server, {
 
 io.use((socket, next) => {
 	const cookies = cookie.parse(socket.handshake.headers.cookie || '');
-	const token = cookies.accessToken;
-	if (!token) return next(new Error('Token manquant'));
+	const accessToken = cookies.accessToken;
+	if (!accessToken) return next(new Error('Token manquant'));
 	try {
-		const decoded = jwt.verify(token, jwtSecret);
+		const decoded = jwt.verify(accessToken, jwtSecret);
 		socket.user = decoded;
 		next();
 	}

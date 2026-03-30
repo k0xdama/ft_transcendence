@@ -22,8 +22,8 @@ export function extractUser(req, res, next) {
 	}
 
 	try {
-		const token = authHeader.slice(7);
-		const payload = jwt.verify(token, jwtSecret);
+		const accessToken = authHeader.slice(7);
+		const payload = jwt.verify(accessToken, jwtSecret);
 		req.user = { id: payload.id, email: payload.email, username: payload.username };
 		next();
 	} catch {
