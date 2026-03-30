@@ -92,8 +92,6 @@ export function addPlayer(gameStruct, playerId) {
 		hand: [],
 		connected: true,
 		eliminated: false,
-		disconnectTimer: null,
-		turnTimer: null
 	};
 	gameStruct.players.push(player);
 }
