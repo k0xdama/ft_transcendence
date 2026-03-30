@@ -129,11 +129,44 @@ services:
       - "5172:5172"
     restart: unless-stopped
 
+  game:
+    image: game:v1
+    container_name: game
+    build:
+      context: ./backend/game-service
+      dockerfile: Dockerfile
+    secrets:
+      - jwt_access
+    volumes:
+      - ./backend/game-service:/app
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+  lobby:
+    image: lobby:v1
+    container_name: lobby
+    build:
+      context: ./backend/lobby-service
+      dockerfile: Dockerfile
+    secrets:
+      - jwt_access
+    volumes:
+      - ./backend/lobby-service:/app
+      - /app/node_modules
+    networks:
+      - trio_network
+    ports:
+      - "3003:3003"
+    restart: unless-stopped
+
+
   frontend:
     image: frontend:v1
     container_name: frontend
-    depends_on:
-      - backend
     build:
       context: ./frontend
       dockerfile: Dockerfile
