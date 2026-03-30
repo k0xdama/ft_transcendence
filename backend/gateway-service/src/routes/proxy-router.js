@@ -16,4 +16,10 @@ router.use('/chat', authGuard, createProxyMiddleware({
 	pathRewrite: { '^/': '/chat/' }
 }))
 
+router.use('/players', createProxyMiddleware({
+	target: 'http://player:3001',//pour le http:// j'utilise player sans S pour le route j'utilise players avec S (pour etre restful c'est la norme le pluriel) mais je devrais peut etre toute mettre en maj
+	changeOrigin: true,
+	pathRewrite: { '^/': '/players/' },
+}))
+
 export { router }
