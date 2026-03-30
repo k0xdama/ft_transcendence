@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
-import './App.css'
 import HomeView from './components/HomeView'
 import CreateGameView from './components/lobby/CreateGameView'
 import NavBar from './components/NavBar'
@@ -13,6 +12,7 @@ import ProfileView from './components/ProfileView'
 import LobbyView from './components/lobby/LobbyView'
 import GameView from './components/gameboard/GameView'
 import PublicMatchmakingView from './components/matchmaking/PublicMatchmakingView'
+import './App.css'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState(null)

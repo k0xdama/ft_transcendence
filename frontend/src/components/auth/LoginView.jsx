@@ -35,11 +35,10 @@ function LoginView() {
 		setLoading(true)
 
 		try {
-			const response = await fetch('http://localhost:4000/api/auth/login', {
+			const authUrl = '/api/auth'
+			const response = await fetch(`${authUrl}/login`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					identifier: formData.id,
 					password: formData.password

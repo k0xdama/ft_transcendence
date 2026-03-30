@@ -36,6 +36,9 @@ class AuthService {
 				if (error.constraint === 'users_username_key') // <table>_<column>_key
 					throw new UsernameAlreadyExistsError();
 			}
+			if (error.code === '23514') {
+				throw new ValidationError('Invalid data format');
+			}
 			throw error;
 		}
 	}

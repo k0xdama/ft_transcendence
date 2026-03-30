@@ -20,7 +20,7 @@ beforeAll(async () => {
 		.post('/auth/login')
 		.send({ identifier: testUser.email, password: testUser.password });
 
-	// set-cookie contains both refreshToken and access_token cookies
+	// set-cookie contains both refreshToken and accessToken cookies
 	refreshCookie = response.headers['set-cookie'];
 });
 
@@ -38,7 +38,7 @@ describe('POST /auth/refresh', () => {
 			.set('Cookie', refreshCookie);
 		expect(response.status).toBe(200);
 		expect(response.body.user).toBeDefined();
-		// Both access_token and refreshToken cookies must be renewed
+		// Both accessToken and refreshToken cookies must be renewed
 		expect(response.headers['set-cookie']).toBeDefined();
 
 		// Update cookie for subsequent tests (token rotation)

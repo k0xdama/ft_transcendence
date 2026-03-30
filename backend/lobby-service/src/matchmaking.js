@@ -20,6 +20,7 @@ export function joinQueue(socket, data) {
 	const queue = queues.get(queueKey);
 	const user = {
 		userId: socket.user.id,
+		username: socket.user.username,
 		socket : socket
 	}
 	queue.push(user);

@@ -12,12 +12,12 @@ export function MatchmakingProvider({ children }) {
 	const [error, setError] = useState(null)
 	const socketRef = useRef(null)
 
-	const connect = (token, onConnected, onConnectionError) => {
+	const connect = (onConnected, onConnectionError) => {
 		if (socketRef.current) return
 
-		socketRef.current = io('http://localhost:4000/', {
+		socketRef.current = io({
 			path: '/api/lobby/socket.io',
-			auth: { token },
+			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false
 		})

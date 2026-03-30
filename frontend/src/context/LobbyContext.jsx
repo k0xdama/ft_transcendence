@@ -8,7 +8,6 @@ export function useLobby() {
 	return useContext(LobbyContext)
 }
 
-
 export function LobbyProvider({ children }) {
 	const [lobbyStruct, setLobbyStruct] = useState(null)
 	const [lobbyId, setLobbyId] = useState(null)
@@ -17,12 +16,12 @@ export function LobbyProvider({ children }) {
 	const socketRef = useRef(null)
 	const { user } = useAuth()
 
-	const connect = (token, onConnected, onConnectionError, onLobbyCreated, onLobbyJoined) => {
+	const connect = (onConnected, onConnectionError, onLobbyCreated, onLobbyJoined) => {
 		if (socketRef.current) return
 
-		socketRef.current = io('http://localhost:4000/', {
+		socketRef.current = io({
 			path: '/api/lobby/socket.io',
-			auth: { token },
+			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false
 		})

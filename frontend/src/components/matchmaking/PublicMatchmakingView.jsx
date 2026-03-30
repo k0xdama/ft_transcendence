@@ -11,17 +11,16 @@ function PublicMatchmakingView() {
 	const [error, setError] = useState(null)
 
 	const { connect, joinMatchmaking } = useMatchmaking()
-	const { accessToken } = useAuth()
+	const { isAuthenticated } = useAuth()
 	const navigate = useNavigate()
 
 	const handleSearch = () => {
 		setError(null)
-		if (!accessToken) {
+		if (!isAuthenticated()) {
 			setError('You must be logged in to search for a game!')
 			return
 		}
 		connect(
-			accessToken,
 			() => {
 				joinMatchmaking(gameMode, gameType, maxUsers)
 				navigate('/matchmaking/waiting', {

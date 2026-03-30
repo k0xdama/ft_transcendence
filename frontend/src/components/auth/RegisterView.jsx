@@ -31,7 +31,7 @@ function RegisterView() {
 			return
 		}
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
 		if (!emailRegex.test(formData.email)) {
 			setError('Email must be valid')
 			return
@@ -49,11 +49,10 @@ function RegisterView() {
 		setLoading(true)
 
 		try {
-			const response = await fetch('http://localhost:4000/api/auth/register', {
+			const authUrl = '/api/auth'
+			const response = await fetch(`${authUrl}/register`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email: formData.email,
 					username: formData.username,

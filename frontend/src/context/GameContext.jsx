@@ -16,7 +16,7 @@ export function GameProvider({ children }) {
 	const	connect = (gameId, onConnected, onError) => {
 		if (socketRef.current) return
 
-		socketRef.current = io('http://localhost:4000', {
+		socketRef.current = io({
 			path: '/api/game/socket.io',
 			withCredentials: true,
 			transports: ['websocket'],

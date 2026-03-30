@@ -1,20 +1,20 @@
 import { useNavigate } from 'react-router-dom'
-import './JoinGameView.css'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
 import { useState } from 'react'
+import './JoinGameView.css'
 
 function JoinGameView() {
 	const	[inputLobbyId, setInputLobbyId] = useState('')
 	const	[error, setError] = useState(null)
 	const	{ connect, joinLobby, lobbyError, setLobbyError } = useLobby()
-	const	{ accessToken } = useAuth()
+	const	{ isAuthenticated } = useAuth()
 	const	navigate = useNavigate()
 
 	const	handleJoin = () => {
 		setError(null)
 		setLobbyError(null)
-		if (!accessToken) {
+		if (!isAuthenticated()) {
 			setError('You must be logged in to join a game!')
 			return
 		}
@@ -27,7 +27,6 @@ function JoinGameView() {
 			return
 		}
 		connect(
-			accessToken,
 			() => joinLobby(inputLobbyId),
 			(msg) => setError(msg),
 			null,

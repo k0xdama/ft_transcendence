@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import cookie from 'cookie';
 import { joinQueue } from './src/matchmaking.js';
 import { queueBySocket } from './src/matchmaking.js';
 import { queues } from './src/matchmaking.js';
@@ -58,7 +59,8 @@ export const io = new Server(server, {
 });
 
 io.use((socket, next) => {
-	const token = socket.handshake.auth.token;
+	const cookies = cookie.parse(socket.handshake.headers.cookie || '');
+	const token = cookies.accessToken;
 	if (!token) return next(new Error('Token manquant'));
 	try {
 		const decoded = jwt.verify(token, jwtSecret);
@@ -110,9 +112,10 @@ function generateLobbyId(lobbysMap) {
 	return result;
 }
 
-function addUser(lobbyStruct, userId) {
+function addUser(lobbyStruct, userId, username) {
 	const user = {
 		id: userId,
+		username: username,
 		ready: false
 	};
 	lobbyStruct.users.push(user);
@@ -134,7 +137,7 @@ io.on('connection', (socket) => {
 		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType, socket.user.id, data.maxUsers);
 		lobbys.set(lobbyId, lobbyStruct);
 		socket.join(lobbyId);
-		addUser(lobbyStruct, socket.user.id);
+		addUser(lobbyStruct, socket.user.id, socket.user.username);
 		console.log(`Lobby created: ${lobbyId}`);
 		console.log(`Client ${socket.id} (user: ${socket.user.username}) joined the lobby ${lobbyId}`);
 		lobbyBySocket.set(socket.id, lobbyId);
@@ -152,7 +155,7 @@ io.on('connection', (socket) => {
 		lobbyStruct.lobbyType = LOBBY_TYPES.PUBLIC;
 		lobbys.set(lobbyId, lobbyStruct);
 		for (const player of matchedPlayers) {
-			addUser(lobbyStruct, player.userId);
+			addUser(lobbyStruct, player.userId, player.username);
 			player.socket.join(lobbyId);
 			lobbyBySocket.set(player.socket.id, lobbyId);
 		}
@@ -203,7 +206,7 @@ io.on('connection', (socket) => {
 			return;
 		}
 		socket.join(data.lobbyId);
-		addUser(lobbyStruct, socket.user.id);
+		addUser(lobbyStruct, socket.user.id, socket.user.username);
 		console.log(`User ${socket.id} (user: ${socket.user.username}) joined the lobby ${data.lobbyId}`);
 		lobbyBySocket.set(socket.id, data.lobbyId);
 		if (lobbyStruct.users.length === lobbyStruct.rules.maxUsers)

@@ -4,7 +4,7 @@ import fs from 'fs';
 const JWT_SECRET = fs.readFileSync('/run/secrets/jwt_access', 'utf8').trim();
 
 export function authGuard(req, res, next) {
-	const token = req.cookies?.access_token;
+	const token = req.cookies?.accessToken;
 	if (!token) {
 		return res.status(401).json({ error: 'No token provided' });
 	}
