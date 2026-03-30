@@ -54,9 +54,9 @@ body.gameboard-active .main-container {
 	gap: 0.5rem;
 }
 
-.seat-top			{ top: (calc(var(--navbar-height) + 1rem)); left: 50%; transform: translateX(-50%); }
-.seat-left			{ left: 5vw; top: 50%; transform: translateY(-50%); }
-.seat-right			{ right: 5vw; top: 50%; transform: translateY(-50%); }
+.seat-top			{ top: 20px; left: 50%; transform: translateX(-50%); }
+.seat-left			{ left: 5vw; top: calc(50% + var(--navbar-height) / 2); transform: translateY(-50%); }
+.seat-right			{ right: 5vw; top: calc(50% + var(--navbar-height) / 2); transform: translateY(-50%); }
 .seat-bottom-left	{ bottom: 8vh; left: 22vw; }
 .seat-top-left		{ top: 8vh; left: 22vw }
 .seat-top-right		{ top: 8vh; right: 22vw }
@@ -81,12 +81,10 @@ body.gameboard-active .main-container {
 .seat-left .card-back,
 .seat-right .card-back {
 	transform: rotate(90deg);
+	margin: -10px 0
 }
 
-.seat-left .card-back:hover,
-.seat-right .card-back:hover {
-	transform: rotate(90deg) scale(1.3);
-}
+
 
 .player-hand {
 	display: flex;
@@ -121,8 +119,8 @@ body.gameboard-active .main-container {
 }
 
 .card {
-	width: 4.5vw;
-	height: 6vw;
+	width: 4vw;
+	height: 5.5vw;
 	min-width: 70px;
 	min-height: 90px;
 	background: black;
@@ -131,9 +129,11 @@ body.gameboard-active .main-container {
 	transition: transform 0.2s ease, border 0.2s ease;
 }
 
-.card:hover {
-	transform: scale(1.3);
-	border: 2px solid lightblue
+.card-active:hover {
+	transform: scale(1.15);
+	border: 1px solid rgba(0, 220, 255, 0.7);
+	box-shadow: 0 0 12px rgba(0, 200, 255, 0.4);
+	cursor: pointer;
 }
 
 .card-front {
@@ -141,7 +141,12 @@ body.gameboard-active .main-container {
 	align-items: center;
 	justify-content: center;
 	font-weight: bold;
-	cursor: pointer;
+	cursor: default;
+}
+
+.card-front.card-active {
+	border: 1px solid rgba(180, 60, 255, 0.5);
+	box-shadow: 0 0 8px rgba(140, 40, 200, 0.4);
 }
 
 .card-img {
@@ -213,16 +218,94 @@ body.gameboard-active .main-container {
 	object-fit: contain;
 }
 
-.demo-controls {
+/* Whose turn it is — glowing name */
+.slot-active-turn .player-name {
+	color: #00dcff;
+	text-shadow: 0 0 10px rgba(0, 220, 255, 0.8);
+	animation: pulse-name 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-name {
+	0%, 100%	{ text-shadow: 0 0 8px rgba(0, 220, 255, 0.6); }
+	50%			{ text-shadow: 0 0 18px rgba(0, 220, 255, 1); }
+}
+
+/* Clickable opponent on your turn */
+.slot-selectable {
+	cursor: pointer;
+}
+
+.slot-selectable:hover .face-down-hand .card-back {
+	border-color: rgba(180, 60, 255, 0.7);
+	box-shadow: 0 0 10px rgba(140, 40, 200, 0.4);
+}
+
+.action-prompt-overlay {
 	position: absolute;
-	bottom: 1rem;
-	right: 1rem;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
 	display: flex;
 	align-items: center;
-	gap: 0.75rem;
-	background: rgba(0,0,0,0.5);
-	padding: 0.4rem 0.8rem;
+	justify-content: center;
+	z-index: 50;
+	backdrop-filter: blur(4px);
+}
+
+.action-prompt {
+	background: rgba(10, 5, 20, 0.9);
+	border: 1px solid rgba(180, 60, 255, 0.4);
+	border-radius: 16px;
+	padding: 32px 40px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 20px;
+	box-shadow: 0 0 40px rgba(140, 40, 200, 0.3);
+}
+
+.prompt-title {
+	font-size: 0.85rem;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	color: #e0aaff;
+	text-shadow: 0 0 10px rgba(180, 80, 255, 0.6);
+	margin: 0;
+}
+
+.prompt-actions {
+	display: flex;
+	gap: 16px;
+}
+
+.prompt-btn {
+	padding: 12px 28px;
 	border-radius: 8px;
-	font-size: 0.9rem;
-	z-index: 10;
+	border: 1px solid rgba(0, 220, 255, 0.5);
+	background: rgba(0, 200, 255, 0.08);
+	color: #00dcff;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	font-size: 0.75rem;
+	cursor: pointer;
+	transition: background 0.2s, box-shadow 0.2s;
+}
+
+.prompt-btn:hover {
+	background: rgba(0, 200, 255, 0.18);
+	box-shadow: 0 0 16px rgba(0, 200, 255, 0.35);
+}
+
+.prompt-cancel {
+	background: none;
+	border: none;
+	color: rgba(200, 160, 255, 0.4);
+	font-size: 0.7rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: color 0.2s;
+}
+
+.prompt-cancel:hover {
+	color: rgba(200, 160, 255, 0.8);
 }

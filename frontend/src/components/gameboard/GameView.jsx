@@ -31,12 +31,18 @@ function	GameView() {
 	const	{ gameId } = useParams()
 	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck } = useGame()
 	const	{ user, accessToken } = useAuth()
+	const [selectedOpponent, setSelectedOpponent] = useState(null)
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
 		connect(accessToken, gameId)
 		return () => document.body.classList.remove('gameboard-active')
 	}, [])
+
+	const	handleOpponentAction = (actionType) => {
+		sendAction(gameId, actionType, selectedOpponent)
+		setSelectedOpponent(null)
+	}
 
 	if (!gameStruct) return <p>Waiting for all players to connect...</p>
 
@@ -58,10 +64,17 @@ function	GameView() {
 						trios: gameStruct.trioWonArray[player.id] ?? []
 					}}
 					seat={layout.seats[index]}
+					isCurrentPlayer={gameStruct.currentPlayer === player.id}
+					isMyTurn={isMyTurn}
+					onSelect={(opponentId) => setSelectedOpponent(opponentId)}
 				/>
 			))}
 
-			<TableArea cards={river} />
+			<TableArea
+				cards={river}
+				isMyTurn={isMyTurn}
+				onFlip={(index) => sendAction(gameId, 'FLIP_MIDDLE', index)}
+			/>
 
 			<PlayerHand
 				cards={me.hand}
@@ -75,6 +88,23 @@ function	GameView() {
 				<button onClick={() => sendCheck(gameId)}>
 					Continue
 				</button>
+			)}
+
+			{selectedOpponent && (
+				<div className='action-prompt-overlay' onClick={() => setSelectedOpponent(null)}>
+					<div className='action-prompt' onClick={e => e.stopPropagation()}>
+						<p className='prompt-title'>Choose an action</p>
+						<div className='prompt-actions'>
+							<button className='prompt-btn' onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
+								Highest card
+							</button>
+							<button className='prompt-btn' onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
+								Lowest card
+							</button>
+						</div>
+						<button className='prompt-cancel' onClick={() => setSelectedOpponent(null)}>Cancel</button>
+					</div>
+				</div>
 			)}
 		</div>
 	)
