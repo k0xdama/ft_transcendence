@@ -8,10 +8,11 @@ export function useGame() {
 }
 
 export function GameProvider({ children }) {
-	const	[gameStruct, setGameStruct] = useState(null);
-	const	[gameError, setGameError] = useState(null);
-	const	[pendingCheck, setPendingCheck] = useState(false);
-	const	socketRef = useRef(null);
+	const	[gameStruct, setGameStruct] = useState(null)
+	const	[gameError, setGameError] = useState(null)
+	const	[pendingCheck, setPendingCheck] = useState(false)
+	const	[lastAction, setLastAction] = useState(null)
+	const	socketRef = useRef(null)
 
 	const	connect = (gameId, onConnected, onError) => {
 		if (socketRef.current)
@@ -35,15 +36,16 @@ export function GameProvider({ children }) {
 		});
 
 		socketRef.current.on('game:update', ({ gameStruct, action_result }) => {
-			setGameStruct(gameStruct);
-			if (action_result?.turnEnded)
-				setPendingCheck(true);
-		});
+			setGameStruct(gameStruct)
+			setLastAction(action_result)
+			if (action_result?.turnEnded) setPendingCheck(true)
+		})
 
 		socketRef.current.on('game:turnChanged', ({ gameStruct }) => {
-			setGameStruct(gameStruct);
-			setPendingCheck(false);
-		});
+			setGameStruct(gameStruct)
+			setLastAction(null)
+			setPendingCheck(false)
+		})
 
 		socketRef.current.on('game:reconnected', ({ gameStruct }) => {
 			setGameStruct(gameStruct);
@@ -74,9 +76,9 @@ export function GameProvider({ children }) {
 		connect,
 		sendAction,
 		sendCheck,
-		pendingCheck
-	};
-
+		pendingCheck,
+		lastAction
+	}
 	return (
 		<GameContext.Provider value={value}>
 			{children}

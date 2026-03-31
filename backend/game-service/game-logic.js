@@ -113,28 +113,54 @@ export function createDeck() {
 }
 
 export function getHighestCard(gameStruct, cards) {
-	let highestCard = cards[0];
-	
-	for (let current = 0; current < cards.length; ++current) {
-		if (cards[current].value > highestCard.value)
-			highestCard = cards[current];
-	}
-	highestCard.revealed = true;
-	gameStruct.cardsRevealed.push(highestCard);
-	return (highestCard);
+    const notRevealedCards = cards.filter(card => !gameStruct.cardsRevealed.includes(card));
+    let highestCard = notRevealedCards[0];
+
+    for (let current = 1; current < notRevealedCards.length; ++current) {
+        if (notRevealedCards[current].value > highestCard.value)
+            highestCard = notRevealedCards[current];
+    }
+    highestCard.revealed = true;
+    gameStruct.cardsRevealed.push(highestCard);
+    return highestCard;
 }
+
+// export function getHighestCard(gameStruct, cards) {
+// 	let highestCard = cards[0];
+	
+// 	for (let current = 0; current < cards.length; ++current) {
+// 		if (cards[current].value > highestCard.value)
+// 			highestCard = cards[current];
+// 	}
+// 	highestCard.revealed = true;
+// 	gameStruct.cardsRevealed.push(highestCard);
+// 	return (highestCard);
+// }
 
 export function getLowestCard(gameStruct, cards) {
-	let lowestCard = cards[0];
+    const notRevealedCards = cards.filter(card => !gameStruct.cardsRevealed.includes(card));
+    let lowestCard = notRevealedCards[0];
 
-	for (let current = 0; current < cards.length; ++current) {
-		if (cards[current].value < lowestCard.value)
-			lowestCard = cards[current];
-	}
-	lowestCard.revealed = true;
-	gameStruct.cardsRevealed.push(lowestCard);
-	return (lowestCard);
+    for (let current = 1; current < notRevealedCards.length; ++current) {
+        if (notRevealedCards[current].value < lowestCard.value)
+            lowestCard = notRevealedCards[current];
+    }
+    lowestCard.revealed = true;
+    gameStruct.cardsRevealed.push(lowestCard);
+    return lowestCard;
 }
+
+// export function getLowestCard(gameStruct, cards) {
+// 	let lowestCard = cards[0];
+
+// 	for (let current = 0; current < cards.length; ++current) {
+// 		if (cards[current].value < lowestCard.value)
+// 			lowestCard = cards[current];
+// 	}
+// 	lowestCard.revealed = true;
+// 	gameStruct.cardsRevealed.push(lowestCard);
+// 	return (lowestCard);
+// }
 
 export function flipMiddleCard(gameStruct, position) {
 	// const card = {
@@ -195,10 +221,8 @@ export function shuffleAndDeal(gameStruct, deck) {
 	console.log('deck avant shuffle:', shuffled.map(c => c.value));
 	for (let i = shuffled.length - 1; i > 0; --i) {
 		const j = randomInt(0, i + 1);
-		console.log('loop i & j : ', i, '- ', j);
 		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
 	}
-
 	console.log('deck après shuffle:', shuffled.map(c => c.value));
 
 	for (const player of gameStruct.players) {
@@ -284,9 +308,11 @@ export function executeAction(gameStruct, actionType, target) {
 			return_object.revealedCard = card;
 			if (checkForTrio(gameStruct.cardsRevealed) === true) {
 				return_object.event = EVENTS.TRIO_FOUND;
+				console.log("Trio found ! ", card.value);
 				gameStruct.trioWonArray[gameStruct.currentPlayer].push(card.value);
 				for (const cardToRemove of gameStruct.cardsRevealed) {
 					removeCard(gameStruct, cardToRemove.id);
+					console.log("cardRemoved : ", card.id);
 				}
 				if (gameStruct.lastTrioWinner === gameStruct.currentPlayer)
 					gameStruct.stats[gameStruct.currentPlayer].combo++;
@@ -454,7 +480,7 @@ function checkForPerfectGame(gameStruct, winnerId) {
 	return (true);
 }
 
-export function buildGameStats(gameStruct, winner) {
+export function buildGameStats(gameStruct, winnerId) {
 	const dateObject = new Date(Date.now());
 	const gameStats_object = {
 		gameId: gameStruct.gameId,
@@ -465,8 +491,8 @@ export function buildGameStats(gameStruct, winner) {
 		players: []
 	};
 	const stats = gameStruct.stats;
-	const perfectGame = checkForPerfectGame(gameStruct, winner.winnerId);
-	setPlayersRank(gameStruct, winner.winnerId);
+	const perfectGame = checkForPerfectGame(gameStruct, winnerId);
+	setPlayersRank(gameStruct, winnerId);
 	for (const player of gameStruct.players) {
 		const playerStats = stats[player.id];
 		const playerObject = {
@@ -478,7 +504,7 @@ export function buildGameStats(gameStruct, winner) {
 			achievements: {
 				TRIO_OF_7: playerStats.trioOf7,
 				COMBO: playerStats.combo,
-				PERFECT_GAME: (player.id === winner.winnerId && perfectGame) ? 1 : 0
+				PERFECT_GAME: (player.id === winnerId && perfectGame) ? 1 : 0
 			}
 		};
 		gameStats_object.players.push(playerObject);

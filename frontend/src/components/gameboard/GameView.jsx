@@ -6,6 +6,7 @@ import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
 import ChatOverlay from './ChatOverlay'
+import './GameView.css'
 
 const LAYOUTS = {
 	3: {
@@ -28,12 +29,25 @@ const LAYOUTS = {
 
 function	GameView() {
 	const	{ gameId } = useParams()
-	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck } = useGame()
-	const	{ user } = useAuth()
+	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction } = useGame()
+	const	{ user, accessToken } = useAuth()
+	const	[selectedOpponent, setSelectedOpponent] = useState(null)
+	const	[checkSent, setCheckSent] = useState(false)
 
 	useEffect(() => {
-		connect(gameId)
+		document.body.classList.add('gameboard-active')
+		connect(accessToken, gameId)
+		return () => document.body.classList.remove('gameboard-active')
 	}, [])
+
+	useEffect(() => {
+		if (!pendingCheck) setCheckSent(false)
+	}, [pendingCheck])
+
+	const	handleOpponentAction = (actionType) => {
+		sendAction(gameId, actionType, selectedOpponent)
+		setSelectedOpponent(null)
+	}
 
 	if (!gameStruct) return <p>Waiting for all players to connect...</p>
 
@@ -43,6 +57,8 @@ function	GameView() {
 	const	layout = LAYOUTS[gameStruct.players.length]
 	const	river = gameStruct.cardsInMiddle
 	const	currentAction = gameStruct.currentAction
+	const	expectedRevealed = { FIRST: 0, SECOND: 1, BONUS: 2 }
+	const	canAct = isMyTurn && gameStruct.cardsRevealed.length === expectedRevealed[currentAction]
 
 	return (
 		<div className='gameboard'>
@@ -55,23 +71,59 @@ function	GameView() {
 						trios: gameStruct.trioWonArray[player.id] ?? []
 					}}
 					seat={layout.seats[index]}
+					isCurrentPlayer={gameStruct.currentPlayer === player.id}
+					isMyTurn={canAct}
+					cardsRevealed={gameStruct.cardsRevealed}
+					onSelect={(opponentId) => setSelectedOpponent(opponentId)}
+					lastAction={lastAction}
 				/>
 			))}
 
-			<TableArea cards={river} />
+			<TableArea
+				cards={river}
+				isMyTurn={isMyTurn}
+				currentAction={currentAction}
+				cardsRevealed={gameStruct.cardsRevealed}
+				onFlip={(index) => sendAction(gameId, 'FLIP_MIDDLE', index)}
+			/>
 
 			<PlayerHand
 				cards={me.hand}
 				seat={layout.playerSeat}
-				trio={gameStruct.trioWonArray[me.id] ?? []}
+				trios={gameStruct.trioWonArray[me.id] ?? []}
+				isMyTurn={canAct}
+				onSelectSelf={() => setSelectedOpponent(me.id)}
 			/>
 
 			<ChatOverlay />
 
 			{pendingCheck && (
-				<button onClick={() => sendCheck(gameId)}>
-					Continue
-				</button>
+				<div className="check-prompt">
+					<button
+						className={`btn-check ${checkSent ? 'btn-check-sent' : ''}`}
+						disabled={checkSent}
+						onClick={() => sendCheck(gameId)}
+					>
+						Continue →
+					</button>
+				</div>
+			)}
+
+			{selectedOpponent && (
+				<div className='action-prompt-overlay' onClick={() => setSelectedOpponent(null)}>
+					<div className='action-prompt' onClick={e => e.stopPropagation()}>
+						<p className='prompt-title'>Choose an action</p>
+						<div className='prompt-actions'>
+							<button className='prompt-btn' onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
+								Highest card
+							</button>
+							<button className='prompt-btn' onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
+								Lowest card
+							</button>
+						</div>
+						<button className='prompt-cancel' onClick={() => setSelectedOpponent(null)}>Cancel</button>
+					</div>
+				</div>
 			)}
 		</div>
 	)
