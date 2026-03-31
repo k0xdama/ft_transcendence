@@ -9,7 +9,7 @@ import RegisterView from './components/auth/RegisterView'
 import LoginView from './components/auth/LoginView'
 import JoinGameView from './components/lobby/JoinGameView'
 import TestView from './components/gameboard/TestView'
-import ProfileView from './components/ProfileView'
+import UserProfileView from './components/profile/UserProfileView'
 import LobbyView from './components/lobby/LobbyView'
 import GameView from './components/gameboard/GameView'
 import PublicMatchmakingView from './components/matchmaking/PublicMatchmakingView'
@@ -37,7 +37,8 @@ function App() {
           <Route path="/join" element={<JoinGameView />} />
           <Route path="/register" element={<RegisterView />} />
           <Route path="/login" element={<LoginView />} />
-          <Route path="/profile" element={<ProfileView />} />
+          <Route path="/profile" element={<UserProfileView />} />
+          <Route path="/profile/:userId" element={<UserProfileView />} />
           <Route path="/lobby/:lobbyId" element={<LobbyView />} />
           <Route path="/game/:gameId" element={<GameView />} />
           <Route path="/matchmaking" element={<PublicMatchmakingView />} />
