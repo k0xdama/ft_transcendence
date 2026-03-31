@@ -3,7 +3,8 @@
 	"version": "1.0.0",
 	"type": "module",
 	"scripts": {
-		"start": "node gateway-server.js",
+		"start": "node api-gateway.js",
+		"dev": "node --watch api-gateway.js",
 		"test": "vitest run"
 	},
 	"dependencies": {

@@ -15,12 +15,12 @@ export const REFRESH_COOKIE_OPTIONS = {
 };
 
 export function setAccessCookie(res, token) {
-	res.cookie('access_token', token, ACCESS_COOKIE_OPTIONS);
+	res.cookie('accessToken', token, ACCESS_COOKIE_OPTIONS);
 }
 
 export function clearAccessCookie(res) {
 	const { maxAge, ...clearOptions } = ACCESS_COOKIE_OPTIONS;
-	res.clearCookie('access_token', clearOptions);
+	res.clearCookie('accessToken', clearOptions);
 }
 
 export function setRefreshCookie(res, token) {

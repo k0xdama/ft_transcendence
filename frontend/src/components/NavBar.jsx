@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import './NavBar.css'
 import PFP_Default from '../assets/PFP_Default.webp'
+import './NavBar.css'
 
 function NavBar() {
 	const navigate = useNavigate()
-	const {user, logout, isAuthenticated} = useAuth()
+	const { user, logout, isAuthenticated } = useAuth()
 
 	const handleLogout = async () => {
 		await logout()

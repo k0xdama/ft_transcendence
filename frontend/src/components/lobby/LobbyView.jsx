@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
-import './LobbyView.css'
 import { useEffect } from 'react'
+import ChatOverlay from './ChatOverlay'
+import './LobbyView.css'
 
 function LobbyView() {
 	const	{ lobbyId } = useParams()
@@ -26,7 +27,7 @@ function LobbyView() {
 	return (
 		<div className='lobby-view'>
 			<div className='lobby-card'>
-				<h2 className='lobby-title'>{user.id}'s Lobby</h2>
+				<h2 className='lobby-title'>{user.username}'s Lobby</h2>
 
 				{lobbyError && <p className='error-msg'>{lobbyError}</p>}
 
@@ -62,6 +63,9 @@ function LobbyView() {
 					)}
 				</div>
 			</div>
+	
+			<ChatOverlay roomId={lobbyId} />
+
 		</div>
 	)
 }

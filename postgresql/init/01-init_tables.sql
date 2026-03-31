@@ -54,7 +54,7 @@ SET ROLE chat_user;
 -- Lobby chat
 CREATE TABLE chat.lobby_messages (
 	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	room_id			TEXT NOT NULL,	-- from lobby-service
+	room_id			TEXT NOT NULL,	-- as lobby-service
 	sender_id		UUID NOT NULL,
 	username		TEXT NOT NULL,
 	content			TEXT NOT NULL

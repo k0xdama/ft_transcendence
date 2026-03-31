@@ -2,10 +2,10 @@
 	"name": "chat-service",
 	"version": "1.0.0",
 	"type": "module",
-	"main": "chat-server.js",
+	"main": "chat-service.js",
 	"scripts": {
-		"start": "node chat-server.js",
-		"dev": "node --watch chat-server.js",
+		"start": "node chat-service.js",
+		"dev": "node --watch chat-service.js",
 		"test": "vitest run",
 		"test:block": "vitest run tests/block.test.js",
 		"test:lobby": "vitest run tests/lobby.test.js",

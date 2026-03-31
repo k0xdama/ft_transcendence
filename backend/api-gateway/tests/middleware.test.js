@@ -35,7 +35,7 @@ describe('authGuard middleware', () => {
 
 	describe('when token is invalid', () => {
 		it('should return 403', () => {
-			const req = { cookies: { access_token: 'not.a.valid.token' } }
+			const req = { cookies: { accessToken: 'not.a.valid.token' } }
 			const res = buildRes()
 			const next = vi.fn()
 
@@ -49,7 +49,7 @@ describe('authGuard middleware', () => {
 	describe('when token is expired', () => {
 		it('should return 403', () => {
 			const expiredToken = jwt.sign({ userId: 1 }, JWT_SECRET, { expiresIn: -1 })
-			const req = { cookies: { access_token: expiredToken } }
+			const req = { cookies: { accessToken: expiredToken } }
 			const res = buildRes()
 			const next = vi.fn()
 
@@ -63,7 +63,7 @@ describe('authGuard middleware', () => {
 	describe('when token is valid', () => {
 		it('should call next() and attach payload to req.user', () => {
 			const validToken = jwt.sign({ userId: 1 }, JWT_SECRET, { expiresIn: '1h' })
-			const req = { cookies: { access_token: validToken } }
+			const req = { cookies: { accessToken: validToken } }
 			const res = buildRes()
 			const next = vi.fn()
 
