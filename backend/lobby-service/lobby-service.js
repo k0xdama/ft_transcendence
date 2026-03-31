@@ -59,7 +59,6 @@ export const io = new Server(server, {
 });
 
 io.use((socket, next) => {
-	// const accessToken = cookie.parse(socket.handshake.headers.cookie || '');
 	const cookies = cookie.parse(socket.handshake.headers.cookie || '');
 
 	const accessToken = cookies.accessToken;

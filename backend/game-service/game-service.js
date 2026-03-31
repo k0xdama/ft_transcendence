@@ -39,7 +39,6 @@ const redisClient = createClient({
 redisClient.connect();
 
 io.use((socket, next) => {
-	// const accessToken = cookie.parse(socket.handshake.headers.cookie || '');
 	const cookies = cookie.parse(socket.handshake.headers.cookie || '');
 
 	const accessToken = cookies.accessToken;
