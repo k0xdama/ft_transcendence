@@ -16,9 +16,6 @@ function HomeView() {
           <Link to="/matchmaking">
             <button className='But'>Public Match</button>
           </Link>
-          <Link to="/test">
-            <button className='But'>Test Game</button>
-          </Link>
         </div>
     </div>
   );

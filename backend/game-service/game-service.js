@@ -2,35 +2,24 @@ import express from 'express';
 import { createClient } from 'redis';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import jwt from 'jsonwebtoken';
 import fs from 'fs';
-import cookie from 'cookie';
 import { randomUUID } from 'crypto';
 import { buildGameStats, createGame, executeAction, nextPlayer } from './game-logic.js';
 import { startGame } from './game-logic.js';
 import { addPlayer } from './game-logic.js';
 import { ACTIONS_NUMBER } from './game-logic.js';
 
-//Remove process.env.JWT_SECRET when local test isn't needed anymore
-const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
-
 const games = new Map();
 const gameBySocket = new Map();
 const playersTimers = new Map();
 const gameTimers = new Map();
 
-const app  = express();
+const app = express();
+
 app.use(express.json());
 
 const server = createServer(app);
-
-const io = new Server(server, {
-	cors: {
-		origin: 'http://localhost:5173',
-		credentials: true,
-		methods: ['GET', 'POST']
-	}
-});
+const io = new Server(server);
 
 const redisClient = createClient({
 	url: 'redis://redis:6379',
@@ -39,19 +28,13 @@ const redisClient = createClient({
 redisClient.connect();
 
 io.use((socket, next) => {
-	const cookies = cookie.parse(socket.handshake.headers.cookie || '');
-
-	const accessToken = cookies.accessToken;
-	if (!accessToken)
-		return next(new Error('Missing access token'));
-
-	try {
-		const decoded = jwt.verify(accessToken, jwtSecret);
-		socket.user = decoded;
-		next();
-	} catch (e) {
-		next(new Error('Invalid access token'));
+	const userId = socket.handshake.headers['x-user-id'];
+	const username = socket.handshake.headers['x-user-username'];
+	if (!userId || !username) {
+		return next(new Error('Missing user identity headers'));
 	}
+	socket.user = { id: userId, username: username };
+	next();
 });
 
 app.post('/create', (req, res) => {
@@ -76,13 +59,13 @@ function endTurn(gameStruct, gameId) {
 	io.to(gameId).emit('game:turnChanged', { gameStruct });
 }
 
-function	setPlayerTimer(userId, timerName, timer) {
+function setPlayerTimer(userId, timerName, timer) {
 	if (!playersTimers.has(userId))
 		playersTimers.set(userId, {});
 	playersTimers.get(userId)[timerName] = timer;
 }
 
-function	clearPlayerTimer(userId, timerName) {
+function clearPlayerTimer(userId, timerName) {
 	const timers = playersTimers.get(userId);
 	if (timers && timers[timerName]) {
 		clearTimeout(timers[timerName]);
@@ -91,7 +74,7 @@ function	clearPlayerTimer(userId, timerName) {
 }
 
 io.on('connection', (socket) => {
-	console.log(`Client connected: ${socket.id}`);
+	console.log(`Client connected (${socket.user.username}): ${socket.id}`);
 
 	socket.on('game:join', (data) => {
 		const gameStruct = games.get(data.gameId);
@@ -127,18 +110,17 @@ io.on('connection', (socket) => {
 		socket.join(data.gameId);
 		addPlayer(gameStruct, socket.user.id);
 		io.to(data.gameId).emit('game:joined', { gameId: data.gameId });
-		console.log(`Player ${socket.user.id} (client: ${socket.id}) joined the game ${data.gameId}`);
+		console.log(`${socket.user.username} (client: ${socket.id}) joined the game ${data.gameId}`);
 		gameBySocket.set(socket.id, data.gameId);
 		// console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
 		if (gameStruct.players.length === gameStruct.expectedPlayers) {
 			startGame(gameStruct);
-
 			io.to(data.gameId).emit('game:started', { gameStruct });
 		}
 	});
 
 	socket.on('game:action', async (data) => {
-		console.log('game:action reçu', data);
+		console.log('game:action received', data);
 		const gameStruct = games.get(data.gameId);
 		if (!gameStruct) {
 			socket.emit('error', `Something went wrong... The game is over...`);
@@ -209,7 +191,7 @@ io.on('connection', (socket) => {
 			const activePlayers = gameStruct.players.filter(player => player.connected && !player.eliminated);
 			if (activePlayers.length <= 1) {
 				if (activePlayers.length === 1) {
-					io.to(gameId).emit('game:ended', {winnerId: activePlayers[0].id, reason: 'FORFEIT'});
+					io.to(gameId).emit('game:ended', { winnerId: activePlayers[0].id, reason: 'FORFEIT' });
 					setTimeout(() => {
 						games.delete(gameId);
 						gameTimers.delete(gameId);
@@ -223,6 +205,6 @@ io.on('connection', (socket) => {
 				}
 			}
 		}, 30000));
-		console.log(`Client disconnected: ${socket.id}`);
+		console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
 	})
 });

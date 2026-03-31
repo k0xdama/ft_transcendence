@@ -23,7 +23,7 @@ function JoinGameView() {
 			return
 		}
 		if (!/^[A-Z2-9]{6}$/.test(inputLobbyId)) {
-			setError('Enter valid ID!')
+			setError('Enter a valid ID!')
 			return
 		}
 		connect(
