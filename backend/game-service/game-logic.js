@@ -195,10 +195,8 @@ export function shuffleAndDeal(gameStruct, deck) {
 	console.log('deck avant shuffle:', shuffled.map(c => c.value));
 	for (let i = shuffled.length - 1; i > 0; --i) {
 		const j = randomInt(0, i + 1);
-		console.log('loop i & j : ', i, '- ', j);
 		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
 	}
-
 	console.log('deck après shuffle:', shuffled.map(c => c.value));
 
 	for (const player of gameStruct.players) {
@@ -284,9 +282,11 @@ export function executeAction(gameStruct, actionType, target) {
 			return_object.revealedCard = card;
 			if (checkForTrio(gameStruct.cardsRevealed) === true) {
 				return_object.event = EVENTS.TRIO_FOUND;
+				console.log("Trio found ! ", card.value);
 				gameStruct.trioWonArray[gameStruct.currentPlayer].push(card.value);
 				for (const cardToRemove of gameStruct.cardsRevealed) {
 					removeCard(gameStruct, cardToRemove.id);
+					console.log("cardRemoved : ", card.id);
 				}
 				if (gameStruct.lastTrioWinner === gameStruct.currentPlayer)
 					gameStruct.stats[gameStruct.currentPlayer].combo++;
