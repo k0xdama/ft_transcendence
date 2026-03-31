@@ -454,7 +454,7 @@ function checkForPerfectGame(gameStruct, winnerId) {
 	return (true);
 }
 
-export function buildGameStats(gameStruct, winner) {
+export function buildGameStats(gameStruct, winnerId) {
 	const dateObject = new Date(Date.now());
 	const gameStats_object = {
 		gameId: gameStruct.gameId,
@@ -465,8 +465,8 @@ export function buildGameStats(gameStruct, winner) {
 		players: []
 	};
 	const stats = gameStruct.stats;
-	const perfectGame = checkForPerfectGame(gameStruct, winner.winnerId);
-	setPlayersRank(gameStruct, winner.winnerId);
+	const perfectGame = checkForPerfectGame(gameStruct, winnerId);
+	setPlayersRank(gameStruct, winnerId);
 	for (const player of gameStruct.players) {
 		const playerStats = stats[player.id];
 		const playerObject = {
@@ -478,7 +478,7 @@ export function buildGameStats(gameStruct, winner) {
 			achievements: {
 				TRIO_OF_7: playerStats.trioOf7,
 				COMBO: playerStats.combo,
-				PERFECT_GAME: (player.id === winner.winnerId && perfectGame) ? 1 : 0
+				PERFECT_GAME: (player.id === winnerId && perfectGame) ? 1 : 0
 			}
 		};
 		gameStats_object.players.push(playerObject);
