@@ -10,7 +10,7 @@ const	getCardImage = (label) => {
 function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf }) {
 	return (
 		<div
-			className={`player-hand-wrapper ${seat} ${isMyTurn ? 'slot-selectable' : ''}`}
+			className={`player-hand-wrapper ${seat} ${isMyTurn ? 'my-turn-active' : ''}`}
 			onClick={() => isMyTurn && onSelectSelf()}
 		>
 			<div className={"player-hand"}>

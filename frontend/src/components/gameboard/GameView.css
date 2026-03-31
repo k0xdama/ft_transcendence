@@ -84,7 +84,15 @@ body.gameboard-active .main-container {
 	margin: -10px 0
 }
 
-
+.seat-left .player-name,
+.seat-right .player-name {
+	position: absolute;
+	top: -20px;
+	left: 50%;
+	transform: translateX(-50%);
+	white-space: nowrap;
+	font-size: 0.7rem;
+}
 
 .player-hand {
 	display: flex;
@@ -240,6 +248,31 @@ body.gameboard-active .main-container {
 	box-shadow: 0 0 10px rgba(140, 40, 200, 0.4);
 }
 
+.my-turn-active .player-hand {
+	filter: drop-shadow(0 0 8px rgba(0, 200, 255, 0.5));
+	animation: pulse-hand 1.5s ease-in-out infinite;
+	filter: drop-shadow(0 0 14px rgba(0, 200, 255, 0.7));
+	cursor: pointer;
+}
+
+@keyframes pulse-hand {
+	0%, 100% { filter: drop-shadow(0 0 6px rgba(0, 200, 255, 0.4)); }
+	50%	   { filter: drop-shadow(0 0 16px rgba(0, 200, 255, 0.8)); }
+}
+
+.my-turn-active::before {
+	content: 'YOUR TURN';
+	position: absolute;
+	top: -22px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 0.65rem;
+	letter-spacing: 0.2em;
+	color: #00dcff;
+	text-shadow: 0 0 8px rgba(0, 220, 255, 0.8);
+	white-space: nowrap;
+}
+
 .action-prompt-overlay {
 	position: absolute;
 	inset: 0;
@@ -312,7 +345,7 @@ body.gameboard-active .main-container {
 
 .check-prompt {
 	position: absolute;
-	bottom: 120px;
+	bottom: calc(2vh + 150px);
 	left: 50%;
 	transform: translateX(-50%);
 	z-index: 40;
@@ -329,6 +362,13 @@ body.gameboard-active .main-container {
 	font-size: 0.8rem;
 	cursor: pointer;
 	animation: pulse-check 1.2s ease-in-out infinite;
+}
+
+.btn-check-sent {
+	opacity: 0.45;
+	cursor: not-allowed;
+	animation: none;
+	box-shadow: none;
 }
 
 @keyframes pulse-check {

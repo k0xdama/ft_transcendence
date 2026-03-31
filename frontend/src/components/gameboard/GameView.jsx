@@ -32,12 +32,17 @@ function	GameView() {
 	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction } = useGame()
 	const	{ user, accessToken } = useAuth()
 	const	[selectedOpponent, setSelectedOpponent] = useState(null)
+	const	[checkSent, setCheckSent] = useState(false)
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
 		connect(accessToken, gameId)
 		return () => document.body.classList.remove('gameboard-active')
 	}, [])
+
+	useEffect(() => {
+		if (!pendingCheck) setCheckSent(false)
+	}, [pendingCheck])
 
 	const	handleOpponentAction = (actionType) => {
 		sendAction(gameId, actionType, selectedOpponent)
@@ -94,7 +99,11 @@ function	GameView() {
 
 			{pendingCheck && (
 				<div className="check-prompt">
-					<button className="btn-check" onClick={() => sendCheck(gameId)}>
+					<button
+						className={`btn-check ${checkSent ? 'btn-check-sent' : ''}`}
+						disabled={checkSent}
+						onClick={() => sendCheck(gameId)}
+					>
 						Continue →
 					</button>
 				</div>
