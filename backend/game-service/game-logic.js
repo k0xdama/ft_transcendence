@@ -113,28 +113,54 @@ export function createDeck() {
 }
 
 export function getHighestCard(gameStruct, cards) {
-	let highestCard = cards[0];
-	
-	for (let current = 0; current < cards.length; ++current) {
-		if (cards[current].value > highestCard.value)
-			highestCard = cards[current];
-	}
-	highestCard.revealed = true;
-	gameStruct.cardsRevealed.push(highestCard);
-	return (highestCard);
+    const notRevealedCards = cards.filter(card => !gameStruct.cardsRevealed.includes(card));
+    let highestCard = notRevealedCards[0];
+
+    for (let current = 1; current < notRevealedCards.length; ++current) {
+        if (notRevealedCards[current].value > highestCard.value)
+            highestCard = notRevealedCards[current];
+    }
+    highestCard.revealed = true;
+    gameStruct.cardsRevealed.push(highestCard);
+    return highestCard;
 }
+
+// export function getHighestCard(gameStruct, cards) {
+// 	let highestCard = cards[0];
+	
+// 	for (let current = 0; current < cards.length; ++current) {
+// 		if (cards[current].value > highestCard.value)
+// 			highestCard = cards[current];
+// 	}
+// 	highestCard.revealed = true;
+// 	gameStruct.cardsRevealed.push(highestCard);
+// 	return (highestCard);
+// }
 
 export function getLowestCard(gameStruct, cards) {
-	let lowestCard = cards[0];
+    const notRevealedCards = cards.filter(card => !gameStruct.cardsRevealed.includes(card));
+    let lowestCard = notRevealedCards[0];
 
-	for (let current = 0; current < cards.length; ++current) {
-		if (cards[current].value < lowestCard.value)
-			lowestCard = cards[current];
-	}
-	lowestCard.revealed = true;
-	gameStruct.cardsRevealed.push(lowestCard);
-	return (lowestCard);
+    for (let current = 1; current < notRevealedCards.length; ++current) {
+        if (notRevealedCards[current].value < lowestCard.value)
+            lowestCard = notRevealedCards[current];
+    }
+    lowestCard.revealed = true;
+    gameStruct.cardsRevealed.push(lowestCard);
+    return lowestCard;
 }
+
+// export function getLowestCard(gameStruct, cards) {
+// 	let lowestCard = cards[0];
+
+// 	for (let current = 0; current < cards.length; ++current) {
+// 		if (cards[current].value < lowestCard.value)
+// 			lowestCard = cards[current];
+// 	}
+// 	lowestCard.revealed = true;
+// 	gameStruct.cardsRevealed.push(lowestCard);
+// 	return (lowestCard);
+// }
 
 export function flipMiddleCard(gameStruct, position) {
 	// const card = {
