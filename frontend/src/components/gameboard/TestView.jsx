@@ -82,7 +82,9 @@ function TestView () {
 			<TableArea total={total} cols={cols} />
 
 			<PlayerHand cards={MY_HAND} seat={layout.playerSeat} trios={MY_TRIOS}/>
-			<ChatOverlay />
+
+			<ChatOverlay roomId="00000000-0000-0000-0000-000000000001" />
+
 			<div className='demo-controls'>
 				<button onClick={removePlayer} disabled={playerCount <= 3}>-</button>
 				<span>{playerCount} players</span>

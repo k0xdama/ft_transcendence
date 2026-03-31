@@ -1,22 +1,58 @@
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import "./ChatOverlay.css"
 
-function ChatOverlay() {
-	const	[messages, setMessages] = useState([
-		{ id: 1, author: "Opponent 1", text: "FAHHHHHHHH" },
-		{ id: 2, author: "Opponent 3", text: "Nice game" },
-	])
-	const	[draft, setDraft] = useState("")
+function ChatOverlay({ roomId }) {
+	const [messages, setMessages] = useState([])
+	const [draft, setDraft] = useState("")
 	const bottomRef = useRef(null)
+	const { authFetch, user } = useAuth()
+
+	useEffect(() => {
+		if (!user) return
+
+		const fetchHistory = async () => {
+			try {
+				const res = await authFetch(`http://localhost:2000/chat/lobby/${roomId}/history`)
+				if (!res || !res.ok) return
+
+				const data = await res.json()
+				const mapped = data.reverse().map(msg => ({
+					id: msg.id,
+					author: msg.sender_id == user?.id ? "You" : msg.username,
+					text: msg.content
+				}))
+				setMessages(mapped)
+			} catch (err) {
+				console.error('Failed to fetch chat history:', err)
+			}
+		}
+
+		fetchHistory()
+		const interval = setInterval(fetchHistory, 3000)
+		return () => clearInterval(interval)
+	}, [roomId, user])
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" }) 
-	}, [messages])
+		}, [messages]
+	)
 
-	const	sendMessage = () => {
+	const sendMessage = async () => {
 		if (!draft.trim()) return
-		setMessages(prev => [...prev, { id: Date.now(), author: "You", text: draft }])
+
+		const content = draft
 		setDraft("")
+
+		try {
+			await authFetch('http://localhost:2000/chat/lobby/send', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roomId, content, messageType: 'user_text' })
+			})
+		} catch (err) {
+			console.error('Failed to send message:', err)
+		}
 	}
 
 	const handleKey = (e) => {

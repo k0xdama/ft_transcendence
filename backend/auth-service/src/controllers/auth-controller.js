@@ -1,6 +1,6 @@
 import { authService } from '../services/auth-service.js';
 import { generateAccessToken } from '../utils/jwt.js';
-import { setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
+import { setAccessCookie, clearAccessCookie, setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
 
 // POST /auth/register
 export async function register(req, res) {
@@ -31,12 +31,12 @@ export async function login(req, res) {
 		const { user, refreshToken } = await authService.login(identifier, password);
 
 		const accessToken = generateAccessToken(user);
+		setAccessCookie(res, accessToken);
 		setRefreshCookie(res, refreshToken);
 
 		return res.status(200).json({
 			message: 'Login successful',
-			user: user,
-			accessToken		// 15 min
+			user: user
 		});
 	}
 	catch (error) {
@@ -55,6 +55,7 @@ export async function logout(req, res) {
 		const refreshToken = req.cookies.refreshToken;
 
 		await authService.logout(refreshToken);
+		clearAccessCookie(res);
 		clearRefreshCookie(res);
 
 		return res.status(200).json({ message: 'Logout successful' });
