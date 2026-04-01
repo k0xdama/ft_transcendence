@@ -169,7 +169,10 @@ export function flipMiddleCard(gameStruct, position) {
 	// 	revealed: gameStruct.cardsInMiddle[position].revealed
 	// }; CREE UN NOUVEL OBJET ET COPIE LES CHAMPS MANUELLEMENT
 	// const card = { ...gameStruct.cardsInMiddle[position]}; CREE UN NOUVEL OBJET ET COPIE TOUT LES CHAMPS AUTOMATIQUEMENT
+	console.log("flipMiddleCard : position = ", position);
 	const card = gameStruct.cardsInMiddle[position];
+	if (card === undefined)
+		console.log("WARN ! This card is not existing anymore, bad index");
 	card.revealed = true;
 	gameStruct.cardsRevealed.push(card);
 	return (card);
