@@ -146,7 +146,6 @@ io.on('connection', (socket) => {
 			lobbyBySocket.set(player.socket.id, lobbyId);
 		}
 		try {
-			//http://game-service:3002/create avec docker (env var later)
 			const response = await fetch("http://game:3002/create", {
 				method: "POST",
 				headers: {

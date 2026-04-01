@@ -162,17 +162,13 @@ export function getLowestCard(gameStruct, cards) {
 // 	return (lowestCard);
 // }
 
-export function flipMiddleCard(gameStruct, position) {
-	// const card = {
-	// 	value: gameStruct.cardsInMiddle[position].value,
-	// 	id: gameStruct.cardsInMiddle[position].id,
-	// 	revealed: gameStruct.cardsInMiddle[position].revealed
-	// }; CREE UN NOUVEL OBJET ET COPIE LES CHAMPS MANUELLEMENT
-	// const card = { ...gameStruct.cardsInMiddle[position]}; CREE UN NOUVEL OBJET ET COPIE TOUT LES CHAMPS AUTOMATIQUEMENT
-	console.log("flipMiddleCard : position = ", position);
-	const card = gameStruct.cardsInMiddle[position];
-	if (card === undefined)
-		console.log("WARN ! This card is not existing anymore, bad index");
+export function flipMiddleCard(gameStruct, cardId) {
+	console.log("flipMiddleCard : cardId = ", cardId);
+	const card = gameStruct.cardsInMiddle.find(card => card.id === cardId);
+	if (card === undefined) {
+		console.log("WARN ! This card is not existing anymore, bad cardId");
+		return null;
+	}
 	card.revealed = true;
 	gameStruct.cardsRevealed.push(card);
 	return (card);
@@ -244,8 +240,7 @@ export function shuffleAndDeal(gameStruct, deck) {
 
 	gameStruct.cardsInMiddle = shuffled;
 }
-// if action is FLIP_MIDDLE target parameter gonna be the card position, else if action is ASK_LOWEST/HIGHEST so target gonna be the player's id targeted by the action
-// manque : stats (actionplayed + combo + trioof7)
+// if action is FLIP_MIDDLE target parameter gonna be the cardId, else if action is ASK_LOWEST/HIGHEST so target gonna be the player's id targeted by the action
 export function executeAction(gameStruct, actionType, target) {
 	let return_object = {
 		event: null,
@@ -263,6 +258,8 @@ export function executeAction(gameStruct, actionType, target) {
 	switch (actionType) {
 		case ACTIONS.FLIP_MIDDLE:
 			card = flipMiddleCard(gameStruct, target);
+			if (card === null)
+				return return_object;
 			return_object.actionDone = actionType;
 			return_object.target = target;
 			break;
