@@ -67,7 +67,7 @@ class StatsWorker {
 
 		try {
 			for(const playerStats of gameStats.players) {
-				await this.updatePlayerStats(playersStats, gameStats);
+				await this.updatePlayerStats(playerStats, gameStats);
 			}
 
 			console.log(`✅ Stats updated for game ${gameStats.gameId}`);
@@ -77,8 +77,8 @@ class StatsWorker {
 		}
 	}
 
-	async updatePlayerStats(playersStats, gameStats) {
-		const userId = playersStats.userId;
+	async updatePlayerStats(playerStats, gameStats) {
+		const userId = playerStats.userId;
 
 		try {
 			// Récupérer le player par auth_user_id
