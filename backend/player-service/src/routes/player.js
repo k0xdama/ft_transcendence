@@ -44,7 +44,7 @@ router.post('/', verifyServiceToken, async (req, res) => {// WARN route de la me
 	try {
 		//WARN avant que la partie auth fasse appel a cette requete elle verifie deja si il existe deja un profil donc arrive ici on se que le profil n'existe pas a voir si on rajoute une deuxieme verif
 		const	newPlayerUsers = await db.one(
-			'INSERT INTO player.users (auth_user_id, username, email, pp_path, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, username, email, created_at',
+			'INSERT INTO player.users (auth_user_id, username, email, pp_path, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, auth_user_id, username, email, created_at',
 			[auth_user_id, username, email, DEFAULT_PROFILE_PICTURE]
 		);
 

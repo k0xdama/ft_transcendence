@@ -43,7 +43,7 @@ class StatsWorker {
 			try {
 				// BRPOP bloque jusqu'à ce qu'un élément soit disponible
                 // Timeout de 5 secondes pour permettre l'arrêt gracieux
-				const result = await this.redisClient.brPop('game results', 5);
+				const result = await this.redisClient.brPop('game:results', 5000);
 
 				if (result) {
 					const gameStats = JSON.parse(result.element);
@@ -83,7 +83,7 @@ class StatsWorker {
 		try {
 			// Récupérer le player par auth_user_id
 			const player = await db.oneOrNone(
-                'SELECT id, won, rank, score, actionsPlayed, combo, trioOf7, perfectGame FROM player.users WHERE auth_user_id = $1',
+                'SELECT id, won, rank, score, actions_played, combo, trio_of_7, perfect_game FROM player.users WHERE auth_user_id = $1',
                 [userId]
             );
 
@@ -98,10 +98,10 @@ class StatsWorker {
                 // rank: on ne stocke pas le rank moyen, seulement le dernier
                 rank: playerStats.rank,
                 score: (player.score || 0) + playerStats.score,
-                actionsPlayed: (player.actionsPlayed || 0) + playerStats.actionsPlayed,
+                actions_played: (player.actions_played || 0) + playerStats.actionsPlayed,
                 combo: Math.max(player.combo || 0, playerStats.achievements.COMBO),
-                trioOf7: (player.trioOf7 || 0) + playerStats.achievements.TRIO_OF_7,
-                perfectGame: (player.perfectGame || 0) + playerStats.achievements.PERFECT_GAME
+                trio_of_7: (player.trio_of_7 || 0) + playerStats.achievements.TRIO_OF_7,
+                perfect_game: (player.perfect_game || 0) + playerStats.achievements.PERFECT_GAME
             };
 
 			// Mettre à jour dans la DB
@@ -111,19 +111,19 @@ class StatsWorker {
                     won = $1,
                     rank = $2,
                     score = $3,
-                    actionsPlayed = $4,
+                    actions_played = $4,
                     combo = $5,
-                    trioOf7 = $6,
-                    perfectGame = $7
+                    trio_of_7 = $6,
+                    perfect_game = $7
                 WHERE id = $8
             `, [
                 newStats.won,
                 newStats.rank,
                 newStats.score,
-                newStats.actionsPlayed,
+                newStats.actions_played,
                 newStats.combo,
-                newStats.trioOf7,
-                newStats.perfectGame,
+                newStats.trio_of_7,
+                newStats.perfect_game,
                 player.id
             ]);
 
