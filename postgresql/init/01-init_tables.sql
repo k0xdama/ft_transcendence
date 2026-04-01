@@ -203,6 +203,16 @@ CREATE TABLE player.users (
 	-- is_active		BOOLEAN DEFAULT TRUE,
 	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	-- updated_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+	-- STATS DATA
+	won				INTEGER DEFAULT 0,
+	rank			INTEGER DEFAULT 0,
+	score			INTEGER DEFAULT 0,
+	actions_played	INTEGER DEFAULT 0,
+	combo			INTEGER DEFAULT 0,
+	trio_of_7		INTEGER DEFAULT 0,
+	perfect_game	INTEGER DEFAULT 0
+
 );
 
 -- Index for faster lookups

@@ -22,6 +22,7 @@ import express from 'express';
 import playerRoutes from './src/routes/player.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { statsWorker } from './src/workers/stats-worker.js';
 
 // Recréer __dirname pour ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -51,7 +52,26 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`✅ Player service running on port ${port}`);
         console.log(`📁 Static files served from: ${path.join(__dirname, 'uploads')}`);
     });
+
+    try {
+            await statsWorker.start();
+        } catch (error) {
+            console.error('❌ Failed to start stats worker:', error);
+        }
 }
+
+// Arrêt gracieux
+    process.on('SIGTERM', async () => {
+        console.log('⚠️  SIGTERM received, shutting down gracefully...');
+        await statsWorker.stop();
+        process.exit(0);
+    });
+
+    process.on('SIGINT', async () => {
+        console.log('⚠️  SIGINT received, shutting down gracefully...');
+        await statsWorker.stop();
+        process.exit(0);
+    });
 
 export default app;
 
