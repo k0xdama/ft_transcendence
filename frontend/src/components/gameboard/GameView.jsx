@@ -7,6 +7,7 @@ import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
 import ChatOverlay from './ChatOverlay'
 import './GameView.css'
+import CountdownRing from './CountdownRing'
 
 const LAYOUTS = {
 	3: {
@@ -29,7 +30,7 @@ const LAYOUTS = {
 
 function	GameView() {
 	const	{ gameId } = useParams()
-	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction } = useGame()
+	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards } = useGame()
 	const	{ user, accessToken } = useAuth()
 	const	[selectedOpponent, setSelectedOpponent] = useState(null)
 	const	[checkSent, setCheckSent] = useState(false)
@@ -73,14 +74,14 @@ function	GameView() {
 					seat={layout.seats[index]}
 					isCurrentPlayer={gameStruct.currentPlayer === player.id}
 					isMyTurn={canAct}
-					cardsRevealed={gameStruct.cardsRevealed}
+					revealedHandCards={revealedHandCards.filter(c => c.ownerId === player.id)}
 					onSelect={(opponentId) => setSelectedOpponent(opponentId)}
 					lastAction={lastAction}
 				/>
 			))}
 
 			<TableArea
-				cards={river}
+				riverSlots={riverSlots ?? gameStruct.cardsInMiddle}
 				isMyTurn={isMyTurn}
 				currentAction={currentAction}
 				cardsRevealed={gameStruct.cardsRevealed}
@@ -89,6 +90,7 @@ function	GameView() {
 
 			<PlayerHand
 				cards={me.hand}
+				revealedHandCards={revealedHandCards.filter(c => c.ownerId === me.id)}
 				seat={layout.playerSeat}
 				trios={gameStruct.trioWonArray[me.id] ?? []}
 				isMyTurn={canAct}
@@ -106,6 +108,18 @@ function	GameView() {
 					>
 						Continue →
 					</button>
+				</div>
+			)}
+
+			{turnTimer && (
+				<div className='turn-timer-ring'>
+					<CountdownRing duration={7} label="next turn" />
+				</div>
+			)}
+
+			{disconnectedPlayer && (
+				<div className='disconnect-timer-ring'>
+					<CountdownRing duration={30} color="#ff6b6b" label="player disconnected" />
 				</div>
 			)}
 

@@ -157,11 +157,27 @@ body.gameboard-active .main-container {
 	box-shadow: 0 0 8px rgba(140, 40, 200, 0.4);
 }
 
+.card-empty {
+	visibility: hidden;
+	pointer-events: none;
+}
+
 .card-img {
 	width: 100%;
 	height: 100%;
 	object-fit: contain;
 	border-radius: 6px;
+}
+
+.revealed-hands-cards {
+	display: flex;
+	gap: 0.4rem;
+	margin-top: 0.4rem;
+}
+
+.revealed-card {
+	border: 1px solid rgba(180, 60, 255, 0.6);
+	box-shadow: 0 0 10px rgba(140, 40, 200, 0.4);
 }
 
 .trio-badge {
@@ -374,4 +390,39 @@ body.gameboard-active .main-container {
 @keyframes pulse-check {
 	0%, 100%	{ box-shadow: 0 0 10px rgba(0, 220, 255, 0.3); }
 	50%			{ box-shadow: 0 0 24px rgba(0, 220, 255, 0.7); }
+}
+
+@keyframes countdown-drain {
+	from { stroke-dashoffset: 0; }
+	to	 { stroke-dashoffset: 175.9; } /* = circumference */
+}
+
+.countdown-ring-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+}
+
+.countdown-label {
+	font-size: 0.6rem;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	color: rgba(200, 160, 255, 0.6);
+}
+
+.turn-timer-ring {
+	position: absolute;
+	bottom: 0%;
+	right: 25%;
+	transform: translate(-50%, calc(-50% - 120px));
+	z-index: 10;
+}
+
+.disconnect-timer-ring {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	z-index: 10;
 }

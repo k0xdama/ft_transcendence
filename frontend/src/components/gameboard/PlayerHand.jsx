@@ -7,7 +7,7 @@ const	getCardImage = (label) => {
 	return	cardImages[key]?.default
 }
 
-function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf }) {
+function PlayerHand({ cards, revealedHandCards, seat, trios, isMyTurn, onSelectSelf }) {
 	return (
 		<div
 			className={`player-hand-wrapper ${seat} ${isMyTurn ? 'my-turn-active' : ''}`}
@@ -25,6 +25,15 @@ function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf }) {
 				))}
 				<TrioBadge trios={trios} />
 			</div>
+			{revealedHandCards.length > 0 && (
+				<div className="revealed-hand-cards">
+					{revealedHandCards.map(rc => (
+						<div key={rc.cardId} className="card card-front revealed-card">
+							<img src={getCardImage(rc.value)} className="card-img" alt={`Card ${rc.value}`} />
+						</div>
+					))}
+				</div>
+			)}
 		</div>
 	)
 }

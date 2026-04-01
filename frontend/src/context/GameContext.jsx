@@ -12,7 +12,11 @@ export function GameProvider({ children }) {
 	const	[gameError, setGameError] = useState(null)
 	const	[pendingCheck, setPendingCheck] = useState(false)
 	const	[lastAction, setLastAction] = useState(null)
+	const	[turnTimer, setTurnTimer] = useState(false)
+	const	[disconnectedPlayer, setDisconnectedPlayer] = useState(null)
+	const	[revealedHandCards, setRevealedHandCards] = useState([])
 	const	socketRef = useRef(null)
+	const	riverSlotsRef = useRef(null)
 
 	const	connect = (token, gameId, onConnected, onError) => {
 		if (socketRef.current) return
@@ -31,18 +35,47 @@ export function GameProvider({ children }) {
 
 		socketRef.current.on('game:started', ({ gameStruct }) => {
 			setGameStruct(gameStruct)
+			riverSlotsRef.current = gameStruct.cardsInMiddle.map(card => ({...card}))
 		})
 
 		socketRef.current.on('game:update', ({ gameStruct, action_result }) => {
 			setGameStruct(gameStruct)
 			setLastAction(action_result)
-			if (action_result?.turnEnded) setPendingCheck(true)
+			if (riverSlotsRef.current) {
+				const activeIds = new Set(gameStruct.cardsInMiddle.map(c => c.id))
+				riverSlotsRef.current = riverSlotsRef.current.map(slot => slot && activeIds.has(slot.id) ? slot : null)
+			}
+			if (action_result?.actionDone !== 'FLIP_MIDDLE' && action_result?.revealedCard) {
+				setRevealedHandCards(prev => [...prev, {
+					cardId: action_result.revealedCard.id,
+					ownerId: action_result.target,
+					value: action_result.revealedCard.value
+				}])
+			}
+			if (action_result?.turnEnded) {
+				setPendingCheck(true)
+				setTurnTimer(true)
+			}
 		})
 
 		socketRef.current.on('game:turnChanged', ({ gameStruct }) => {
 			setGameStruct(gameStruct)
 			setLastAction(null)
 			setPendingCheck(false)
+			setTurnTimer(false)
+			setRevealedHandCards([])
+		})
+
+		socketRef.current.on('game:playerDisconnected', ({ userId }) => {
+			setDisconnectedPlayer({ userId, duration: 30 })
+		})
+
+		socketRef.current.on('game:playerReconnected', ({ userId }) => {
+			setDisconnectedPlayer(null)
+		})
+
+		socketRef.current.on('game:playerEliminated', ({ userId }) => {
+			setDisconnectedPlayer(null)
 		})
 
 		socketRef.current.on('game:reconnected', ({ gameStruct }) => {
@@ -73,8 +106,12 @@ export function GameProvider({ children }) {
 		connect,
 		sendAction,
 		sendCheck,
+		turnTimer,
+		disconnectedPlayer,
 		pendingCheck,
-		lastAction
+		lastAction,
+		revealedHandCards,
+		riverSlots: riverSlotsRef.current
 	}
 	return (
 		<GameContext.Provider value={value}>
