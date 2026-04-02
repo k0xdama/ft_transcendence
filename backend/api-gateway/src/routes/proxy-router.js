@@ -2,27 +2,40 @@ import { Router } from "express";
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { authGuard } from "../middleware/authGuard.js";
 
+const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://auth:3000';
+const CHAT_URL = process.env.CHAT_SERVICE_URL || 'http://chat:2000';
+const LOBBY_URL = process.env.LOBBY_SERVICE_URL || 'http://lobby:3003';
+const GAME_URL = process.env.GAME_SERVICE_URL || 'http://game:3002';
+
 const authProxy = createProxyMiddleware({
-	target: 'http://auth:3000',
+	target: AUTH_URL,
 	changeOrigin: true,
 	pathRewrite: { '^/': '/auth/' },
 });
 
 const chatProxy = createProxyMiddleware({
-	target: 'http://chat:2000',
+	target: CHAT_URL,
 	changeOrigin: true,
 	pathRewrite: { '^/': '/chat/' }
 });
 
+// Separate WS proxy for chat Socket.io upgrades
+const chatWsProxy = createProxyMiddleware({
+	target: CHAT_URL,
+	ws: true,
+	changeOrigin: true,
+	pathRewrite: { '^/api/chat': '' }
+});
+
 const lobbyProxy = createProxyMiddleware({
-	target: 'http://lobby:3003',
+	target: LOBBY_URL,
 	ws: true,
 	changeOrigin: true,
 	pathRewrite: { '^/api/lobby': '' }
 });
 
 const gameProxy = createProxyMiddleware({
-	target: 'http://game:3002',
+	target: GAME_URL,
 	ws: true,
 	changeOrigin: true,
 	pathRewrite: { '^/api/game': '' }
@@ -39,7 +52,7 @@ const router = Router();
 
 router.use('/auth', authProxy);
 router.use('/chat', authGuard, injectUserInfos, chatProxy);
-router.use('/lobby', lobbyProxy);
-router.use('/game', gameProxy);
+router.use('/lobby', authGuard, injectUserInfos, lobbyProxy);
+router.use('/game', authGuard, injectUserInfos, gameProxy);
 
-export { router, lobbyProxy, gameProxy };
+export { router, lobbyProxy, gameProxy, chatWsProxy };

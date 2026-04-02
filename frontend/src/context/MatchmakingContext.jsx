@@ -11,13 +11,14 @@ export function MatchmakingProvider({ children }) {
 	const [gameId, setGameId] = useState(null)
 	const [error, setError] = useState(null)
 	const socketRef = useRef(null);
+	const lobbyUrl = '/api/lobby';
 
 	const connect = (onConnected, onConnectionError) => {
 		if (socketRef.current)
 			return;
 
 		socketRef.current = io({
-			path: '/api/lobby/socket.io',
+			path: `${lobbyUrl}/socket.io`,
 			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false

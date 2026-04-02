@@ -35,7 +35,7 @@ function LoginView() {
 		setLoading(true);
 
 		try {
-			const response = await fetch('/api/auth/login', {
+			const res = await fetch('/api/auth/login', {
 				method: 'POST',
 				credentials: 'include',
 				headers: {
@@ -47,9 +47,8 @@ function LoginView() {
 				}),
 			});
 
-			const data = await response.json();
-
-			if (!response.ok) {
+			const data = await res.json();
+			if (!res.ok) {
 				setError(data.error || 'Log in failed');
 				return;
 			}

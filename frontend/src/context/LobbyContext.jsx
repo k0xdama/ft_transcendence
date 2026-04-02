@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useRef } from "react";
 import { io } from "socket.io-client";
-import { useAuth } from "./AuthContext";
 
 const LobbyContext = createContext(null);
 
@@ -14,14 +13,14 @@ export function LobbyProvider({ children }) {
 	const [gameId, setGameId] = useState(null);
 	const [lobbyError, setLobbyError] = useState(null);
 	const socketRef = useRef(null);
-	const { user } = useAuth();
+	const lobbyUrl = '/api/lobby';
 
 	const connect = (onConnected, onConnectionError, onLobbyCreated, onLobbyJoined) => {
 		if (socketRef.current)
 			return;
 
 		socketRef.current = io({
-			path: '/api/lobby/socket.io',
+			path: `${lobbyUrl}/socket.io`,
 			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false

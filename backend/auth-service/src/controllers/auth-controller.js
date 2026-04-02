@@ -1,4 +1,4 @@
-import { authService } from '../services/auth-service.js';
+import { authService } from '../class/auth-service-class.js';
 import { generateAccessToken } from '../utils/jwt.js';
 import { setAccessCookie, clearAccessCookie, setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
 

@@ -1,11 +1,12 @@
 import { useParams } from 'react-router-dom'
 import { useGame } from "../../context/GameContext"
 import { useAuth } from '../../context/AuthContext'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
 import ChatOverlay from './ChatOverlay'
+import SoundBuzzers from './SoundBuzzers'
 import './GameView.css'
 
 const LAYOUTS = {
@@ -33,6 +34,7 @@ function	GameView() {
 	const	{ user, accessToken } = useAuth()
 	const	[selectedOpponent, setSelectedOpponent] = useState(null)
 	const	[checkSent, setCheckSent] = useState(false)
+	const	chatSocketRef = useRef(null)
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
@@ -95,7 +97,8 @@ function	GameView() {
 				onSelectSelf={() => setSelectedOpponent(me.id)}
 			/>
 
-			<ChatOverlay />
+			<ChatOverlay socketRef={chatSocketRef} />
+			<SoundBuzzers socketRef={chatSocketRef} lobbyId={gameId} />
 
 			{pendingCheck && (
 				<div className="check-prompt">

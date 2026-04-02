@@ -11,7 +11,7 @@ const { authGuard } = await import('../src/middleware/authGuard.js')
 
 const JWT_SECRET = fs.readFileSync('/run/secrets/jwt_access', 'utf8').trim()
 
-function buildRes() {
+function buildResponse() {
 	const res = {}
 	res.status = vi.fn().mockReturnValue(res)
 	res.json = vi.fn().mockReturnValue(res)
@@ -23,7 +23,7 @@ describe('authGuard middleware', () => {
 	describe('when no token is provided', () => {
 		it('should return 401', () => {
 			const req = { cookies: {} }
-			const res = buildRes()
+			const res = buildResponse()
 			const next = vi.fn()
 
 			authGuard(req, res, next)
@@ -36,7 +36,7 @@ describe('authGuard middleware', () => {
 	describe('when token is invalid', () => {
 		it('should return 403', () => {
 			const req = { cookies: { accessToken: 'not.a.valid.token' } }
-			const res = buildRes()
+			const res = buildResponse()
 			const next = vi.fn()
 
 			authGuard(req, res, next)
@@ -50,7 +50,7 @@ describe('authGuard middleware', () => {
 		it('should return 403', () => {
 			const expiredToken = jwt.sign({ userId: 1 }, JWT_SECRET, { expiresIn: -1 })
 			const req = { cookies: { accessToken: expiredToken } }
-			const res = buildRes()
+			const res = buildResponse()
 			const next = vi.fn()
 
 			authGuard(req, res, next)
@@ -64,7 +64,7 @@ describe('authGuard middleware', () => {
 		it('should call next() and attach payload to req.user', () => {
 			const validToken = jwt.sign({ userId: 1 }, JWT_SECRET, { expiresIn: '1h' })
 			const req = { cookies: { accessToken: validToken } }
-			const res = buildRes()
+			const res = buildResponse()
 			const next = vi.fn()
 
 			authGuard(req, res, next)

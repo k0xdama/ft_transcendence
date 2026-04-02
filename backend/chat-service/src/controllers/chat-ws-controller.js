@@ -1,14 +1,14 @@
-import { chatService } from '../services/chat-service.js';
+import { chatService } from '../class/chat-service-class.js';
 
-// POST /chat/lobby/send
-export async function sendLobbyMessage(req, res) {
+// POST /chat/room/send
+export async function sendWsMessage(req, res) {
 	try {
-		const { roomId, content, messageType } = req.body;
+		const { lobbyId, content, messageType } = req.body;
 		const userId = req.user.id;
 		const username = req.user.username;
 
-		const message = await chatService.sendLobbyMessage({
-			roomId,
+		const message = await chatService.sendWsMessage({
+			lobbyId,
 			userId, username,
 			content, messageType
 		});
@@ -20,15 +20,15 @@ export async function sendLobbyMessage(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Send lobby message:', error);
+		console.error('Send WS message:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
 
-// GET /chat/lobby/:roomId/history
-export async function getLobbyHistory(req, res) {
+// GET /chat/room/:lobbyId/history
+export async function getChatWsHistory(req, res) {
 	try {
-		const roomId = req.params.roomId;
+		const lobbyId = req.params.lobbyId;
 		const userId = req.user.id;
 
 		let limit;
@@ -38,7 +38,7 @@ export async function getLobbyHistory(req, res) {
 				return res.status(400).json({ error: 'limit must be a positive integer' });
 		}
 
-		const history = await chatService.getLobbyHistory({ roomId, limit, userId });
+		const history = await chatService.getChatWsHistory({ lobbyId, limit, userId });
 
 		return res.status(200).json(history);
 	}
@@ -47,7 +47,7 @@ export async function getLobbyHistory(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Lobby room history:', error);
+		console.error('Chat WS history:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

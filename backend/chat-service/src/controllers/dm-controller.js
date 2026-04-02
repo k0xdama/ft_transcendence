@@ -1,4 +1,4 @@
-import { chatService } from '../services/chat-service.js';
+import { chatService } from '../class/chat-service-class.js';
 
 // POST /chat/dm
 export async function createDM(req, res) {
@@ -64,6 +64,26 @@ export async function getDMHistory(req, res) {
 		}
 
 		console.error('DM history:', error);
+		return res.status(500).json({ error: 'Internal Server Error' });
+	}
+}
+
+// PATCH /chat/dm/:conversationId/read
+export async function markAsRead(req, res) {
+	try {
+		const conversationId = req.params.conversationId;
+		const userId = req.user.id;
+
+		const { readCount } = await chatService.markDMsAsRead({ conversationId, userId });
+
+		return res.status(200).json({ readCount });
+	}
+	catch (error) {
+		if (error.isOperational) {
+			return res.status(error.statusCode).json({ error: error.reason });
+		}
+
+		console.error('Mark DMs as read:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

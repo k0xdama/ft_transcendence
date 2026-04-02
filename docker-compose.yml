@@ -121,9 +121,14 @@ services:
   lobby:
     image: lobby:v1
     container_name: lobby
+    depends_on:
+      redis:
+        condition: service_healthy
     build:
       context: ./backend/lobby-service
       dockerfile: Dockerfile
+    secrets:
+      - redis_passwd
     volumes:
       - ./backend/lobby-service/src:/app/src:ro
     networks:
@@ -135,6 +140,9 @@ services:
   game:
     image: game:v1
     container_name: game
+    depends_on:
+      redis:
+        condition: service_healthy
     build:
       context: ./backend/game-service
       dockerfile: Dockerfile

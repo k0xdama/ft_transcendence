@@ -14,20 +14,19 @@ export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const refreshPromiseRef = useRef(null);
-
 	const authUrl = '/api/auth';
 
 	useEffect(() => {
 		const tryRestoreSession = async () => {
 			try {
-				const response = await fetch(`${authUrl}/refresh`, {
+				const res = await fetch(`${authUrl}/refresh`, {
 					method: 'POST',
 					credentials: 'include',
 					headers: { 'Content-Type': 'application/json' }
 				});
 
-				if (response.ok) {
-					const data = await response.json();
+				if (res.ok) {
+					const data = await res.json();
 					localStorage.setItem('user', JSON.stringify(data.user));
 					setUser(data.user);
 				} else {
@@ -64,14 +63,14 @@ export const AuthProvider = ({ children }) => {
 
 	// Wrapper for authenticated requests — cookies handle the token automatically
 	const authFetch = async (URL, options = {}) => {
-		const response = await fetch(URL, {
+		const res = await fetch(URL, {
 			...options,
 			credentials: 'include',
 			headers: { ...options.headers }
 		});
 
-		if (response.status !== 401 && response.status !== 403)
-			return response
+		if (res.status !== 401 && res.status !== 403)
+			return res
 
 		// One refresh at a time
 		if (!refreshPromiseRef.current) {
@@ -87,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
 		if (!refreshResponse.ok) {
 			logout();
-			return response;
+			return res;
 		}
 
 		// Refresh succeeded — new accessToken cookie is set automatically

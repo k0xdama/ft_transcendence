@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
-import { router, lobbyProxy, gameProxy } from './src/routes/proxy-router.js';
+import { router, lobbyProxy, gameProxy, chatWsProxy } from './src/routes/proxy-router.js';
 
 const JWT_SECRET = fs.readFileSync('/run/secrets/jwt_access', 'utf8').trim();
 
@@ -23,7 +23,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-	origin: 'http://localhost:5173',
+	origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
 	credentials: true
 }));
 app.use(cookieParser());
@@ -43,7 +43,9 @@ server.on('upgrade', (req, socket, head) => {
 		return;
 	}
 
-	if (req.url.startsWith('/api/lobby')) {
+	if (req.url.startsWith('/api/chat')) {
+		chatWsProxy.upgrade(req, socket, head);
+	} else if (req.url.startsWith('/api/lobby')) {
 		lobbyProxy.upgrade(req, socket, head);
 	} else if (req.url.startsWith('/api/game')) {
 		gameProxy.upgrade(req, socket, head);

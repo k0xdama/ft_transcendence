@@ -8,17 +8,18 @@
 		"dev": "node --watch chat-service.js",
 		"test": "vitest run",
 		"test:block": "vitest run tests/block.test.js",
-		"test:lobby": "vitest run tests/lobby.test.js",
+		"test:lobby": "vitest run tests/ws-lobby.test.js",
 		"test:dm": "vitest run tests/dm.test.js"
 	},
 	"dependencies": {
+		"cookie-parser": "^1.4.7",
 		"cors": "^2.8.6",
 		"express": "^5.2.1",
 		"express-validator": "^7.3.1",
-		"cookie-parser": "^1.4.7",
-		"pg-promise": "^12.6.1",
 		"jsonwebtoken": "^9.0.3",
-		"redis": "^5.11.0"
+		"pg-promise": "^12.6.1",
+		"redis": "^5.11.0",
+		"socket.io": "^4.8.3"
 	},
 	"devDependencies": {
 		"supertest": "^7.2.2",

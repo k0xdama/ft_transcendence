@@ -1,30 +1,22 @@
 import { db } from '../config/db.js';
-import { redisClient } from '../config/redis.js';
-import { checkLobbyMembership } from './lobby-client.js';
+import { redisClient, lobbyMembers } from '../config/redis.js';
 import {
 	MissingFieldError,
 	InvalidFieldError,
 	CannotBlockSelfError,
 	BlockedUserMessageError,
 	NotLobbyMemberError,
-	LobbyServiceUnavailableError,
 	CannotDMSelfError,
 	DMConversationNotFoundError,
 	NotConversationMemberError } from '../utils/errors.js';
 
-const VALID_MSG_TYPES = ['user_text', 'suggestion'];
+const VALID_MSG_TYPES = ['user_text', 'quick_reply', 'game_invite'];
 
 class ChatService {
 	// Private methods
-	async #verifyLobbyMember(roomId, userId) {
-		let isMember;
-		try {
-			isMember = await checkLobbyMembership(roomId, userId);
-		}
-		catch (error) {
-			throw new LobbyServiceUnavailableError();
-		}
-		if (!isMember)
+	#verifyLobbyMember(lobbyId, userId) {
+		const members = lobbyMembers.get(lobbyId);
+		if (!members || !members.has(userId))
 			throw new NotLobbyMemberError();
 	}
 
@@ -71,52 +63,52 @@ class ChatService {
 		await redisClient.sRem(`chat:blocked:${blockerId}`, blockedId);
 	}
 
-	async sendLobbyMessage({ roomId, userId, username, content, messageType = 'user_text' }) {
-		if (!roomId)
+	async sendWsMessage({ lobbyId, userId, username, content, messageType = 'user_text' }) {
+		if (!lobbyId)
 			throw new MissingFieldError('Lobby room ID');
 
 		if (!content || content.trim().length === 0)
 			throw new MissingFieldError('Message content');
 
 		if (!VALID_MSG_TYPES.includes(messageType))
-			throw new InvalidFieldError('Message type must be user_text or suggestion');
+			throw new InvalidFieldError('Message type must be user_text, quick_reply or game_invite');
 
-		await this.#verifyLobbyMember(roomId, userId);
+		this.#verifyLobbyMember(lobbyId, userId);
 
 		const message = await db.one(
-			`INSERT INTO chat.lobby_messages (room_id, sender_id, username, content, message_type)
+			`INSERT INTO chat.ws_messages (lobby_id, sender_id, username, content, message_type)
 			VALUES ($1, $2, $3, $4, $5)
-			RETURNING id, room_id, sender_id, username, content, message_type, created_at`,
-			[roomId, userId, username, content.trim(), messageType]
+			RETURNING id, lobby_id, sender_id, username, content, message_type, created_at`,
+			[lobbyId, userId, username, content.trim(), messageType]
 		);
 
 		// '...' is a spread operator: copies all message properties into this object
 		const payload = { ...message, username };
 
-		await redisClient.publish('chat:messages', JSON.stringify(payload));	// for WebSocket broadcast
+		await redisClient.publish('chat:messages', JSON.stringify(payload));
 
 		return payload;
 	}
 
-	async getLobbyHistory({ roomId, limit = 50, userId }) {
-		if (!roomId)
+	async getChatWsHistory({ lobbyId, limit = 50, userId }) {
+		if (!lobbyId)
 			throw new MissingFieldError('Lobby room ID');
 
-		await this.#verifyLobbyMember(roomId, userId);
+		this.#verifyLobbyMember(lobbyId, userId);
 
 		const blockedIds = await redisClient.sMembers(`chat:blocked:${userId}`);
 
 		const history = await db.manyOrNone(
 			`SELECT
-				room_id,
+				lobby_id,
 				sender_id, username,
 				content, message_type, created_at
-			FROM chat.lobby_messages
-			WHERE room_id = $1
+			FROM chat.ws_messages
+			WHERE lobby_id = $1
 			${blockedIds.length ? 'AND sender_id != ALL($3::uuid[])' : ''}
 			ORDER BY created_at DESC
 			LIMIT $2`,
-			blockedIds.length ? [roomId, limit, blockedIds] : [roomId, limit]
+			blockedIds.length ? [lobbyId, limit, blockedIds] : [lobbyId, limit]
 		);
 
 		return history;
@@ -182,6 +174,26 @@ class ChatService {
 		return message;
 	}
 
+	async markDMsAsRead({ conversationId, userId }) {
+		if (!conversationId)
+			throw new MissingFieldError('Conversation ID');
+
+		const conversation = await this.#verifyDMConversationMember(conversationId, userId);
+
+		const result = await db.result(
+			`UPDATE chat.direct_messages
+			SET read_at = NOW()
+			WHERE conversation_id = $1 AND sender_id != $2 AND read_at IS NULL`,
+			[conversationId, userId]
+		);
+
+		const otherId = userId === conversation.user1_id
+			? conversation.user2_id
+			: conversation.user1_id;
+
+		return { readCount: result.rowCount, otherId };
+	}
+
 	async getDMHistory({ conversationId, userId, limit = 50 }) {
 		if (!conversationId)
 			throw new MissingFieldError('Conversation ID');
@@ -189,7 +201,7 @@ class ChatService {
 		await this.#verifyDMConversationMember(conversationId, userId);
 
 		const history = await db.manyOrNone(
-			`SELECT id, sender_id, content, created_at
+			`SELECT id, sender_id, content, created_at, read_at
 			FROM chat.direct_messages
 			WHERE conversation_id = $1
 			ORDER BY created_at DESC
@@ -200,7 +212,6 @@ class ChatService {
 		return history;
 	}
 
-	// Note: Seuls les conversations contenant au moins un message ne s'affichent
 	async getMyDMs(userId) {
 		const conversations = await db.manyOrNone(
 			`SELECT
@@ -209,9 +220,12 @@ class ChatService {
 				c.user2_id,
 				last_msg.content AS last_message,
 				last_msg.sender_id AS last_sender_id,
-				last_msg.created_at AS last_message_at
+				last_msg.created_at AS last_message_at,
+				(SELECT COUNT(*) FROM chat.direct_messages
+				 WHERE conversation_id = c.id AND sender_id != $1 AND read_at IS NULL
+				) AS unread_count
 			FROM chat.direct_conversations c
-			JOIN LATERAL (
+			LEFT JOIN LATERAL (
 				SELECT content, sender_id, created_at
 				FROM chat.direct_messages
 				WHERE conversation_id = c.id
@@ -219,8 +233,8 @@ class ChatService {
 				LIMIT 1
 			) last_msg ON true
 			WHERE c.user1_id = $1 OR c.user2_id = $1
-			ORDER BY last_msg.created_at DESC`,
-			[userId] // ON true: no additional conditions
+			ORDER BY last_msg.created_at DESC NULLS LAST`,
+			[userId]
 		);
 
 		return conversations;

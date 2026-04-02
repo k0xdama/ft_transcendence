@@ -19,7 +19,6 @@ CREATE TABLE auth.users (
 		CONSTRAINT check_password_hash_length
 		CHECK (length(password_hash) = 60),
 	-- is_verified		BOOLEAN DEFAULT FALSE,		-- ajouter pour 2FA module
-	is_online		BOOLEAN DEFAULT FALSE,
 	created_at		TIMESTAMPTZ DEFAULT NOW(),
 	updated_at		TIMESTAMPTZ DEFAULT NOW()
 );
@@ -46,15 +45,15 @@ RESET ROLE;
 
 -- ==============================================
 --					CHAT SCHEMA
---					 4 tables
+--					 6 tables
 -- ==============================================
 
 SET ROLE chat_user;
 
--- Lobby chat
-CREATE TABLE chat.lobby_messages (
+-- WebSocket chat (lobby, game)
+CREATE TABLE chat.ws_messages (
 	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	room_id			TEXT NOT NULL,	-- as lobby-service
+	lobby_id		TEXT NOT NULL,	-- as lobby-service
 	sender_id		UUID NOT NULL,
 	username		TEXT NOT NULL,
 	content			TEXT NOT NULL
@@ -62,16 +61,16 @@ CREATE TABLE chat.lobby_messages (
 		CHECK (char_length(content) BETWEEN 1 AND 500),
 	message_type	TEXT NOT NULL DEFAULT 'user_text'
 		CONSTRAINT check_lobby_msg_type
-		CHECK (message_type IN ('user_text', 'suggestion')),
+		CHECK (message_type IN ('user_text', 'quick_reply', 'game_invite')),
 	created_at		TIMESTAMPTZ DEFAULT NOW(),
 	expires_at		TIMESTAMPTZ
 );
 
 CREATE INDEX idx_lobby_recent
-	ON chat.lobby_messages(room_id, created_at DESC);
+	ON chat.ws_messages(lobby_id, created_at DESC);
 
 CREATE INDEX idx_lobby_expiry
-	ON chat.lobby_messages(expires_at);
+	ON chat.ws_messages(expires_at);
 
 -------------------------------------------------
 -- Chat DM
@@ -95,11 +94,16 @@ CREATE TABLE chat.direct_messages (
 	content			TEXT NOT NULL
 		CONSTRAINT check_dm_content_length
 		CHECK (char_length(content) BETWEEN 1 AND 500),
-	created_at		TIMESTAMPTZ DEFAULT NOW()
+	created_at		TIMESTAMPTZ DEFAULT NOW(),
+	read_at			TIMESTAMPTZ DEFAULT NULL
 );
 
 CREATE INDEX idx_dm_recent
 	ON chat.direct_messages(conversation_id, created_at DESC);
+
+CREATE INDEX idx_dm_unread
+	ON chat.direct_messages(conversation_id, read_at)
+	WHERE read_at IS NULL;
 
 -------------------------------------------------
 CREATE TABLE chat.blocked_users (
@@ -151,7 +155,7 @@ END;
 $$;
 
 ---
-CREATE TRIGGER trg_lobby_messages_expiry
-	BEFORE INSERT ON chat.lobby_messages
+CREATE TRIGGER trg_ws_messages_expiry
+	BEFORE INSERT ON chat.ws_messages
 	FOR EACH ROW
 	EXECUTE FUNCTION chat.set_lobby_message_expiry();

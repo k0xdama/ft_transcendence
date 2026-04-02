@@ -1,13 +1,17 @@
 import express from 'express';
+import fs from 'fs';
 import { createClient } from 'redis';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import fs from 'fs';
 import { randomUUID } from 'crypto';
-import { buildGameStats, createGame, executeAction, nextPlayer } from './game-logic.js';
-import { startGame } from './game-logic.js';
-import { addPlayer } from './game-logic.js';
-import { ACTIONS_NUMBER } from './game-logic.js';
+import {
+	createGame,
+	addPlayer,
+	nextPlayer,
+	startGame,
+	executeAction,
+	buildGameStats,
+	ACTIONS_NUMBER } from './game-logic.js';
 
 const games = new Map();
 const gameBySocket = new Map();
@@ -15,15 +19,16 @@ const playersTimers = new Map();
 const gameTimers = new Map();
 
 const app = express();
-
 app.use(express.json());
 
 const server = createServer(app);
 const io = new Server(server);
 
+const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim();
+
 const redisClient = createClient({
-	url: 'redis://redis:6379',
-	password: process.env.REDIS_PASSWORD || fs.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim()
+	socket: { host: 'redis', port: 6379 },
+	password: redisPassword
 });
 redisClient.connect();
 
@@ -112,7 +117,7 @@ io.on('connection', (socket) => {
 		io.to(data.gameId).emit('game:joined', { gameId: data.gameId });
 		console.log(`${socket.user.username} (client: ${socket.id}) joined the game ${data.gameId}`);
 		gameBySocket.set(socket.id, data.gameId);
-		console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
+		// console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
 		if (gameStruct.players.length === gameStruct.expectedPlayers) {
 			startGame(gameStruct);
 			io.to(data.gameId).emit('game:started', { gameStruct });

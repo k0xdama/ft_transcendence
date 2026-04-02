@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
+import './App.css'
 import HomeView from './components/HomeView'
 import CreateGameView from './components/lobby/CreateGameView'
 import NavBar from './components/NavBar'

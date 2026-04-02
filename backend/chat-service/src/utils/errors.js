@@ -38,12 +38,6 @@ export class NotLobbyMemberError extends AppError {
 	}
 }
 
-export class LobbyServiceUnavailableError extends AppError {
-	constructor(message = 'Lobby service unavailable') {
-		super(message, 503);
-	}
-}
-
 export class CannotDMSelfError extends AppError {
 	constructor(message = 'You cannot DM yourself') {
 		super(message, 400);

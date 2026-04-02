@@ -1,4 +1,4 @@
-import { chatService } from '../services/chat-service.js';
+import { chatService } from '../class/chat-service-class.js';
 
 // POST /chat/block
 export async function blockUser(req, res) {

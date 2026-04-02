@@ -49,7 +49,7 @@ function RegisterView() {
 		setLoading(true);
 
 		try {
-			const response = await fetch('/api/auth/register', {
+			const res = await fetch('/api/auth/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -59,9 +59,8 @@ function RegisterView() {
 				}),
 			});
 
-			const data = await response.json();
-
-			if (!response.ok) {
+			const data = await res.json();
+			if (!res.ok) {
 				setError(data.error || 'Registration failed');
 				return;
 			}

@@ -8,18 +8,19 @@ export function useGame() {
 }
 
 export function GameProvider({ children }) {
-	const	[gameStruct, setGameStruct] = useState(null)
-	const	[gameError, setGameError] = useState(null)
-	const	[pendingCheck, setPendingCheck] = useState(false)
-	const	[lastAction, setLastAction] = useState(null)
-	const	socketRef = useRef(null)
+	const [gameStruct, setGameStruct] = useState(null);
+	const [gameError, setGameError] = useState(null);
+	const [pendingCheck, setPendingCheck] = useState(false);
+	const [lastAction, setLastAction] = useState(null);
+	const socketRef = useRef(null);
+	const gameUrl = '/api/game';
 
-	const	connect = (gameId, onConnected, onError) => {
+	const connect = (gameId, onConnected, onError) => {
 		if (socketRef.current)
 			return;
 
 		socketRef.current = io({
-			path: '/api/game/socket.io',
+			path: `${gameUrl}/socket.io`,
 			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false
@@ -36,16 +37,16 @@ export function GameProvider({ children }) {
 		});
 
 		socketRef.current.on('game:update', ({ gameStruct, action_result }) => {
-			setGameStruct(gameStruct)
-			setLastAction(action_result)
-			if (action_result?.turnEnded) setPendingCheck(true)
-		})
+			setGameStruct(gameStruct);
+			setLastAction(action_result);
+			if (action_result?.turnEnded) setPendingCheck(true);
+		});
 
 		socketRef.current.on('game:turnChanged', ({ gameStruct }) => {
-			setGameStruct(gameStruct)
-			setLastAction(null)
-			setPendingCheck(false)
-		})
+			setGameStruct(gameStruct);
+			setLastAction(null);
+			setPendingCheck(false);
+		});
 
 		socketRef.current.on('game:reconnected', ({ gameStruct }) => {
 			setGameStruct(gameStruct);
@@ -62,15 +63,15 @@ export function GameProvider({ children }) {
 		});
 	};
 
-	const	sendAction = (gameId, actionType, target = null) => {
+	const sendAction = (gameId, actionType, target = null) => {
 		socketRef.current.emit('game:action', { gameId, actionType, target });
 	};
 
-	const	sendCheck = (gameId) => {
+	const sendCheck = (gameId) => {
 		socketRef.current.emit('game:check', { gameId });
 	};
 
-	const	value = {
+	const value = {
 		gameStruct,
 		gameError,
 		connect,
@@ -78,7 +79,7 @@ export function GameProvider({ children }) {
 		sendCheck,
 		pendingCheck,
 		lastAction
-	}
+	};
 	return (
 		<GameContext.Provider value={value}>
 			{children}

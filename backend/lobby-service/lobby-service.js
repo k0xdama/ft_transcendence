@@ -1,9 +1,13 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { createClient } from 'redis';
+import fs from 'fs';
 import { joinQueue } from './src/matchmaking.js';
 import { queueBySocket } from './src/matchmaking.js';
 import { queues } from './src/matchmaking.js';
+
+const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'http://game:3002';
 
 const LOBBY_TYPES = {
 	PUBLIC: 'PUBLIC',
@@ -16,6 +20,7 @@ const LOBBY_STATE = {
 	GAME_STARTED: 'GAME_STARTED'
 };
 
+// Duplicated in game-service/game-logic.js — keep both in sync
 export const GAME_MODES = {
 	CLASSIC: 'CLASSIC',
 	LINKED: 'LINKED'
@@ -30,22 +35,19 @@ const lobbys = new Map();
 const lobbyBySocket = new Map();
 
 const app = express();
-
 app.use(express.json());
 
-// Internal REST endpoint used by chat-service to verify lobby membership
-app.get('/rooms/:roomId/members/:userId', (req, res) => {
-	const lobby = lobbys.get(req.params.roomId);
-	if (!lobby)
-		return res.status(404).json({ isMember: false });
-
-	const isMember = lobby.users.some(u => u.id === req.params.userId);
-	return res.status(200).json({ isMember });
-});
-
 const server = createServer(app);
+const io = new Server(server);
 
-export const io = new Server(server);
+const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf8').trim();
+
+const redisClient = createClient({
+	socket: { host: 'redis', port: 6379 },
+	password: redisPassword
+});
+redisClient.on('error', (err) => console.error('Redis Client:', err));
+redisClient.connect();
 
 io.use((socket, next) => {
 	const userId = socket.handshake.headers['x-user-id'];
@@ -113,8 +115,24 @@ function checkIfUsersReady(users) {
 	return true;
 }
 
+function publishLobbyMembers(lobbyId, lobbyStruct) {
+	const members = lobbyStruct.users.map(u => u.id);
+	redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members }))
+		.catch(err => console.error('Redis publish lobby:membersChanged:', err));
+}
+
+function publishUserStatus(userId, status) {
+	if (status === 'online')
+		redisClient.sAdd('users:online', userId).catch(console.error);
+	else
+		redisClient.sRem('users:online', userId).catch(console.error);
+	redisClient.publish('user:statusChanged', JSON.stringify({ userId, status }))
+		.catch(err => console.error('Redis publish user:statusChanged:', err));
+}
+
 io.on('connection', (socket) => {
 	console.log(`Client connected (${socket.user.username}): ${socket.id}`);
+	publishUserStatus(socket.user.id, 'online');
 
 	socket.on('lobby:create', (data) => {
 		const lobbyId = generateLobbyId(lobbys);
@@ -125,6 +143,7 @@ io.on('connection', (socket) => {
 		console.log(`Lobby created: ${lobbyId}`);
 		console.log(`${socket.user.username} joined the lobby ${lobbyId} (client ${socket.id})`);
 		lobbyBySocket.set(socket.id, lobbyId);
+		publishLobbyMembers(lobbyId, lobbyStruct);
 		socket.emit('lobby:created', { lobbyId });
 		socket.emit('lobby:joined', { lobbyStruct });
 	});
@@ -134,7 +153,7 @@ io.on('connection', (socket) => {
 		if (matchedPlayers === null)
 				return;
 		const lobbyId = generateLobbyId(lobbys);
-		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType, 
+		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType,
 										matchedPlayers[0].userId, data.maxUsers);
 		lobbyStruct.lobbyType = LOBBY_TYPES.PUBLIC;
 		lobbys.set(lobbyId, lobbyStruct);
@@ -143,9 +162,9 @@ io.on('connection', (socket) => {
 			player.socket.join(lobbyId);
 			lobbyBySocket.set(player.socket.id, lobbyId);
 		}
+		publishLobbyMembers(lobbyId, lobbyStruct);
 		try {
-			//http://game:3002/create avec docker (env var later)
-			const response = await fetch("http://game:3002/create", {
+			const res = await fetch(`${GAME_SERVICE_URL}/create`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -155,9 +174,11 @@ io.on('connection', (socket) => {
 					users: lobbyStruct.users.map(user => user.id)
 				})
 			});
-			const gameData = await response.json();
+			const gameData = await res.json();
 			lobbyStruct.gameId = gameData.gameId;
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
+			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId, gameId: gameData.gameId }))
+				.catch(console.error);
 			io.to(lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
 		}
 		catch {
@@ -193,6 +214,7 @@ io.on('connection', (socket) => {
 		lobbyBySocket.set(socket.id, data.lobbyId);
 		if (lobbyStruct.users.length === lobbyStruct.rules.maxUsers)
 			lobbyStruct.state = LOBBY_STATE.FULL;
+		publishLobbyMembers(data.lobbyId, lobbyStruct);
 		io.to(data.lobbyId).emit('lobby:joined', { lobbyStruct });
 	});
 
@@ -232,8 +254,7 @@ io.on('connection', (socket) => {
 			return;
 		}
 		try {
-			//http://game:3002/create avec docker (env var later)
-			const response = await fetch("http://game:3002/create", {
+			const res = await fetch(`${GAME_SERVICE_URL}/create`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -243,9 +264,11 @@ io.on('connection', (socket) => {
 					users: lobbyStruct.users.map(user => user.id)
 				})
 			});
-			const gameData = await response.json();
+			const gameData = await res.json();
 			lobbyStruct.gameId = gameData.gameId;
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
+			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId: data.lobbyId, gameId: gameData.gameId }))
+				.catch(console.error);
 			io.to(data.lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
 		}
 		catch {
@@ -264,6 +287,8 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('disconnect', () => {
+		publishUserStatus(socket.user.id, 'offline');
+
 		const lobbyId = lobbyBySocket.get(socket.id);
 		if (lobbyId != undefined) {
 			const lobbyStruct = lobbys.get(lobbyId);
@@ -272,6 +297,8 @@ io.on('connection', (socket) => {
 			if (lobbyStruct.users.length === 0) {
 				lobbys.delete(lobbyId);
 				lobbyBySocket.delete(socket.id);
+				redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members: [] }))
+					.catch(console.error);
 			}
 			else {
 				if (lobbyStruct.creatorId === socket.user.id)
@@ -279,19 +306,19 @@ io.on('connection', (socket) => {
 				if (lobbyStruct.state === LOBBY_STATE.FULL)
 					lobbyStruct.state = LOBBY_STATE.WAITING;
 				lobbyBySocket.delete(socket.id);
+				publishLobbyMembers(lobbyId, lobbyStruct);
 				io.to(lobbyId).emit('lobby:disconnected', { userId: socket.user.id });
 				console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
 			}
 		}
 		else {
 			const queueKey = queueBySocket.get(socket.id);
-			if (queueKey === undefined) 
+			if (queueKey === undefined)
 				return;
 			const queue = queues.get(queueKey);
 			const index = queue.findIndex(p => p.socket.id === socket.id);
-	   	 	queue.splice(index, 1);
-	   		queueBySocket.delete(socket.id);
+		   	queue.splice(index, 1);
+		   	queueBySocket.delete(socket.id);
 		}
 	});
 });
-

@@ -1,6 +1,7 @@
 import { validateEmail, validateUsername, validatePassword } from '../utils/validators.js';
 import { db } from '../config/db.js';
 import {
+	ValidationError,
 	EmailAlreadyExistsError,
 	UsernameAlreadyExistsError,
 	InvalidCredentialsError } from '../utils/errors.js';
@@ -71,11 +72,6 @@ class AuthService {
 			[user.id, tokenHash]
 		);
 
-		await db.none(
-			`UPDATE auth.users SET is_online = true WHERE id = $1`,
-			[user.id]
-		);
-
 		return {
 			user: { id: user.id, email: user.email, username: user.username },
 			refreshToken	// raw token sent via cookies
@@ -131,12 +127,8 @@ class AuthService {
 			[tokenHash]
 		);
 
-		if (record) {
-			await db.none(
-				`UPDATE auth.users SET is_online = false WHERE id = $1`,
-				[record.user_id]
-			);
-		}
+		if (!record)
+			return;
 	}
 }
 
