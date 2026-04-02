@@ -29,21 +29,6 @@ export const EVENTS = {
 	TRIO_MISSED: 'TRIO_MISSED'
 };
 
-//   const gameStruct = {
-//     gameId: ...,
-// 	creatorId:...
-//     gameMode: ...,
-//     players: ...,
-//     currentPlayerIndex: ...,
-//     currentPlayer: ...,
-//     currentAction: ...,
-//     cardsInMiddle: [],
-//     cardsRevealed: [],
-//     validatedTrios: {},
-//     stats: {},
-//     startTime: ...
-//   };
-
 export function createGame(gameId, gameMode, gameType, creatorId) {
 	const gameStruct = {
 		gameId: gameId,
@@ -125,18 +110,6 @@ export function getHighestCard(gameStruct, cards) {
     return highestCard;
 }
 
-// export function getHighestCard(gameStruct, cards) {
-// 	let highestCard = cards[0];
-	
-// 	for (let current = 0; current < cards.length; ++current) {
-// 		if (cards[current].value > highestCard.value)
-// 			highestCard = cards[current];
-// 	}
-// 	highestCard.revealed = true;
-// 	gameStruct.cardsRevealed.push(highestCard);
-// 	return (highestCard);
-// }
-
 export function getLowestCard(gameStruct, cards) {
     const notRevealedCards = cards.filter(card => !gameStruct.cardsRevealed.includes(card));
     let lowestCard = notRevealedCards[0];
@@ -149,18 +122,6 @@ export function getLowestCard(gameStruct, cards) {
     gameStruct.cardsRevealed.push(lowestCard);
     return lowestCard;
 }
-
-// export function getLowestCard(gameStruct, cards) {
-// 	let lowestCard = cards[0];
-
-// 	for (let current = 0; current < cards.length; ++current) {
-// 		if (cards[current].value < lowestCard.value)
-// 			lowestCard = cards[current];
-// 	}
-// 	lowestCard.revealed = true;
-// 	gameStruct.cardsRevealed.push(lowestCard);
-// 	return (lowestCard);
-// }
 
 export function flipMiddleCard(gameStruct, cardId) {
 	console.log("flipMiddleCard : cardId = ", cardId);
