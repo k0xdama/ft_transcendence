@@ -394,8 +394,6 @@ export function getLinkedValues(cardValue) {
 	};
 	return (LINKS[cardValue] || []);
 }
-// j'ai besoin d'iterer sur les joueurs et de trouver leur rang (le winner doit etre rank 1 quoiqu'il arrive)\
-// pour ce faire il me faut un tableau de la meme taille que le nombre de joueur et je dois placer leur nombre de trio gagne a l'interieur
 
 function	setPlayersRank(gameStruct, winnerId) {
 	const stats = gameStruct.stats;

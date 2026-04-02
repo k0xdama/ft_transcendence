@@ -19,19 +19,21 @@ export function GameProvider({ children }) {
 	const	socketRef = useRef(null)
 	const	riverSlotsRef = useRef(null)
 
-	const	connect = (token, gameId, onConnected, onError) => {
-		if (socketRef.current) return
+	const	connect = (gameId, onConnected, onError) => {
+		if (socketRef.current)
+			return
 
-		socketRef.current = io('http://localhost:4000', {
+		socketRef.current = io({
 			path: '/api/game/socket.io',
-			auth: { token },
+			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false
 		})
 
 		socketRef.current.on('connect', () => {
 			socketRef.current.emit('game:join', { gameId })
-			if (onConnected) onConnected()
+			if (onConnected)
+				onConnected()
 		})
 
 		socketRef.current.on('game:started', ({ gameStruct }) => {

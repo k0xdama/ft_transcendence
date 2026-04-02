@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useGame } from "../../context/GameContext"
 import { useAuth } from '../../context/AuthContext'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
@@ -39,14 +39,14 @@ const	getCardImage = (label) => {
 function	GameView() {
 	const	{ gameId } = useParams()
 	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
-	const	{ user, accessToken } = useAuth()
+	const	{ user } = useAuth()
 	const	[selectedOpponent, setSelectedOpponent] = useState(null)
 	const	[checkSent, setCheckSent] = useState(false)
 	const	chatSocketRef = useRef(null)
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
-		connect(accessToken, gameId)
+		connect(gameId)
 		return () => document.body.classList.remove('gameboard-active')
 	}, [])
 
@@ -59,7 +59,8 @@ function	GameView() {
 		setSelectedOpponent(null)
 	}
 
-	if (!gameStruct) return <p>Waiting for all players to connect...</p>
+	if (!gameStruct)
+		return <p>Waiting for all players to connect...</p>
 
 	const	me = gameStruct.players.find(p => p.id === user?.id)
 	const	opponents = gameStruct.players.filter(p => p.id !== user?.id)
@@ -115,7 +116,7 @@ function	GameView() {
 				onSelectSelf={() => setSelectedOpponent(me.id)}
 			/>
 
-			<ChatOverlay socketRef={chatSocketRef} />
+			<ChatOverlay lobbyId={gameId} socketRef={chatSocketRef} />
 			<SoundBuzzers socketRef={chatSocketRef} lobbyId={gameId} />
 
 			{pendingCheck && (

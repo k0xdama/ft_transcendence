@@ -12,7 +12,8 @@ function LobbyView() {
 	const	navigate = useNavigate()
 
 	useEffect(() => {
-		if (gameId) navigate(`/game/${gameId}`)
+		if (gameId)
+			navigate(`/game/${gameId}`)
 	}, [gameId])
 
 	if (!lobbyStruct) {
