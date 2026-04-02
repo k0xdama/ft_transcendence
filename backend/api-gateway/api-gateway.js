@@ -20,7 +20,6 @@ function authenticateUpgrade(req) {
 };
 
 const app = express();
-const PORT = process.env.PORT || 4000;
 
 app.use(cors({
 	origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -53,6 +52,8 @@ server.on('upgrade', (req, socket, head) => {
 		socket.destroy();
 	}
 });
+
+const PORT = process.env.PORT || 4000;
 
 server.listen(PORT, () => {
 	console.log(`GATEWAY running on port ${PORT}`)

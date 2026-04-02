@@ -81,7 +81,7 @@ body.gameboard-active .main-container {
 .seat-left .card-back,
 .seat-right .card-back {
 	transform: rotate(90deg);
-	margin: -10px 0
+	margin: -17px 0
 }
 
 .seat-left .player-name,
@@ -157,11 +157,92 @@ body.gameboard-active .main-container {
 	box-shadow: 0 0 8px rgba(140, 40, 200, 0.4);
 }
 
+.card-empty {
+	visibility: hidden;
+	pointer-events: none;
+}
+
 .card-img {
 	width: 100%;
 	height: 100%;
 	object-fit: contain;
 	border-radius: 6px;
+}
+
+.slot-revealed {
+	position: absolute;
+	display: flex;
+	gap: 0.4rem;
+}
+
+.seat-revealed-top {
+	top: calc(100% + 0.5rem);
+	left: 50%;
+	transform: translateX(-50%);
+	flex-direction: row;
+}
+
+.seat-revealed-left {
+	left: calc(100% + 3rem);
+	top: 50%;
+	transform: translateY(-50%);
+	flex-direction: column;
+}
+
+.seat-revealed-right {
+	right: calc(100% + 3rem);
+	top: 50%;
+	transform: translateY(-50%);
+	flex-direction: column;
+}
+
+.seat-revealed-top-left,
+.seat-revealed-top-right {
+	top: calc(100% + 0.5rem);
+	left: 50%;
+	transform: translateX(-50%);
+	flex-direction: row;
+}
+
+.seat-bottom-left .card {
+	transform-origin: bottom center;
+}
+
+.seat-revealed-bottom-left {
+	bottom: calc(100% + 0.5rem);
+	left: 50%;
+	transform: translateX(-50%);
+	flex-direction: row;
+}
+
+.revealed-hands-cards {
+	display: flex;
+	gap: 0.4rem;
+	margin-top: 0.4rem;
+}
+
+.revealed-hand-cards.self-revealed-bottom-center {
+	position: absolute;
+	bottom: calc(2vh + 115px);
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: 0.5rem;
+	z-index: 5;
+}
+
+.revealed-hand-cards.self-revealed-bottom-right {
+	position: absolute;
+	bottom: calc(8vh + 115px);
+	right: 22vw;
+	display: flex;
+	gap: 0.5rem;
+	z-index: 5;
+}
+
+.revealed-card {
+	border: 1px solid rgba(180, 60, 255, 0.6);
+	box-shadow: 0 0 10px rgba(140, 40, 200, 0.4);
 }
 
 .trio-badge {
@@ -226,7 +307,6 @@ body.gameboard-active .main-container {
 	object-fit: contain;
 }
 
-/* Whose turn it is — glowing name */
 .slot-active-turn .player-name {
 	color: #00dcff;
 	text-shadow: 0 0 10px rgba(0, 220, 255, 0.8);
@@ -238,7 +318,6 @@ body.gameboard-active .main-container {
 	50%			{ text-shadow: 0 0 18px rgba(0, 220, 255, 1); }
 }
 
-/* Clickable opponent on your turn */
 .slot-selectable {
 	cursor: pointer;
 }
@@ -256,8 +335,8 @@ body.gameboard-active .main-container {
 }
 
 @keyframes pulse-hand {
-	0%, 100% { filter: drop-shadow(0 0 6px rgba(0, 200, 255, 0.4)); }
-	50%	   { filter: drop-shadow(0 0 16px rgba(0, 200, 255, 0.8)); }
+	0%, 100%	{ filter: drop-shadow(0 0 6px rgba(0, 200, 255, 0.4)); }
+	50%			{ filter: drop-shadow(0 0 16px rgba(0, 200, 255, 0.8)); }
 }
 
 .my-turn-active::before {
@@ -374,4 +453,95 @@ body.gameboard-active .main-container {
 @keyframes pulse-check {
 	0%, 100%	{ box-shadow: 0 0 10px rgba(0, 220, 255, 0.3); }
 	50%			{ box-shadow: 0 0 24px rgba(0, 220, 255, 0.7); }
+}
+
+@keyframes countdown-drain {
+	from	{ stroke-dashoffset: 0; }
+	to		{ stroke-dashoffset: 175.9; }
+}
+
+.countdown-ring-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+}
+
+.countdown-label {
+	font-size: 0.6rem;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	color: rgba(200, 160, 255, 0.6);
+}
+
+.turn-timer-ring {
+	position: absolute;
+	bottom: 0%;
+	right: 25%;
+	transform: translate(-50%, calc(-50% - 120px));
+	z-index: 10;
+}
+
+.disconnect-timer-ring {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	z-index: 10;
+}
+
+.game-over-overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.75);
+	backdrop-filter: blur(6px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100;
+	animation: fade-in 0.6s ease forwards;
+}
+
+@keyframes fade-in {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
+.game-over-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+}
+
+.game-over-text {
+	font-size: clamp(3rem, 8vw, 6rem);
+	font-weight: bold;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	margin: 0;
+	color: var(--game-over-color);
+	text-shadow: 0 0 30px var(--game-over-glow), 0 0 60px var(--game-over-glow);
+	animation: pulse-result 2s ease-in-out infinite;
+}
+
+@keyframes pulse-result {
+	0%, 100%	{ text-shadow: 0 0 20px var(--game-over-glow); }
+	50%			{ text-shadow: 0 0 50px var(--game-over-glow), 0 0 80px var(--game-over-glow); }
+}
+
+.game-over-reason {
+	font-size: 0.9rem;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: rgba(200, 160, 255, 0.7);
+	margin: 0;
+}
+
+.game-over-sub {
+	font-size: 0.7rem;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.25);
+	margin: 0;
 }

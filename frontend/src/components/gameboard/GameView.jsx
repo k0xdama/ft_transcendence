@@ -1,13 +1,14 @@
 import { useParams } from 'react-router-dom'
 import { useGame } from "../../context/GameContext"
 import { useAuth } from '../../context/AuthContext'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PlayerHand from './PlayerHand'
 import PlayerSlot from './PlayerSlot'
 import TableArea from './TableArea'
 import ChatOverlay from './ChatOverlay'
 import SoundBuzzers from './SoundBuzzers'
 import './GameView.css'
+import CountdownRing from './CountdownRing'
 
 const LAYOUTS = {
 	3: {
@@ -28,17 +29,24 @@ const LAYOUTS = {
 	}
 }
 
+const	cardImages = import.meta.glob('../../assets/cards/Card_*.png', { eager: true })
+
+const	getCardImage = (label) => {
+	const	key = `../../assets/cards/Card_${label}.png`
+	return	cardImages[key]?.default
+}
+
 function	GameView() {
 	const	{ gameId } = useParams()
-	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction } = useGame()
-	const	{ user, accessToken } = useAuth()
+	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
+	const	{ user } = useAuth()
 	const	[selectedOpponent, setSelectedOpponent] = useState(null)
 	const	[checkSent, setCheckSent] = useState(false)
 	const	chatSocketRef = useRef(null)
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
-		connect(accessToken, gameId)
+		connect(gameId)
 		return () => document.body.classList.remove('gameboard-active')
 	}, [])
 
@@ -51,7 +59,8 @@ function	GameView() {
 		setSelectedOpponent(null)
 	}
 
-	if (!gameStruct) return <p>Waiting for all players to connect...</p>
+	if (!gameStruct)
+		return <p>Waiting for all players to connect...</p>
 
 	const	me = gameStruct.players.find(p => p.id === user?.id)
 	const	opponents = gameStruct.players.filter(p => p.id !== user?.id)
@@ -75,19 +84,29 @@ function	GameView() {
 					seat={layout.seats[index]}
 					isCurrentPlayer={gameStruct.currentPlayer === player.id}
 					isMyTurn={canAct}
-					cardsRevealed={gameStruct.cardsRevealed}
+					revealedHandCards={revealedHandCards.filter(c => c.ownerId === player.id)}
 					onSelect={(opponentId) => setSelectedOpponent(opponentId)}
 					lastAction={lastAction}
 				/>
 			))}
 
 			<TableArea
-				cards={river}
+				riverSlots={riverSlots ?? river}
 				isMyTurn={isMyTurn}
 				currentAction={currentAction}
 				cardsRevealed={gameStruct.cardsRevealed}
-				onFlip={(index) => sendAction(gameId, 'FLIP_MIDDLE', index)}
+				onFlip={(cardId) => sendAction(gameId, 'FLIP_MIDDLE', cardId)}
 			/>
+
+			{revealedHandCards.filter(c => c.ownerId === me.id).length > 0 && (
+				<div className={`revealed-hand-cards self-revealed-${layout.playerSeat}`}>
+					{revealedHandCards.map(rc => (
+						<div key={rc.cardId} className="card card-front revealed-card">
+							<img src={getCardImage(rc.value)} className="card-img" alt={`Card ${rc.value}`} />
+						</div>
+					))}
+				</div>
+			)}
 
 			<PlayerHand
 				cards={me.hand}
@@ -97,7 +116,7 @@ function	GameView() {
 				onSelectSelf={() => setSelectedOpponent(me.id)}
 			/>
 
-			<ChatOverlay socketRef={chatSocketRef} />
+			<ChatOverlay lobbyId={gameId} socketRef={chatSocketRef} />
 			<SoundBuzzers socketRef={chatSocketRef} lobbyId={gameId} />
 
 			{pendingCheck && (
@@ -109,6 +128,18 @@ function	GameView() {
 					>
 						Continue →
 					</button>
+				</div>
+			)}
+
+			{turnTimer && (
+				<div className='turn-timer-ring'>
+					<CountdownRing duration={7} label="next turn" />
+				</div>
+			)}
+
+			{disconnectedPlayer && (
+				<div className='disconnect-timer-ring'>
+					<CountdownRing duration={30} color="#ff6b6b" label="player disconnected" />
 				</div>
 			)}
 
@@ -128,6 +159,25 @@ function	GameView() {
 					</div>
 				</div>
 			)}
+				{gameResult && (
+					<div className="game-over-overlay">
+						<div
+							className="game-over-content"
+							style={{
+								'--game-over-color': gameResult.winnerId === user?.id ? '#00dcff' : '#ff4466',
+								'--game-over-glow':  gameResult.winnerId === user?.id ? 'rgba(0,220,255,0.6)' : 'rgba(255,60,80,0.6)'
+							}}
+						>
+							<p className="game-over-text">
+								{gameResult.winnerId === user?.id ? 'You win!' : 'You lose!'}
+							</p>
+							{gameResult.reason === 'FORFEIT' && (
+								<p className="game-over-reason">Opponent forfeited</p>
+							)}
+							<p className="game-over-sub">Post-game screen coming soon...</p>
+						</div>
+					</div>
+				)}
 		</div>
 	)
 }

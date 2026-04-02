@@ -1,3 +1,4 @@
+
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -6,8 +7,6 @@ import fs from 'fs';
 import { joinQueue } from './src/matchmaking.js';
 import { queueBySocket } from './src/matchmaking.js';
 import { queues } from './src/matchmaking.js';
-
-const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'http://game:3002';
 
 const LOBBY_TYPES = {
 	PUBLIC: 'PUBLIC',
@@ -20,7 +19,6 @@ const LOBBY_STATE = {
 	GAME_STARTED: 'GAME_STARTED'
 };
 
-// Duplicated in game-service/game-logic.js — keep both in sync
 export const GAME_MODES = {
 	CLASSIC: 'CLASSIC',
 	LINKED: 'LINKED'
@@ -41,7 +39,6 @@ const server = createServer(app);
 const io = new Server(server);
 
 const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf8').trim();
-
 const redisClient = createClient({
 	socket: { host: 'redis', port: 6379 },
 	password: redisPassword
@@ -60,7 +57,7 @@ io.use((socket, next) => {
 });
 
 server.listen(3003, () => {
-	console.log('LOBBY-SERVICE running on port 3003');
+	console.log('LOBBY-SERVICE started on port 3003');
 });
 
 function createLobby(lobbyId, gameMode, gameType, creatorId, maxUsers) {
@@ -131,8 +128,7 @@ function publishUserStatus(userId, status) {
 }
 
 io.on('connection', (socket) => {
-	console.log(`Client connected (${socket.user.username}): ${socket.id}`);
-	publishUserStatus(socket.user.id, 'online');
+	console.log(`Client connected: ${socket.id}`);
 
 	socket.on('lobby:create', (data) => {
 		const lobbyId = generateLobbyId(lobbys);
@@ -141,7 +137,7 @@ io.on('connection', (socket) => {
 		socket.join(lobbyId);
 		addUser(lobbyStruct, socket.user.id);
 		console.log(`Lobby created: ${lobbyId}`);
-		console.log(`${socket.user.username} joined the lobby ${lobbyId} (client ${socket.id})`);
+		console.log(`Client ${socket.id} (user: ${socket.user.username}) joined the lobby ${lobbyId}`);
 		lobbyBySocket.set(socket.id, lobbyId);
 		publishLobbyMembers(lobbyId, lobbyStruct);
 		socket.emit('lobby:created', { lobbyId });
@@ -153,7 +149,7 @@ io.on('connection', (socket) => {
 		if (matchedPlayers === null)
 				return;
 		const lobbyId = generateLobbyId(lobbys);
-		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType,
+		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType, 
 										matchedPlayers[0].userId, data.maxUsers);
 		lobbyStruct.lobbyType = LOBBY_TYPES.PUBLIC;
 		lobbys.set(lobbyId, lobbyStruct);
@@ -162,9 +158,9 @@ io.on('connection', (socket) => {
 			player.socket.join(lobbyId);
 			lobbyBySocket.set(player.socket.id, lobbyId);
 		}
-		publishLobbyMembers(lobbyId, lobbyStruct);
 		try {
-			const res = await fetch(`${GAME_SERVICE_URL}/create`, {
+			//variable d'environnement docker compose ?
+			const response = await fetch("http://game:3002/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -174,7 +170,7 @@ io.on('connection', (socket) => {
 					users: lobbyStruct.users.map(user => user.id)
 				})
 			});
-			const gameData = await res.json();
+			const gameData = await response.json();
 			lobbyStruct.gameId = gameData.gameId;
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId, gameId: gameData.gameId }))
@@ -222,7 +218,6 @@ io.on('connection', (socket) => {
 		const lobbyStruct = lobbys.get(data.lobbyId);
 		if (!lobbyStruct) {
 			socket.emit('error', `Something went wrong...`);
-			// ajouter console.log(error)
 			return;
 		}
 		const user = lobbyStruct.users.find(user => user.id === socket.user.id);
@@ -238,7 +233,6 @@ io.on('connection', (socket) => {
 		const lobbyStruct = lobbys.get(data.lobbyId);
 		if (!lobbyStruct) {
 			socket.emit('error', `Something went wrong...`);
-			// ajouter console.log(error)
 			return;
 		}
 		if (socket.user.id !== lobbyStruct.creatorId) {
@@ -254,7 +248,8 @@ io.on('connection', (socket) => {
 			return;
 		}
 		try {
-			const res = await fetch(`${GAME_SERVICE_URL}/create`, {
+			//env var via docker compose ?
+			const response = await fetch("http://game:3002/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -264,7 +259,7 @@ io.on('connection', (socket) => {
 					users: lobbyStruct.users.map(user => user.id)
 				})
 			});
-			const gameData = await res.json();
+			const gameData = await response.json();
 			lobbyStruct.gameId = gameData.gameId;
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId: data.lobbyId, gameId: gameData.gameId }))
@@ -313,12 +308,13 @@ io.on('connection', (socket) => {
 		}
 		else {
 			const queueKey = queueBySocket.get(socket.id);
-			if (queueKey === undefined)
+			if (queueKey === undefined) 
 				return;
 			const queue = queues.get(queueKey);
-			const index = queue.findIndex(p => p.socket.id === socket.id);
-		   	queue.splice(index, 1);
-		   	queueBySocket.delete(socket.id);
+			const index = queue.findIndex(player => player.socket.id === socket.id);
+       	 	queue.splice(index, 1);
+       		queueBySocket.delete(socket.id);
 		}
 	});
 });
+
