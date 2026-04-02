@@ -23,7 +23,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 				<TrioBadge trios={player.trios} />
 			</div>
 			{revealedHandCards.length > 0 && (
-				<div className="revealed-hand-cards">
+				<div className={`revealed-hand-cards slot-revealed seat-revealed-${seat}`}>
 					{revealedHandCards.map(rc => (
 						<div key={rc.cardId} className="card card-front revealed-card">
 							<img src={getCardImage(rc.value)} className="card-img" alt={`Card ${rc.value}`} />

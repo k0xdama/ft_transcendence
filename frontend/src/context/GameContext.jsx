@@ -15,6 +15,7 @@ export function GameProvider({ children }) {
 	const	[turnTimer, setTurnTimer] = useState(false)
 	const	[disconnectedPlayer, setDisconnectedPlayer] = useState(null)
 	const	[revealedHandCards, setRevealedHandCards] = useState([])
+	const	[gameResult, setGameResult] = useState(null)
 	const	socketRef = useRef(null)
 	const	riverSlotsRef = useRef(null)
 
@@ -66,6 +67,10 @@ export function GameProvider({ children }) {
 			setRevealedHandCards([])
 		})
 
+		socketRef.current.on('game:ended', (result) => {
+			setGameResult(result)
+		})
+
 		socketRef.current.on('game:playerDisconnected', ({ userId }) => {
 			setDisconnectedPlayer({ userId, duration: 30 })
 		})
@@ -103,6 +108,7 @@ export function GameProvider({ children }) {
 	const	value = {
 		gameStruct,
 		gameError,
+		gameResult,
 		connect,
 		sendAction,
 		sendCheck,
