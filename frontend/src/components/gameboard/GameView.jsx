@@ -85,7 +85,7 @@ function	GameView() {
 				isMyTurn={isMyTurn}
 				currentAction={currentAction}
 				cardsRevealed={gameStruct.cardsRevealed}
-				onFlip={(index) => sendAction(gameId, 'FLIP_MIDDLE', index)}
+				onFlip={(cardId) => sendAction(gameId, 'FLIP_MIDDLE', cardId)}
 			/>
 
 			<PlayerHand

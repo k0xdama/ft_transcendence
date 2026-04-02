@@ -29,7 +29,7 @@ function TableArea({ riverSlots, isMyTurn, currentAction, cardsRevealed, onFlip 
 						<div
 							key={card.id}
 							className={`card ${isClickable ? 'card-active' : ''} ${isRevealed ? 'card-front' : 'card-back'}`}
-							onClick={() => isClickable && onFlip(index)}
+							onClick={() => isClickable && onFlip(card.id)}
 						>
 							{isRevealed && <img src={getCardImage(card.value)} alt={`Card ${card.value}`} className="card-img"/>}
 						</div>
