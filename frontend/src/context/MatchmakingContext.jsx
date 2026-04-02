@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useRef } from "react";
-import { io } from "socket.io-client";
+import { createContext, useContext, useState, useRef } from "react"
+import { io } from "socket.io-client"
 
 const MatchmakingContext = createContext(null)
 
@@ -10,50 +10,54 @@ export function useMatchmaking() {
 export function MatchmakingProvider({ children }) {
 	const [gameId, setGameId] = useState(null)
 	const [error, setError] = useState(null)
-	const socketRef = useRef(null)
+	const socketRef = useRef(null);
+	const lobbyUrl = '/api/lobby';
 
-	const connect = (token, onConnected, onConnectionError) => {
-		if (socketRef.current) return
+	const connect = (onConnected, onConnectionError) => {
+		if (socketRef.current)
+			return;
 
-		socketRef.current = io('http://localhost:4000/', {
-			path: '/api/lobby/socket.io',
-			auth: { token },
+		socketRef.current = io({
+			path: `${lobbyUrl}/socket.io`,
+			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false
-		})
+		});
 
 		socketRef.current.on('connect', () => {
-			if (onConnected) onConnected()
-		})
+			if (onConnected)
+				onConnected();
+		});
 
 		socketRef.current.on('connect_error', (err) => {
-			console.error('Matchmaking connection failed:', err.message)
-			socketRef.current = null
-			if (onConnectionError) onConnectionError(err.message)
-		})
+			console.error('Matchmaking connection failed:', err.message);
+			socketRef.current = null;
+			if (onConnectionError)
+				onConnectionError(err.message);
+		});
 
 		socketRef.current.on('lobby:gameStarting', ({ gameId }) => {
-			setGameId(gameId)
-		})
+			setGameId(gameId);
+		});
 
 		socketRef.current.on('error', (message) => {
-			setError(message)
-		})
+			setError(message);
+		});
 	}
 
 	const joinMatchmaking = (gameMode, gameType, maxUsers) => {
-		socketRef.current.emit('matchmaking:join', { gameMode, gameType, maxUsers })
-	}
+		socketRef.current.emit('matchmaking:join', { gameMode, gameType, maxUsers });
+	};
 
 	const leaveMatchmaking = () => {
 		if (socketRef.current) {
-			socketRef.current.emit('matchmaking:leave')
-			socketRef.current.disconnect()
-			socketRef.current = null
+			socketRef.current.emit('matchmaking:leave');
+			socketRef.current.disconnect();
+			socketRef.current = null;
 		}
-		setGameId(null)
-		setError(null)
-	}
+		setGameId(null);
+		setError(null);
+	};
 
 	return (
 		<MatchmakingContext.Provider value={{
@@ -66,5 +70,5 @@ export function MatchmakingProvider({ children }) {
 		}}>
 			{children}
 		</MatchmakingContext.Provider>
-	)
+	);
 }

@@ -1,51 +1,45 @@
 import express from 'express';
+import fs from 'fs';
 import { createClient } from 'redis';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import jwt from 'jsonwebtoken';
-import fs from 'fs';
 import { randomUUID } from 'crypto';
-import { buildGameStats, createGame, executeAction, nextPlayer } from './game-logic.js';
-import { startGame } from './game-logic.js';
-import { addPlayer } from './game-logic.js';
-import { ACTIONS_NUMBER } from './game-logic.js';
-
-//Remove process.env.JWT_SECRET when local test isn't needed anymore
-const jwtSecret = process.env.JWT_SECRET || fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
+import {
+	createGame,
+	addPlayer,
+	nextPlayer,
+	startGame,
+	executeAction,
+	buildGameStats,
+	ACTIONS_NUMBER } from './game-logic.js';
 
 const games = new Map();
 const gameBySocket = new Map();
 const playersTimers = new Map();
 const gameTimers = new Map();
 
-const app  = express();
+const app = express();
 app.use(express.json());
 
 const server = createServer(app);
+const io = new Server(server);
 
-const io = new Server(server, {
-	cors: {
-		origin: '*',
-		methods: ['GET', 'POST']
-	}
-});
+const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim();
 
 const redisClient = createClient({
-	url: 'redis://redis:6379',
-	password: process.env.REDIS_PASSWORD || fs.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim()
+	socket: { host: 'redis', port: 6379 },
+	password: redisPassword
 });
 redisClient.connect();
 
 io.use((socket, next) => {
-	const token = socket.handshake.auth.token;
-	if (!token) return next(new Error('Token manquant'));
-	try {
-		const decoded = jwt.verify(token, jwtSecret);
-		socket.user = decoded;
-		next();
-	} catch (e) {
-		next(new Error('Token invalide'));
+	const userId = socket.handshake.headers['x-user-id'];
+	const username = socket.handshake.headers['x-user-username'];
+	if (!userId || !username) {
+		return next(new Error('Missing user identity headers'));
 	}
+	socket.user = { id: userId, username: username };
+	next();
 });
 
 app.post('/create', (req, res) => {
@@ -59,7 +53,7 @@ app.post('/create', (req, res) => {
 });
 
 server.listen(3002, () => {
-	console.log('GAME-SERVICE started on port 3002');
+	console.log('GAME-SERVICE running on port 3002');
 });
 
 function endTurn(gameStruct, gameId) {
@@ -70,13 +64,13 @@ function endTurn(gameStruct, gameId) {
 	io.to(gameId).emit('game:turnChanged', { gameStruct });
 }
 
-function	setPlayerTimer(userId, timerName, timer) {
+function setPlayerTimer(userId, timerName, timer) {
 	if (!playersTimers.has(userId))
 		playersTimers.set(userId, {});
 	playersTimers.get(userId)[timerName] = timer;
 }
 
-function	clearPlayerTimer(userId, timerName) {
+function clearPlayerTimer(userId, timerName) {
 	const timers = playersTimers.get(userId);
 	if (timers && timers[timerName]) {
 		clearTimeout(timers[timerName]);
@@ -85,22 +79,22 @@ function	clearPlayerTimer(userId, timerName) {
 }
 
 io.on('connection', (socket) => {
-	console.log(`Client connected: ${socket.id}`);
+	console.log(`Client connected (${socket.user.username}): ${socket.id}`);
 
 	socket.on('game:join', (data) => {
 		const gameStruct = games.get(data.gameId);
 		if (!gameStruct) {
-			socket.emit('error', `Aucune partie avec cet identifiant n'existe`);
+			socket.emit('error', `No game with that ID exists`);
 			return;
 		}
 		if (!gameStruct.expectedUsersIds.includes(socket.user.id)) {
-			socket.emit('error', `Vous n'êtes pas attendu dans cette partie`);
+			socket.emit('error', `You're not expected here`);
 			return;
 		}
 		const existingPlayer = gameStruct.players.find(player => player.id === socket.user.id);
 		if (existingPlayer) {
 			if (existingPlayer.connected === true) {
-				socket.emit('error', 'Vous êtes déjà connecté à cette partie');
+				socket.emit('error', 'You are already logged in to this game');
 				return;
 			}
 			clearPlayerTimer(existingPlayer.id, 'turnTimer');
@@ -114,32 +108,31 @@ io.on('connection', (socket) => {
 		}
 		for (const player of gameStruct.players) {
 			if (socket.user.id === player.id) {
-				socket.emit('error', 'Vous avez déjà rejoint cette partie');
+				socket.emit('error', 'You have already joined this game');
 				return;
 			}
 		}
 		socket.join(data.gameId);
 		addPlayer(gameStruct, socket.user.id);
 		io.to(data.gameId).emit('game:joined', { gameId: data.gameId });
-		console.log(`Player ${socket.user.id} (client: ${socket.id}) joined the game ${data.gameId}`);
+		console.log(`${socket.user.username} (client: ${socket.id}) joined the game ${data.gameId}`);
 		gameBySocket.set(socket.id, data.gameId);
-		console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
+		// console.log('players:', gameStruct.players.length, 'expected:', gameStruct.expectedPlayers);
 		if (gameStruct.players.length === gameStruct.expectedPlayers) {
 			startGame(gameStruct);
-
 			io.to(data.gameId).emit('game:started', { gameStruct });
 		}
 	});
 
 	socket.on('game:action', async (data) => {
-		console.log('game:action reçu', data);
+		console.log('game:action received', data);
 		const gameStruct = games.get(data.gameId);
 		if (!gameStruct) {
-			socket.emit('error', `La partie n'existe plus...Quelque chose a tourné au vinaigre...`);
+			socket.emit('error', `Something went wrong... The game is over...`);
 			return;
 		}
 		if (socket.user.id !== gameStruct.currentPlayer) {
-			socket.emit('error', `Ce n'est pas ton tour !`);
+			socket.emit('error', `Don't you dare! That is not your turn!`);
 			return;
 		}
 		const action_result = executeAction(gameStruct, data.actionType, data.target);
@@ -203,7 +196,7 @@ io.on('connection', (socket) => {
 			const activePlayers = gameStruct.players.filter(player => player.connected && !player.eliminated);
 			if (activePlayers.length <= 1) {
 				if (activePlayers.length === 1) {
-					io.to(gameId).emit('game:ended', {winnerId: activePlayers[0].id, reason: 'FORFEIT'});
+					io.to(gameId).emit('game:ended', { winnerId: activePlayers[0].id, reason: 'FORFEIT' });
 					setTimeout(() => {
 						games.delete(gameId);
 						gameTimers.delete(gameId);
@@ -217,6 +210,6 @@ io.on('connection', (socket) => {
 				}
 			}
 		}, 30000));
-		console.log(`Client disconnected: ${socket.id}`);
+		console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
 	})
 });

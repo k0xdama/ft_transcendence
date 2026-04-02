@@ -1,55 +1,50 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useContext, useState, useRef, useEffect } from "react";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
 	const context = useContext(AuthContext)
 	if (!context) {
-		throw new Error('useAuth must be used within AuthProvider')
+		throw new Error('useAuth must be used within AuthProvider');
 	}
-	return context
+	return context;
 }
 
 export const AuthProvider = ({ children }) => {
-	const [user, setUser] = useState(null)
-	const userData = localStorage.getItem('user')
-	const [accessToken, setAccessToken] = useState(null)
-	const [loading, setLoading] = useState(true)
-
-	const authUrl = 'http://localhost:4000/api/auth'
+	const [user, setUser] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const refreshPromiseRef = useRef(null);
+	const authUrl = '/api/auth';
 
 	useEffect(() => {
-		const	tryRestoreSession = async () => {
+		const tryRestoreSession = async () => {
 			try {
-				const	response = await fetch(`${authUrl}/refresh`, {
+				const res = await fetch(`${authUrl}/refresh`, {
 					method: 'POST',
 					credentials: 'include',
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				})
+					headers: { 'Content-Type': 'application/json' }
+				});
 
-				if (response.ok) {
-					const data = await response.json()
-					setAccessToken(data.accessToken)
-					if (userData) setUser(JSON.parse(userData))
+				if (res.ok) {
+					const data = await res.json();
+					localStorage.setItem('user', JSON.stringify(data.user));
+					setUser(data.user);
 				} else {
-					localStorage.removeItem('user')
+					localStorage.removeItem('user');
 				}
 			} catch (err) {
-				console.error('Session restore failed:', err)
-				localStorage.removeItem('user')
+				console.error('Session restore failed:', err);
+				localStorage.removeItem('user');
 			} finally {
-				setLoading(false)
+				setLoading(false);
 			}
 		}
-		tryRestoreSession()
+		tryRestoreSession();
 	}, [])
 
-	const login = (userData, token) => {
-		localStorage.setItem('user', JSON.stringify(userData))
-		setAccessToken(token)
-		setUser(userData)
+	const login = (userData) => {
+		localStorage.setItem('user', JSON.stringify(userData));
+		setUser(userData);
 	}
 
 	const logout = async () => {
@@ -57,68 +52,66 @@ export const AuthProvider = ({ children }) => {
 			await fetch(`${authUrl}/logout`, {
 				method: 'POST',
 				credentials: 'include'
-			})
+			});
 		} catch (err) {
-			console.error('Logout failed:', err)
+			console.error('Logout failed:', err);
 		} finally {
-			localStorage.removeItem('user')
-			setAccessToken(null)
-			setUser(null)
+			localStorage.removeItem('user');
+			setUser(null);
 		}
 	}
 
+	// Wrapper for authenticated requests — cookies handle the token automatically
 	const authFetch = async (URL, options = {}) => {
-		const response = await fetch(URL, {
+		const res = await fetch(URL, {
 			...options,
 			credentials: 'include',
-			headers: {
-				...options.headers
-			}
-		})
+			headers: { ...options.headers }
+		});
 
-		if (response.status !== 401) return response
+		if (res.status !== 401 && res.status !== 403)
+			return res
 
-		const refreshResponse = await fetch(`${authUrl}/refresh`, {
-			method: 'POST',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
+		// One refresh at a time
+		if (!refreshPromiseRef.current) {
+			refreshPromiseRef.current = fetch(`${authUrl}/refresh`, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' }
+			});
+		}
+
+		const refreshResponse = await refreshPromiseRef.current;
+		refreshPromiseRef.current = null;
 
 		if (!refreshResponse.ok) {
-			logout()
-			return response
+			logout();
+			return res;
 		}
 
-		const data = await refreshResponse.json()
-		const newToken = data.accessToken
-		setAccessToken(newToken)
-
-		return fetch(URL, {
+		// Refresh succeeded — new accessToken cookie is set automatically
+		// Retry the original request
+		return await fetch(URL, {
 			...options,
 			credentials: 'include',
-			headers: {
-				...options.headers
-			}
-		})
+			headers: { ...options.headers }
+		});
 	}
 
-	const isAuthenticated = () => user !== null && accessToken !== null
+	const isAuthenticated = () => user !== null;
 
 	const value = {
 		user,
-		accessToken,
 		login,
 		logout,
 		isAuthenticated,
 		authFetch,
 		loading
-	}
+	};
 
 	return (
 		<AuthContext.Provider value={value}>
-			{children}
+			{loading ? null : children}
 		</AuthContext.Provider>
-	)
+	);
 }

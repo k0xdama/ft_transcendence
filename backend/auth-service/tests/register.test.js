@@ -1,124 +1,129 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../auth-server.js';
+import app from '../auth-service.js';
 import { db } from '../src/config/db.js';
 
-describe('Auth /auth/register', () => {
+// ─── Teardown ─────────────────────────────────────────────────────────────
+
+afterAll(async () => {
+	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
+	await db.$pool.end();
+});
+
+// ─── POST /auth/register ──────────────────────────────────────────────────
+
+describe('POST /auth/register', () => {
 	it('should register a new user', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({
 				email: 'miaou@test.fr',
 				username: 'miaou',
 				password: 'kiKoolol555$'
 			});
-		expect(response.status).toBe(201);
-		expect(response.body.user).toBeDefined();
-		expect(response.body.user.email).toBe('miaou@test.fr');
-		expect(response.body.user.username).toBe('miaou');
+		expect(res.status).toBe(201);
+		expect(res.body.user).toBeDefined();
+		expect(res.body.user.email).toBe('miaou@test.fr');
+		expect(res.body.user.username).toBe('miaou');
 	});
 
 	it('should reject duplicate email', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({
 				email: 'miaou@test.fr',
 				username: 'elpatron',
 				password: 'test2Test1test@'
 			});
-		expect(response.status).toBe(400);
-		expect(response.body.error).toBeDefined();
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBeDefined();
 	});
 
 	it('should reject duplicate username', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({
 				email: 'oggy@test.fr',
 				username: 'miaou',
 				password: 'blaB2bla1*b'
 			});
-		expect(response.status).toBe(400);
-		expect(response.body.error).toBeDefined();
+		expect(res.status).toBe(400);
+		expect(res.body.error).toBeDefined();
 	});
 });
 
-describe('Auth /auth/register — field validation', () => {
+// ─── POST /auth/register — field validation ───────────────────────────────
+
+describe('POST /auth/register — field validation', () => {
 	it('should reject missing email', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ username: 'hellboy42', password: 'Bruuuh3630!' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('Email');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('Email');
 	});
 
 	it('should reject missing username', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'miaou@test.fr', password: 'Bruuuh3630!' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('Username');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('Username');
 	});
 
 	it('should reject missing password', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'miaou@test.fr', username: 'hellboy42' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('Password');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('Password');
 	});
 
 	it('should reject invalid email format', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'born-to-code', username: 'hellboy42', password: 'Bruuuh3630!' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('email');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('email');
 	});
 
 	it('should reject username too short (< 3 chars)', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'miaou@test.fr', username: 'ab', password: 'Bruuuh3630!' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('between');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('between');
 	});
 
 	it('should reject username with invalid characters', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'miaou@test.fr', username: 'not good!', password: 'Bruuuh3630!' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('Username');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('Username');
 	});
 
 	it('should reject password too short (< 8 chars)', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'miaou@test.fr', username: 'hellboy42', password: 'Ab1!' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('8');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('8');
 	});
 
 	it('should reject password missing uppercase', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'miaou@test.fr', username: 'hellboy42', password: 'nouppercase1!' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('uppercase');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('uppercase');
 	});
 
 	it('should reject password missing special character', async () => {
-		const response = await request(app)
+		const res = await request(app)
 			.post('/auth/register')
 			.send({ email: 'miaou@test.fr', username: 'hellboy42', password: 'NoSpecial123' });
-		expect(response.status).toBe(400);
-		expect(response.body.error).toContain('special');
+		expect(res.status).toBe(400);
+		expect(res.body.error).toContain('special');
 	});
-});
-
-// Clean after performing tests
-afterAll(async () => {
-	await db.none("DELETE FROM auth.users WHERE email LIKE '%@test.fr'");
-	await db.$pool.end();
 });

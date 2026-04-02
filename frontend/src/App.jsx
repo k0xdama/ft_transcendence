@@ -8,7 +8,6 @@ import NavBar from './components/NavBar'
 import RegisterView from './components/auth/RegisterView'
 import LoginView from './components/auth/LoginView'
 import JoinGameView from './components/lobby/JoinGameView'
-import TestView from './components/gameboard/TestView'
 import ProfileView from './components/ProfileView'
 import LobbyView from './components/lobby/LobbyView'
 import GameView from './components/gameboard/GameView'
@@ -16,11 +15,11 @@ import PublicMatchmakingView from './components/matchmaking/PublicMatchmakingVie
 import WaitingMatchmakingView from './components/matchmaking/WaitingMatchmakingView'
 
 function App() {
-  const [backendStatus, setBackendStatus] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [currentView, setCurrentView] = useState('home')
-  const {user, logout, isAuthenticated} = useAuth()
+  const [ backendStatus, setBackendStatus ] = useState(null)
+  const [ loading, setLoading ] = useState(true)
+  const [ error, setError ] = useState(null)
+  const [ currentView, setCurrentView ] = useState('home')
+  const { user, logout, isAuthenticated } = useAuth()
 
   const handleNav = (viewName) => {
     setCurrentView(viewName)
