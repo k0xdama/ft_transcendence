@@ -36,13 +36,13 @@ const	getCardImage = (label) => {
 	return	cardImages[key]?.default
 }
 
-function	GameView() {
-	const	{ gameId } = useParams()
-	const	{ gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
-	const	{ user } = useAuth()
-	const	[selectedOpponent, setSelectedOpponent] = useState(null)
-	const	[checkSent, setCheckSent] = useState(false)
-	const	chatSocketRef = useRef(null)
+function GameView() {
+	const { gameId } = useParams()
+	const { gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
+	const { user } = useAuth()
+	const [selectedOpponent, setSelectedOpponent] = useState(null)
+	const [checkSent, setCheckSent] = useState(false)
+	const chatSocketRef = useRef(null)
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
@@ -54,7 +54,7 @@ function	GameView() {
 		if (!pendingCheck) setCheckSent(false)
 	}, [pendingCheck])
 
-	const	handleOpponentAction = (actionType) => {
+	const handleOpponentAction = (actionType) => {
 		sendAction(gameId, actionType, selectedOpponent)
 		setSelectedOpponent(null)
 	}
@@ -62,14 +62,14 @@ function	GameView() {
 	if (!gameStruct)
 		return <p>Waiting for all players to connect...</p>
 
-	const	me = gameStruct.players.find(p => p.id === user?.id)
-	const	opponents = gameStruct.players.filter(p => p.id !== user?.id)
-	const	isMyTurn = gameStruct?.currentPlayer === user?.id
-	const	layout = LAYOUTS[gameStruct.players.length]
-	const	river = gameStruct.cardsInMiddle
-	const	currentAction = gameStruct.currentAction
-	const	expectedRevealed = { FIRST: 0, SECOND: 1, BONUS: 2 }
-	const	canAct = isMyTurn && gameStruct.cardsRevealed.length === expectedRevealed[currentAction]
+	const me = gameStruct.players.find(p => p.id === user?.id)
+	const opponents = gameStruct.players.filter(p => p.id !== user?.id)
+	const isMyTurn = gameStruct?.currentPlayer === user?.id
+	const layout = LAYOUTS[gameStruct.players.length]
+	const river = gameStruct.cardsInMiddle
+	const currentAction = gameStruct.currentAction
+	const expectedRevealed = { FIRST: 0, SECOND: 1, BONUS: 2 }
+	const canAct = isMyTurn && gameStruct.cardsRevealed.length === expectedRevealed[currentAction]
 
 	return (
 		<div className='gameboard'>
@@ -116,7 +116,7 @@ function	GameView() {
 				onSelectSelf={() => setSelectedOpponent(me.id)}
 			/>
 
-			<ChatOverlay lobbyId={gameId} socketRef={chatSocketRef} />
+			<ChatOverlay socketRef={chatSocketRef} lobbyId={gameId} />
 			<SoundBuzzers socketRef={chatSocketRef} lobbyId={gameId} />
 
 			{pendingCheck && (

@@ -4,8 +4,8 @@ import './HomeView.css'
 function HomeView() {
   return (
     <div className='homeView'>
-      <h1>Trois Cartes</h1>
-      <p>"🃏 par trois"</p>
+      <h1>Triple</h1>
+      {/* <p>"A card, deduction, and memory game for 3 to 6 players with two game modes: “Simple” or “Spicy”"</p> */}
         <div className='buttonContainer'>
           <Link to="/create">
             <button className='createBut'>Create game</button>

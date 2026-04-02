@@ -15,7 +15,7 @@ function NavBar() {
 	return (
 		<nav className='navbar'>
 			<div className='brand'>
-				<Link to="/">Trois Cartes</Link>
+				<Link to="/">Triple</Link>
 			</div>
 
 			<div className='navControl'>

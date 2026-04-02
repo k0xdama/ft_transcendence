@@ -27,7 +27,8 @@ function WaitingMatchmakingView() {
 		navigate('/matchmaking')
 	}
 
-	if (!location.state) return null
+	if (!location.state)
+		return null
 
 	return (
 		<div className='waiting-view'>
