@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -39,6 +38,7 @@ const server = createServer(app);
 const io = new Server(server);
 
 const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf8').trim();
+
 const redisClient = createClient({
 	socket: { host: 'redis', port: 6379 },
 	password: redisPassword
@@ -57,7 +57,7 @@ io.use((socket, next) => {
 });
 
 server.listen(3003, () => {
-	console.log('LOBBY-SERVICE started on port 3003');
+	console.log('LOBBY-SERVICE running on port 3003');
 });
 
 function createLobby(lobbyId, gameMode, gameType, creatorId, maxUsers) {
@@ -137,7 +137,7 @@ io.on('connection', (socket) => {
 		socket.join(lobbyId);
 		addUser(lobbyStruct, socket.user.id);
 		console.log(`Lobby created: ${lobbyId}`);
-		console.log(`Client ${socket.id} (user: ${socket.user.username}) joined the lobby ${lobbyId}`);
+		console.log(`${socket.user.username} joined the lobby ${lobbyId} (client ${socket.id})`);
 		lobbyBySocket.set(socket.id, lobbyId);
 		publishLobbyMembers(lobbyId, lobbyStruct);
 		socket.emit('lobby:created', { lobbyId });
@@ -160,7 +160,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//variable d'environnement docker compose ?
-			const response = await fetch("http://game:3002/create", {
+			const res = await fetch("http://game:3002/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -170,9 +170,10 @@ io.on('connection', (socket) => {
 					users: lobbyStruct.users.map(user => user.id)
 				})
 			});
-			const gameData = await response.json();
+			const gameData = await res.json();
 			lobbyStruct.gameId = gameData.gameId;
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
+			publishLobbyMembers(gameData.gameId, lobbyStruct);
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId, gameId: gameData.gameId }))
 				.catch(console.error);
 			io.to(lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
@@ -249,7 +250,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//env var via docker compose ?
-			const response = await fetch("http://game:3002/create", {
+			const res = await fetch("http://game:3002/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -259,9 +260,10 @@ io.on('connection', (socket) => {
 					users: lobbyStruct.users.map(user => user.id)
 				})
 			});
-			const gameData = await response.json();
+			const gameData = await res.json();
 			lobbyStruct.gameId = gameData.gameId;
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
+			publishLobbyMembers(gameData.gameId, lobbyStruct);
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId: data.lobbyId, gameId: gameData.gameId }))
 				.catch(console.error);
 			io.to(data.lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
@@ -287,11 +289,15 @@ io.on('connection', (socket) => {
 		const lobbyId = lobbyBySocket.get(socket.id);
 		if (lobbyId != undefined) {
 			const lobbyStruct = lobbys.get(lobbyId);
+			lobbyBySocket.delete(socket.id);
+
+			if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED)
+				return;
+
 			const userIndex = lobbyStruct.users.findIndex(user => user.id === socket.user.id);
 			lobbyStruct.users.splice(userIndex, 1);
 			if (lobbyStruct.users.length === 0) {
 				lobbys.delete(lobbyId);
-				lobbyBySocket.delete(socket.id);
 				redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members: [] }))
 					.catch(console.error);
 			}
@@ -300,10 +306,9 @@ io.on('connection', (socket) => {
 					lobbyStruct.creatorId = lobbyStruct.users[0].id;
 				if (lobbyStruct.state === LOBBY_STATE.FULL)
 					lobbyStruct.state = LOBBY_STATE.WAITING;
-				lobbyBySocket.delete(socket.id);
 				publishLobbyMembers(lobbyId, lobbyStruct);
 				io.to(lobbyId).emit('lobby:disconnected', { userId: socket.user.id });
-				console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
+				console.log(`Client disconnected: ${socket.id}`);
 			}
 		}
 		else {

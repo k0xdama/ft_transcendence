@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import { useGame } from "../../context/GameContext"
 import { useAuth } from '../../context/AuthContext'
 import { useEffect, useRef, useState } from 'react'
@@ -38,6 +38,8 @@ const	getCardImage = (label) => {
 
 function GameView() {
 	const { gameId } = useParams()
+	const { state } = useLocation()
+	const lobbyId = state?.lobbyId || gameId
 	const { gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
 	const { user } = useAuth()
 	const [selectedOpponent, setSelectedOpponent] = useState(null)
@@ -116,8 +118,8 @@ function GameView() {
 				onSelectSelf={() => setSelectedOpponent(me.id)}
 			/>
 
-			<ChatOverlay socketRef={chatSocketRef} lobbyId={gameId} />
-			<SoundBuzzers socketRef={chatSocketRef} lobbyId={gameId} />
+			<ChatOverlay socketRef={chatSocketRef} lobbyId={lobbyId} />
+			<SoundBuzzers socketRef={chatSocketRef} lobbyId={lobbyId} />
 
 			{pendingCheck && (
 				<div className="check-prompt">

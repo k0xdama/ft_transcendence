@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import ChatOverlay from './ChatOverlay'
 import './LobbyView.css'
 
@@ -10,10 +10,11 @@ function LobbyView() {
 	const	{ lobbyStruct, toggleReady, startGame, lobbyError, gameId } = useLobby()
 	const	{ user } = useAuth()
 	const	navigate = useNavigate()
+	const	chatSocketRef = useRef(null)
 
 	useEffect(() => {
 		if (gameId)
-			navigate(`/game/${gameId}`)
+			navigate(`/game/${gameId}`, { state: { lobbyId } })
 	}, [gameId])
 
 	if (!lobbyStruct) {
@@ -65,7 +66,7 @@ function LobbyView() {
 				</div>
 			</div>
 	
-			<ChatOverlay lobbyId={lobbyId} />
+			<ChatOverlay socketRef={chatSocketRef} lobbyId={lobbyId} />
 
 		</div>
 	)

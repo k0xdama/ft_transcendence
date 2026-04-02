@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
 			headers: { ...options.headers }
 		});
 
-		if (res.status !== 401 && res.status !== 403)
+		if (res.status !== 401)
 			return res
 
 		// One refresh at a time

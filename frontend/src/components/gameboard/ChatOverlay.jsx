@@ -4,12 +4,20 @@ import { useAuth } from "../../context/AuthContext";
 import { SOUNDS } from "./SoundBuzzers";
 import "./ChatOverlay.css"
 
-const TYPING_TIMEOUT_MS = 2000;
+const TYPING_TIMEOUT_MS = 1000;
 
-const QUICK_REPLIES = [
-	'GG', 'WP', 'GG WP', 'Unlucky...', 'Nice move!',
-	"Let's gooo!", 'My bad', 'Ezzz', 'LOL'
-];
+const QUICK_REPLIES = [ 'GG', 'MB', 'Nice move!', 'Ezzz' ];
+
+const NEON_COLORS = ['#00dcff', '#ff00ff', '#39ff14', '#FFD700', '#ff6b35', '#ff0066', '#00ff9f'];
+
+function getAuthorColor(author) {
+	if (author === 'You')
+		return '#7B2FFF';
+	let hash = 0;
+	for (let i = 0; i < author.length; i++)
+		hash = (hash * 31 + author.charCodeAt(i)) & 0xffffffff;
+	return NEON_COLORS[Math.abs(hash) % NEON_COLORS.length];
+}
 
 function ChatOverlay({ lobbyId, socketRef }) {
 	const [messages, setMessages] = useState([])
@@ -17,6 +25,7 @@ function ChatOverlay({ lobbyId, socketRef }) {
 	const [typingUsers, setTypingUsers] = useState([])
 	const bottomRef = useRef(null)
 	const typingTimers = useRef({})
+	const typingDebounce = useRef(null)
 	const { authFetch, user } = useAuth()
 	const chatUrl = '/api/chat'
 
@@ -105,7 +114,12 @@ function ChatOverlay({ lobbyId, socketRef }) {
 
 	const sendQuickReply = (text) => postMessage(text, 'quick_reply')
 
-	const handleTyping = () => socketRef.current?.emit('chat:typing', { lobbyId })
+	const handleTyping = (value) => {
+		if (!value.trim())
+			return
+		clearTimeout(typingDebounce.current)
+		typingDebounce.current = setTimeout(() => { socketRef.current?.emit('chat:typing', { lobbyId })}, 100)
+	}
 
 	const handleKey = (e) => {
 		if (e.key === "Enter")
@@ -137,7 +151,7 @@ function ChatOverlay({ lobbyId, socketRef }) {
 				<input
 					className="chat-input"
 					value={draft}
-					onChange={e => { setDraft(e.target.value); handleTyping() }}
+					onChange={e => { setDraft(e.target.value); handleTyping(e.target.value) }}
 					onKeyDown={handleKey}
 					placeholder="Type a message..."
 				/>
@@ -157,7 +171,7 @@ function ChatMessage({ msg }) {
 
 	return (
 		<div className={`chat-message ${msg.author === 'You' ? 'chat-self' : ''}`}>
-			<span className="chat-author">{msg.author}: </span>
+			<span className="chat-author" style={{ color: getAuthorColor(msg.author) }}>{msg.author}: </span>
 			<span className="chat-text">{msg.text}</span>
 		</div>
 	)
