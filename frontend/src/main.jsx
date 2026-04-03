@@ -4,12 +4,21 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.jsx'
 import './index.css'
 import App from './App.jsx'
+import { LobbyProvider } from './context/LobbyContext.jsx'
+import { GameProvider } from './context/GameContext.jsx'
+import { MatchmakingProvider } from './context/MatchmakingContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <LobbyProvider>
+          <GameProvider>
+            <MatchmakingProvider>
+              <App />
+            </MatchmakingProvider>
+          </GameProvider>
+        </LobbyProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

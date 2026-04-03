@@ -1,6 +1,6 @@
-import { authService } from '../services/auth-service.js';
+import { authService } from '../class/auth-service-class.js';
 import { generateAccessToken } from '../utils/jwt.js';
-import { setRefreshCookie } from '../utils/cookies.js';
+import { setRefreshCookie, setAccessCookie } from '../utils/cookies.js';
 
 // POST /auth/refresh
 export async function refresh(req, res) {
@@ -10,9 +10,10 @@ export async function refresh(req, res) {
 		const { user, newRefreshToken } = await authService.refresh(refreshToken);
 		
 		const accessToken = generateAccessToken(user);
+		setAccessCookie(res, accessToken);
 		setRefreshCookie(res, newRefreshToken);
 
-		return res.status(200).json({ accessToken });
+		return res.status(200).json({ user });
 	}
 	catch (error) {
 		if (error.isOperational) {

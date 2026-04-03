@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat Service — Test Client</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #eee; padding: 1rem; }
+    h2   { color: #9d4edd; }
+    .section { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    input, select { background: #2a2a3e; border: 1px solid #444; color: #eee; padding: 0.4rem 0.6rem; border-radius: 4px; margin-right: 0.4rem; }
+    button { background: #9d4edd; border: none; color: white; padding: 0.4rem 0.9rem; border-radius: 4px; cursor: pointer; margin-right: 0.3rem; }
+    button:hover { background: #b06ef5; }
+    button.secondary { background: rgba(255,255,255,0.1); }
+    button.secondary:hover { background: rgba(255,255,255,0.2); }
+    #log { background: #111; border-radius: 6px; padding: 0.75rem; height: 260px; overflow-y: auto; font-size: 0.82rem; font-family: monospace; }
+    .msg-user   { color: #c77dff; }
+    .msg-quick  { color: #7eb8f7; }
+    .msg-invite { color: #ffd166; }
+    .msg-system { color: rgba(255,255,255,0.4); font-style: italic; }
+    .msg-error  { color: #ff6b6b; }
+    .quick-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+    .chip { padding: 0.2rem 0.7rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.25);
+            background: transparent; color: #ddd; font-size: 0.8rem; cursor: pointer; }
+    .chip:hover { border-color: #9d4edd; background: rgba(157,78,221,0.15); color: white; }
+    label { font-size: 0.85rem; color: rgba(255,255,255,0.6); display: block; margin-bottom: 0.3rem; }
+  </style>
+</head>
+<body>
+
+<h2>Chat Service — Test Client</h2>
+<p style="font-size:0.85rem;color:rgba(255,255,255,0.5)">
+  Requires a valid <code>accessToken</code> cookie (login via the app first, then open this file through the gateway on port 4000).
+</p>
+
+<!-- ── Connection ─────────────────────────────────────────── -->
+<div class="section">
+  <h3>1. Connect</h3>
+  <label>Room ID (lobbyId)</label>
+  <input id="lobbyId" placeholder="e.g. ABC123" style="width:120px" />
+  <button onclick="connectChat()">Connect & Join Room</button>
+  <button class="secondary" onclick="disconnectChat()">Disconnect</button>
+  <span id="status" style="margin-left:1rem;font-size:0.85rem;color:rgba(255,255,255,0.4)">—</span>
+</div>
+
+<!-- ── Send message ───────────────────────────────────────── -->
+<div class="section">
+  <h3>2. Send a text message</h3>
+  <input id="msgInput" placeholder="Type something..." style="width:260px"
+         onkeydown="if(event.key==='Enter') sendText()" />
+  <button onclick="sendText()">Send</button>
+</div>
+
+<!-- ── Quick replies ─────────────────────────────────────── -->
+<div class="section">
+  <h3>3. Quick replies</h3>
+  <div class="quick-chips" id="chips"></div>
+</div>
+
+<!-- ── Game invite ───────────────────────────────────────── -->
+<div class="section">
+  <h3>4. Game invite card</h3>
+  <label>Target lobby ID to invite to</label>
+  <input id="inviteLobbyId" placeholder="e.g. XYZ789" style="width:120px" />
+  <button onclick="sendInvite()">Send Invite</button>
+</div>
+
+<!-- ── History ───────────────────────────────────────────── -->
+<div class="section">
+  <h3>5. Fetch history (REST)</h3>
+  <button onclick="fetchHistory()">Load history</button>
+</div>
+
+<!-- ── Log ───────────────────────────────────────────────── -->
+<div class="section">
+  <h3>Log</h3>
+  <div id="log"></div>
+  <button class="secondary" style="margin-top:0.5rem" onclick="clearLog()">Clear</button>
+</div>
+
+<script>
+  const QUICK_REPLIES = [
+    'GG', 'WP', 'GG WP', 'Unlucky...', 'Nice move!',
+    "Let's go!", 'My bad', 'Ez 😎', 'LOL', 'RNG gods...'
+  ];
+
+  // Build quick reply chips
+  const chipsEl = document.getElementById('chips');
+  QUICK_REPLIES.forEach(text => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = text;
+    btn.onclick = () => sendQuickReply(text);
+    chipsEl.appendChild(btn);
+  });
+
+  let socket = null;
+
+  function lobbyId() { return document.getElementById('lobbyId').value.trim(); }
+  function setStatus(msg, ok = true) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.style.color = ok ? '#7ed56f' : '#ff6b6b';
+  }
+
+  function log(text, cls = '') {
+    const el = document.getElementById('log');
+    const line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function clearLog() { document.getElementById('log').innerHTML = ''; }
+
+  function connectChat() {
+    if (socket) { log('Already connected — disconnect first.', 'msg-error'); return; }
+    const room = lobbyId();
+    if (!room) { log('Enter a room ID first.', 'msg-error'); return; }
+
+    socket = io('/', {
+      path: '/api/chat/socket.io',
+      withCredentials: true,
+      transports: ['websocket']
+    });
+
+    socket.on('connect', () => {
+      setStatus('Connected ✓');
+      log(`Connected (${socket.id}). Joining room "${room}"…`);
+      socket.emit('chat:join', { lobbyId: room });
+    });
+
+    socket.on('chat:message', (msg) => {
+      const cls = msg.message_type === 'quick_reply' ? 'msg-quick'
+                : msg.message_type === 'game_invite'  ? 'msg-invite'
+                : 'msg-user';
+      log(`[${msg.message_type}] ${msg.username}: ${msg.content}`, cls);
+    });
+
+    socket.on('chat:typing', ({ username }) => {
+      log(`${username} is typing…`, 'msg-system');
+    });
+
+    socket.on('connect_error', (err) => {
+      setStatus('Connection failed', false);
+      log(`Connection error: ${err.message}`, 'msg-error');
+      socket = null;
+    });
+
+    socket.on('disconnect', () => {
+      setStatus('Disconnected');
+      log('Disconnected from chat.', 'msg-system');
+      socket = null;
+    });
+  }
+
+  function disconnectChat() {
+    socket?.disconnect();
+    socket = null;
+    setStatus('—');
+  }
+
+  async function postMessage(content, messageType) {
+    const room = lobbyId();
+    if (!room) { log('Enter a room ID first.', 'msg-error'); return; }
+    try {
+      const res = await fetch('/api/chat/ws/send', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lobbyId: room, content, messageType })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        log(`Error: ${err.error}`, 'msg-error');
+      }
+    } catch (e) {
+      log(`Fetch error: ${e.message}`, 'msg-error');
+    }
+  }
+
+  function sendText() {
+    const input = document.getElementById('msgInput');
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
+    postMessage(content, 'user_text');
+  }
+
+  function sendQuickReply(text) {
+    postMessage(text, 'quick_reply');
+  }
+
+  function sendInvite() {
+    const targetLobby = document.getElementById('inviteLobbyId').value.trim();
+    if (!targetLobby) { log('Enter a target lobby ID.', 'msg-error'); return; }
+    postMessage(targetLobby, 'game_invite');
+  }
+
+  async function fetchHistory() {
+    const room = lobbyId();
+    if (!room) { log('Enter a room ID first.', 'msg-error'); return; }
+    try {
+      const res = await fetch(`/api/chat/ws/${room}/history`, { credentials: 'include' });
+      if (!res.ok) { log(`History error: ${res.status}`, 'msg-error'); return; }
+      const data = await res.json();
+      log(`--- History (${data.length} messages) ---`, 'msg-system');
+      [...data].reverse().forEach(msg => {
+        const cls = msg.message_type === 'quick_reply' ? 'msg-quick'
+                  : msg.message_type === 'game_invite'  ? 'msg-invite'
+                  : 'msg-user';
+        log(`[${msg.message_type}] ${msg.username}: ${msg.content}`, cls);
+      });
+    } catch (e) {
+      log(`Fetch error: ${e.message}`, 'msg-error');
+    }
+  }
+</script>
+</body>
+</html>

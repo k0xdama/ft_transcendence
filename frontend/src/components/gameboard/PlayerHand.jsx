@@ -8,15 +8,18 @@ const	getCardImage = (label) => {
 	return cardImages[key]?.default
 }
 
-function PlayerHand({ cards, seat, trios }) {
+function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf }) {
 	return (
-		<div className={`player-hand-wrapper ${seat}`}>
-			<div className={`player-hand ${seat}`}>
+		<div
+			className={`player-hand-wrapper ${seat} ${isMyTurn ? 'my-turn-active' : ''}`}
+			onClick={() => isMyTurn && onSelectSelf()}
+		>
+			<div className={"player-hand"}>
 				{cards.map(card => (
 					<div key={card.id} className="card card-front">
 						<img
-							src={getCardImage(card.label)}
-							alt={`Card ${card.label}`}
+							src={getCardImage(card.value)}
+							alt={`Card ${card.value}`}
 							className="card-img"
 						/>
 					</div>

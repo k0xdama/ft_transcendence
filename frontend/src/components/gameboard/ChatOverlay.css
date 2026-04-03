@@ -75,3 +75,11 @@
 }
 
 .chat-send:hover { background: rgba(255,255,255,0.05); border-color: transparent; }
+
+.chat-typing {
+	text-align: left;
+	padding: 0.2rem 0.75rem;
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.45);
+	font-style: italic;
+}

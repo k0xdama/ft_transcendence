@@ -5,7 +5,7 @@ export function validateEmail(email) {
 		throw new ValidationError('Email is required');
 	}
 
-	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 	if (!emailRegex.test(email)) {
 		throw new ValidationError('Invalid email format');

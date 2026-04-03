@@ -1,0 +1,32 @@
+import express from 'express';
+import { blockUser, unblockUser } from '../controllers/block-controller.js';
+import { sendWsMessage, getChatWsHistory } from '../controllers/chat-ws-controller.js';
+import { createDM, sendDM, getDMHistory, getMyDMs, markAsRead } from '../controllers/dm-controller.js';
+
+const router = express.Router();
+
+router.use((req, res, next) => {
+	req.user = {
+		id: req.headers['x-user-id'],
+		username: req.headers['x-user-username'],
+		email: req.headers['x-user-email']
+	};
+	next();
+});
+
+// ─── Block-Unblock ────────────────────────────────────────────────────────
+router.post('/block', blockUser);
+router.delete('/unblock/:userId', unblockUser);
+
+// ─── Chat WS messages (lobby → game → post-game) ──────────────────────────
+router.post('/room/send', sendWsMessage);
+router.get('/room/:lobbyId/history', getChatWsHistory);
+
+// ─── DM ───────────────────────────────────────────────────────────────────
+router.post('/dm', createDM);
+router.post('/dm/:conversationId/send', sendDM);
+router.get('/dm/:conversationId/history', getDMHistory);
+router.patch('/dm/:conversationId/read', markAsRead);
+router.get('/dm', getMyDMs);
+
+export default router;

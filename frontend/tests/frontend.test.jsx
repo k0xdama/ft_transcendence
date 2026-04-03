@@ -41,7 +41,7 @@ afterEach(() => {
 describe('NavBar', () => {
 	it('affiche le nom du jeu comme lien vers /', () => {
 		withRouterAndAuth(<NavBar />)
-		const brand = screen.getByText('Trois Cartes')
+		const brand = screen.getByText('Triple')
 		expect(brand).toBeDefined()
 	})
 
@@ -58,7 +58,7 @@ describe('NavBar', () => {
 describe('HomeView', () => {
 	it('affiche le titre du jeu', () => {
 		withRouterAndAuth(<HomeView />)
-		expect(screen.getByText('Trois Cartes')).toBeDefined()
+		expect(screen.getByText('Triple')).toBeDefined()
 	})
 
 	it('affiche les boutons de navigation', () => {

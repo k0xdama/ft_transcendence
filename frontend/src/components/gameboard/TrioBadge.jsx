@@ -6,7 +6,8 @@ const	getCardImage = (label) => {
 }
 
 function TrioBadge({ trios }) {
-	if (!trios || trios.length === 0) return null
+	if (!trios || trios.length === 0)
+		return null
 
 	return (
 		<div className="trio-badge-wrapper">
