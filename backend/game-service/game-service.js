@@ -79,7 +79,7 @@ function clearPlayerTimer(userId, timerName) {
 }
 
 io.on('connection', (socket) => {
-	console.log(`Client connected (${socket.user.username}): ${socket.id}`);
+	console.log(`Client connected: ${socket.user.username} ${socket.id}`);
 
 	socket.on('game:join', (data) => {
 		const gameStruct = games.get(data.gameId);
@@ -210,6 +210,6 @@ io.on('connection', (socket) => {
 				}
 			}
 		}, 30000));
-		console.log(`Client disconnected (user: ${socket.user.username}): ${socket.id}`);
+		console.log(`Client disconnected: ${socket.user.username} ${socket.id}`);
 	})
 });

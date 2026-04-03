@@ -44,8 +44,95 @@ RESET ROLE;
 
 
 -- ==============================================
+--				   PLAYER SCHEMA
+--					 2 tables
+-- ==============================================
+
+SET ROLE player_user;
+
+CREATE TABLE player.users (
+	id 				SERIAL PRIMARY KEY,
+	auth_user_id	UUID UNIQUE NOT NULL,	 -- peut-etre a retirer pour faire un appel au service auth
+	email			VARCHAR(255) UNIQUE NOT NULL,
+	username		VARCHAR(50) UNIQUE NOT NULL,
+	pp_path			VARCHAR(255) NOT NULL,
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	updated_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+	-- STATS DATA
+	won				INTEGER DEFAULT 0,
+	rank			INTEGER DEFAULT 0,
+	score			INTEGER DEFAULT 0,
+	actions_played	INTEGER DEFAULT 0,
+	combo			INTEGER DEFAULT 0,
+	trio_of_7		INTEGER DEFAULT 0,
+	perfect_game	INTEGER DEFAULT 0
+
+);
+
+CREATE INDEX idx_player_auth_user_id
+	ON player.users(auth_user_id);
+
+CREATE INDEX idx_player_username
+	ON player.users(username);
+
+CREATE INDEX idx_player_email
+	ON player.users(email);
+
+-------------------------------------------------
+-- Créer le type ENUM pour les statuts
+CREATE TYPE player.friendship_status AS ENUM ('pending', 'accepted', 'blocked');
+
+-- Table des amitiés
+CREATE TABLE player.friendships (
+    id              SERIAL PRIMARY KEY,
+    requester_id    INTEGER NOT NULL REFERENCES player.users(id) ON DELETE CASCADE,
+    addressee_id    INTEGER NOT NULL REFERENCES player.users(id) ON DELETE CASCADE,
+    status          player.friendship_status DEFAULT 'pending',
+    requested_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    responded_at    TIMESTAMP WITH TIME ZONE,
+    
+    -- Contrainte : une seule relation par paire (dans un seul sens)
+    CONSTRAINT unique_friendship_pair
+	UNIQUE (requester_id, addressee_id),
+    
+    -- Contrainte : pas d'auto-amitié
+    CONSTRAINT no_self_friendship
+	CHECK (requester_id != addressee_id)
+);
+
+-- Index pour performance
+CREATE INDEX idx_friendships_requester
+	ON player.friendships(requester_id);
+
+CREATE INDEX idx_friendships_addressee
+	ON player.friendships(addressee_id);
+
+CREATE INDEX idx_friendships_status
+	ON player.friendships(status);
+
+CREATE INDEX idx_friendships_both
+	ON player.friendships(requester_id, addressee_id);
+
+-- Commentaires
+COMMENT ON TABLE player.friendships
+	IS 'Table des relations d''amitié entre joueurs';
+
+COMMENT ON COLUMN player.friendships.requester_id
+	IS 'ID du joueur qui a envoyé la demande';
+
+COMMENT ON COLUMN player.friendships.addressee_id
+	IS 'ID du joueur qui reçoit la demande';
+
+COMMENT ON COLUMN player.friendships.status
+	IS 'Statut de la relation : pending, accepted, blocked';
+
+RESET ROLE;
+
+
+-- ==============================================
 --					CHAT SCHEMA
---					 6 tables
+--					 4 tables
 -- ==============================================
 
 SET ROLE chat_user;

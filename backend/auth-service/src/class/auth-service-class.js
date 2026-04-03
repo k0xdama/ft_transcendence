@@ -7,6 +7,26 @@ import {
 	InvalidCredentialsError } from '../utils/errors.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+// ***** DEBUT BLOC ANTOINE *********************************************************
+import axios from 'axios';
+
+// Configuration
+const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'http://player:3001';
+const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me';
+
+async function createPlayerProfile(userData) {
+	try {
+		const response = await axios.post(`${PLAYER_SERVICE_URL}/players`, userData, {
+			timeout: 5000,
+			headers: { 'service-token': SERVICE_SECRET }
+		});
+		return response.data;
+	} catch (error) {
+		console.error('❌ No answer from player service:', error.message);
+		throw error;
+	}
+}
+// ***** FIN BLOC ANTOINE *********************************************************
 
 function hashToken(token) {
 	return crypto.createHash('sha256').update(token).digest('hex');
@@ -28,7 +48,38 @@ class AuthService {
 				[email, username, passwordHash]
 			);
 
-			return newUser;
+			// ***** DEBUT BLOC ANTOINE *********************************************************
+			console.log(`✅ User created in auth schema: ${newUser.username} (${newUser.id})`);
+
+			// Créer le profil dans player.users
+			try {
+				const playerProfile = await createPlayerProfile({
+					auth_user_id: newUser.id,
+					username: newUser.username,
+					email: newUser.email
+				});
+
+				console.log(`✅ Player profile created: id=${playerProfile.id || playerProfile.player?.id}`);
+
+			} catch (playerError) {
+				console.error('❌ Failed to create player profile:', playerError.message);
+				
+				// Rollback : supprimer l'utilisateur auth si le profil player échoue
+				await db.none('DELETE FROM auth.users WHERE id = $1', [newUser.id]);
+				
+				throw new Error('Registration failed - player service unavailable');
+			}
+
+			// ✅ RETOURNER les données (pas de res.json ici)
+			return {
+				message: `${newUser.username}'s account has been successfully created!`,
+				user: {
+					id: newUser.id,
+					email: newUser.email,
+					username: newUser.username
+				}
+			};
+			// ***** FIN BLOC ANTOINE *********************************************************
 		}
 		catch (error) {
 			if (error.code === '23505') {
