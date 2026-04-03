@@ -1,4 +1,4 @@
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useGame } from "../../context/GameContext"
 import { useAuth } from '../../context/AuthContext'
 import { useEffect, useRef, useState } from 'react'
@@ -45,6 +45,7 @@ function GameView() {
 	const [selectedOpponent, setSelectedOpponent] = useState(null)
 	const [checkSent, setCheckSent] = useState(false)
 	const chatSocketRef = useRef(null)
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		document.body.classList.add('gameboard-active')
@@ -71,6 +72,7 @@ function GameView() {
 	const river = gameStruct.cardsInMiddle
 	const currentAction = gameStruct.currentAction
 	const expectedRevealed = { FIRST: 0, SECOND: 1, BONUS: 2 }
+	const myRevCards = revealedHandCards.filter(c => c.ownerId === me.id)
 	const canAct = isMyTurn && gameStruct.cardsRevealed.length === expectedRevealed[currentAction]
 
 	return (
@@ -100,9 +102,9 @@ function GameView() {
 				onFlip={(cardId) => sendAction(gameId, 'FLIP_MIDDLE', cardId)}
 			/>
 
-			{revealedHandCards.filter(c => c.ownerId === me.id).length > 0 && (
+			{myRevCards.length > 0 && (
 				<div className={`revealed-hand-cards self-revealed-${layout.playerSeat}`}>
-					{revealedHandCards.map(rc => (
+					{myRevCards.map(rc => (
 						<div key={rc.cardId} className="card card-front revealed-card">
 							<img src={getCardImage(rc.value)} className="card-img" alt={`Card ${rc.value}`} />
 						</div>
@@ -176,7 +178,9 @@ function GameView() {
 							{gameResult.reason === 'FORFEIT' && (
 								<p className="game-over-reason">Opponent forfeited</p>
 							)}
-							<p className="game-over-sub">Post-game screen coming soon...</p>
+							<button className='game-over-btn' onClick={() => navigate('/')}>
+								Back to home
+							</button>
 						</div>
 					</div>
 				)}

@@ -223,7 +223,7 @@ body.gameboard-active .main-container {
 
 .revealed-hand-cards.self-revealed-bottom-center {
 	position: absolute;
-	bottom: calc(2vh + 115px);
+	bottom: calc(2vh + 150px);
 	left: 50%;
 	transform: translateX(-50%);
 	display: flex;
@@ -233,7 +233,7 @@ body.gameboard-active .main-container {
 
 .revealed-hand-cards.self-revealed-bottom-right {
 	position: absolute;
-	bottom: calc(8vh + 115px);
+	bottom: calc(8vh + 150px);
 	right: 22vw;
 	display: flex;
 	gap: 0.5rem;
@@ -544,4 +544,23 @@ body.gameboard-active .main-container {
 	text-transform: uppercase;
 	color: rgba(255, 255, 255, 0.25);
 	margin: 0;
+}
+
+.game-over-btn {
+	margin-top: 8px;
+	padding: 12px 36px;
+	border-radius: 8px;
+	border: 1px solid rgba(0, 220, 255, 0.5);
+	background: rgba(0, 200, 255, 0.08);
+	color: #00dcff;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	font-size: 0.8rem;
+	cursor: pointer;
+	transition: background 0.2s, box-shadow 0.2s;
+}
+
+.game-over-btn:hover {
+	background: rgba(0, 200, 255, 0.18);
+	box-shadow: 0 0 20px rgba(0, 200, 255, 0.35);
 }

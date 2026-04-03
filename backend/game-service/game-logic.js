@@ -280,6 +280,7 @@ export function executeAction(gameStruct, actionType, target) {
 				gameStruct.lastTrioWinner = gameStruct.currentPlayer;
 				return_object.winner = checkWinConditions(gameStruct);
 				if (return_object.winner !== null) {
+					console.log("winnerId: ", return_object.winner.winnerId);
 					if (return_object.winner.reason === 'TRIO_OF_7') {
 						gameStruct.stats[gameStruct.currentPlayer].score += 2;
 						gameStruct.stats[gameStruct.currentPlayer].trioOf7 = 1;
@@ -344,7 +345,7 @@ export function checkWinConditions(gameStruct) {
 
 	for (let i = 0; i < triosWonArray.length; ++i) {
 		if (triosWonArray[i] === 7) {
-			win_object.winnerId = currentPlayer.id;
+			win_object.winnerId = currentPlayer;
 			win_object.reason = 'TRIO_OF_7';
 			return (win_object);
 		}
