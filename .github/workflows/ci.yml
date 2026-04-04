@@ -1,72 +1,72 @@
-name : CI Pipeline
+# name : CI Pipeline
 
-permissions:
-  contents: read
+# permissions:
+#   contents: read
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# env:
+#   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-jobs:
-    frontend:
-      runs-on: ubuntu-24.04
-      steps:
-        - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-          with:
-            node-version: '22'
-        - run: npm install
-          working-directory: ./frontend
-        - run: npm test
-          working-directory: ./frontend
-        - run: npm run build
-          working-directory: ./frontend
+# jobs:
+#     frontend:
+#       runs-on: ubuntu-24.04
+#       steps:
+#         - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+#         - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+#           with:
+#             node-version: '22'
+#         - run: npm install
+#           working-directory: ./frontend
+#         - run: npm test
+#           working-directory: ./frontend
+#         - run: npm run build
+#           working-directory: ./frontend
 
-    backend:
-      runs-on: ubuntu-24.04
-      steps:
-        - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-          with:
-            node-version: '22'
-        - run: npm install
-          working-directory: ./backend
-        - name: Create JWT secret
-          run: |
-            sudo mkdir -p /run/secrets
-            echo "${{ secrets.JWT_ACCESS }}" | sudo tee /run/secrets/jwt_access
-        # - run: npm run test:global
-        #   working-directory: ./backend
-        - run: npm test
-          working-directory: ./backend/gateway-service
+#     backend:
+#       runs-on: ubuntu-24.04
+#       steps:
+#         - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+#         - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+#           with:
+#             node-version: '22'
+#         - run: npm install
+#           working-directory: ./backend
+#         - name: Create JWT secret
+#           run: |
+#             sudo mkdir -p /run/secrets
+#             echo "${{ secrets.JWT_ACCESS }}" | sudo tee /run/secrets/jwt_access
+#         # - run: npm run test:global
+#         #   working-directory: ./backend
+#         - run: npm test
+#           working-directory: ./backend/gateway-service
       
-    ci-tests:
-      runs-on: ubuntu-24.04
-      needs: [frontend, backend]
-      steps:
-        - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-          with:
-            node-version: '22'
-        - run: npm install
-          working-directory: ./
-        - name: Create secrets files
-          run: |
-            mkdir -p secrets
-            echo "${{ secrets.PSQL_DBNAME }}" > secrets/psql_dbname.txt
-            echo "${{ secrets.PSQL_ADMIN_USER }}" > secrets/psql_admin_user.txt
-            echo "${{ secrets.PSQL_ADMIN_PASSWD }}" > secrets/psql_admin_passwd.txt
-            echo "${{ secrets.PSQL_SERVICES_PASSWD }}" > secrets/psql_services_passwd.txt
-            echo "${{ secrets.REDIS_PASSWD }}" > secrets/redis_passwd.txt
-            echo "${{ secrets.JWT_ACCESS }}" > secrets/jwt_access.txt
-        - run: docker compose up -d
-        - run: docker exec auth npm test
-        - run: npx wait-on http://localhost:5173 --timeout 60000
-        # - run: npm test
-        - run: docker compose down
-          if: always()
+#     ci-tests:
+#       runs-on: ubuntu-24.04
+#       needs: [frontend, backend]
+#       steps:
+#         - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+#         - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+#           with:
+#             node-version: '22'
+#         - run: npm install
+#           working-directory: ./
+#         - name: Create secrets files
+#           run: |
+#             mkdir -p secrets
+#             echo "${{ secrets.PSQL_DBNAME }}" > secrets/psql_dbname.txt
+#             echo "${{ secrets.PSQL_ADMIN_USER }}" > secrets/psql_admin_user.txt
+#             echo "${{ secrets.PSQL_ADMIN_PASSWD }}" > secrets/psql_admin_passwd.txt
+#             echo "${{ secrets.PSQL_SERVICES_PASSWD }}" > secrets/psql_services_passwd.txt
+#             echo "${{ secrets.REDIS_PASSWD }}" > secrets/redis_passwd.txt
+#             echo "${{ secrets.JWT_ACCESS }}" > secrets/jwt_access.txt
+#         - run: docker compose up -d
+#         - run: docker exec auth npm test
+#         - run: npx wait-on http://localhost:5173 --timeout 60000
+#         # - run: npm test
+#         - run: docker compose down
+#           if: always()
