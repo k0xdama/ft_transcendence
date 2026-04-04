@@ -42,9 +42,7 @@ function RegisterView() {
 			return;
 		}
 
-		else {
-			console.log('Validation passed ! Registration Data:', {formData});
-		}
+		console.log('Validation passed ! Registration Data:', {formData});
 
 		setLoading(true);
 

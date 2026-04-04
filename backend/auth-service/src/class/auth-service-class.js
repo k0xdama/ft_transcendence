@@ -16,6 +16,7 @@ const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me';
 
 async function createPlayerProfile(userData) {
 	try {
+		console.log("createPlayerProfil : [username] -> ", userData.username);
 		const response = await axios.post(`${PLAYER_SERVICE_URL}/players`, userData, {
 			timeout: 5000,
 			headers: { 'service-token': SERVICE_SECRET }
@@ -59,7 +60,7 @@ class AuthService {
 					email: newUser.email
 				});
 
-				console.log(`✅ Player profile created: id=${playerProfile.id || playerProfile.player?.id}`);
+				console.log(`✅ Player profile created: id=${playerProfile.auth_user_id}, username=${playerProfile.username}`);
 
 			} catch (playerError) {
 				console.error('❌ Failed to create player profile:', playerError.message);
@@ -69,16 +70,9 @@ class AuthService {
 				
 				throw new Error('Registration failed - player service unavailable');
 			}
-
+			console.log(`register (auth-service-class.js) [username] -> ${newUser.username}`);
 			// ✅ RETOURNER les données (pas de res.json ici)
-			return {
-				message: `${newUser.username}'s account has been successfully created!`,
-				user: {
-					id: newUser.id,
-					email: newUser.email,
-					username: newUser.username
-				}
-			};
+			return newUser;
 			// ***** FIN BLOC ANTOINE *********************************************************
 		}
 		catch (error) {

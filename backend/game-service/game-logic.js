@@ -386,7 +386,7 @@ export function getLinkedValues(cardValue) {
 		4: [3, 11],
 		5: [2, 12],
 		6: [1],
-		7: [],
+		7: [], // ??
 		8: [1],
 		9: [2],
 		10: [3],
