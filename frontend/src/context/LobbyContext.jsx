@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useRef } from "react";
+import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { io } from "socket.io-client";
+import { useAuth } from "./AuthContext"
 
 const LobbyContext = createContext(null);
 
@@ -11,9 +12,25 @@ export function LobbyProvider({ children }) {
 	const [lobbyStruct, setLobbyStruct] = useState(null);
 	const [lobbyId, setLobbyId] = useState(null);
 	const [gameId, setGameId] = useState(null);
+	const [matchmakingStatus, setMatchmakingStatus] = useState(null);
 	const [lobbyError, setLobbyError] = useState(null);
 	const socketRef = useRef(null);
 	const lobbyUrl = '/api/lobby';
+
+	const { user } = useAuth();
+
+	useEffect(() => {
+		if (user && !socketRef.current) {
+			connect();
+		}
+		if (!user && socketRef.current) {
+			socketRef.current.disconnect();
+			socketRef.current = null;
+			setLobbyStruct(null);
+			setLobbyId(null);
+			setGameId(null);
+		}
+	}, [user]);
 
 	const connect = (onConnected, onConnectionError, onLobbyCreated, onLobbyJoined) => {
 		if (socketRef.current)
@@ -79,6 +96,16 @@ export function LobbyProvider({ children }) {
 		socketRef.current.emit('lobby:join', { lobbyId });
 	};
 
+	const joinMatchmaking = (gameMode, gameType, maxUsers) => {
+		socketRef.current.emit('matchmaking:join', { gameMode, gameType, maxUsers });
+		setMatchmakingStatus('searching');
+	};
+
+	const leaveMatchmaking = () => {
+		socketRef.current.emit('matchmaking:leave');
+		setMatchmakingStatus(null);
+	};
+
 	const toggleReady = (lobbyId) => {
 		socketRef.current.emit('lobby:ready', { lobbyId });
 	};
@@ -96,8 +123,11 @@ export function LobbyProvider({ children }) {
 			connect,
 			createLobby,
 			joinLobby,
+			joinMatchmaking,
+			leaveMatchmaking,
 			toggleReady,
 			startGame,
+			matchmakingStatus,
 			gameId
 		}}>
 			{children}

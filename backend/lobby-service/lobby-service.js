@@ -177,6 +177,9 @@ io.on('connection', (socket) => {
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId, gameId: gameData.gameId }))
 				.catch(console.error);
 			io.to(lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
+			lobbys.delete(lobbyId);
+			for (const player of matchedPlayers)
+				lobbyBySocket.delete(player.socket.id);
 		}
 		catch {
 			for (const player of matchedPlayers)
@@ -266,18 +269,26 @@ io.on('connection', (socket) => {
 			publishLobbyMembers(gameData.gameId, lobbyStruct);
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId: data.lobbyId, gameId: gameData.gameId }))
 				.catch(console.error);
-			io.to(data.lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
+			io.to(data.lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId, lobbyId: lobbyStruct.lobbyId });
 		}
 		catch {
 			socket.emit('error', 'Unable to start the game, the game server is unreachable');
 		}
 	});
 
-	// socket.on('lobby:back', (data) => {
-	// 	const lobbyStruct = lobbys.get(data.lobbyId);
-	// 	if (!lobbyStruct)
-			
-	// });
+	socket.on('lobby:back', (data) => {
+		const lobbyStruct = lobbys.get(data.lobbyId);
+		if (!lobbyStruct) {
+			socket.emit('error', `Something went wrong...`);
+			return;
+		}
+		lobbyStruct.state = LOBBY_STATE.WAITING;
+		lobbyStruct.gameId = null;
+		for (const user of lobbyStruct.users) {
+			user.ready = false;
+		}
+		io.to(data.lobbyId).emit('lobby:joined', { lobbyStruct });
+	});
 
 	socket.on('matchmaking:leave', () => {
 		const queueKey = queueBySocket.get(socket.id);

@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './JoinGameView.css'
 
 function JoinGameView() {
 	const	[inputLobbyId, setInputLobbyId] = useState('')
 	const	[error, setError] = useState(null)
-	const	{ connect, joinLobby, lobbyError, setLobbyError } = useLobby()
+	const	{ lobbyId, joinLobby, lobbyError, setLobbyError } = useLobby()
 	const	{ isAuthenticated } = useAuth()
 	const	navigate = useNavigate()
 
@@ -26,13 +26,14 @@ function JoinGameView() {
 			setError('Enter a valid ID!')
 			return
 		}
-		connect(
-			() => joinLobby(inputLobbyId),
-			(msg) => setError(msg),
-			null,
-			(lobbyId) => navigate(`/lobby/${lobbyId}`)
-		)
+		joinLobby(inputLobbyId)
 	}
+
+	useEffect(() => {
+		if (lobbyId)
+			navigate(`/lobby/${lobbyId}`)
+	}, [lobbyId])
+
 	return (
 		<div className='joinGameView'>
 			<div className='joinBox'>

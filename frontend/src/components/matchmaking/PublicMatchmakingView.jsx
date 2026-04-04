@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMatchmaking } from '../../context/MatchmakingContext'
+import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
 import './PublicMatchmakingView.css'
 
@@ -10,7 +10,7 @@ function PublicMatchmakingView() {
 	const [maxUsers, setMaxUsers] = useState(3)
 	const [error, setError] = useState(null)
 
-	const { connect, joinMatchmaking } = useMatchmaking()
+	const { gameId, joinMatchmaking, leaveMatchmaking } = useLobby()
 	const { isAuthenticated } = useAuth()
 	const navigate = useNavigate()
 
@@ -20,15 +20,10 @@ function PublicMatchmakingView() {
 			setError('You must be logged in to search for a game!')
 			return
 		}
-		connect(
-			() => {
-				joinMatchmaking(gameMode, gameType, maxUsers)
-				navigate('/matchmaking/waiting', {
-					state: { gameMode, gameType, maxUsers }
-				})
-			},
-			(msg) => setError(msg)
-		)
+		joinMatchmaking(gameMode, gameType, maxUsers)
+		navigate('/matchmaking/waiting', {
+			state: { gameMode, gameType, maxUsers }
+		})
 	}
 
 	const modes = [

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from 'react-router-dom'
 import { useLobby } from "../../context/LobbyContext"
 import { useAuth } from "../../context/AuthContext"
@@ -10,7 +10,7 @@ function CreateGameView() {
 	const	[gameType, setGameType] = useState('SOLO')
 	const	[error, setError] = useState(null)
 
-	const	{ connect, createLobby } = useLobby()
+	const	{ lobbyId, createLobby } = useLobby()
 	const	{ isAuthenticated } = useAuth()
 	const	navigate = useNavigate()
 
@@ -20,12 +20,13 @@ function CreateGameView() {
 			setError('You must be logged in to create a room!')
 			return
 		}
-		connect(
-			() => createLobby(gameMode, gameType, maxUsers),
-			(msg) => setError(msg),
-			(lobbyId) => navigate(`/lobby/${lobbyId}`)
-		)
+		createLobby(gameMode, gameType, maxUsers)
 	}
+
+	useEffect(() => {
+		if (lobbyId)
+			navigate(`/lobby/${lobbyId}`)
+	}, [lobbyId])
 
 	return (
 		<div className='createGameView'>

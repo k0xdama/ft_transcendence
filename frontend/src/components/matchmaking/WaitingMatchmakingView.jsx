@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useMatchmaking } from '../../context/MatchmakingContext'
+import { useLobby } from '../../context/LobbyContext'
 import './WaitingMatchmakingView.css'
 
 function WaitingMatchmakingView() {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const { gameId, error, leaveMatchmaking } = useMatchmaking()
+	const { gameId, lobbyError: error, leaveMatchmaking } = useLobby()
 
 	const { gameMode, gameType, maxUsers } = location.state || {}
 
