@@ -73,6 +73,7 @@ class AuthService {
 			console.log(`register (auth-service-class.js) [username] -> ${newUser.username}`);
 			// ✅ RETOURNER les données (pas de res.json ici)
 			return newUser;
+
 			// ***** FIN BLOC ANTOINE *********************************************************
 		}
 		catch (error) {

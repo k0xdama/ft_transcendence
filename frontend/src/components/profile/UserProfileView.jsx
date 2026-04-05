@@ -34,28 +34,20 @@ function UserProfileView() {
 	const fetchProfileData = async () => {
 		setLoading(true)
 		try {
-			// TODO: Replace with actual API call when user-service is implemented
-			// const response = await authFetch(`http://localhost:4000/api/users/${targetUserId}`)
-			// const data = await response.json()
-			// setProfileData(data)
-
-			// Mock data for now - use current user data if own profile
-			if (isOwnProfile && user) {
-				setProfileData({
-					id: user.id,
-					username: user.username,
-					email: user.email,
-					avatarUrl: null,
-					createdAt: new Date().toISOString()
-				})
-			} else {
-				setProfileData({
-					id: targetUserId,
-					username: 'Player_' + targetUserId?.slice(0, 6),
-					avatarUrl: null,
-					createdAt: new Date().toISOString()
-				})
+			// todo: Peut etre Mettre des donnees par defaut en cas de fail de fetch pour eviter les trous
+			const response = await fetch(`/api/players/${targetUserId}`)
+			if (!response.ok) {
+				throw new Error('Failed to fetch profile data')
 			}
+			const playerData = await response.json()
+
+			setProfileData({
+				id: playerData.auth_user_id,
+				username: playerData.username,
+				email: playerData.email,
+				avatarUrl: playerData.pp_path,
+				createdAt: playerData.created_at
+			})
 		} catch (err) {
 			console.error('Failed to fetch profile:', err)
 			setError('Failed to load profile')
@@ -66,22 +58,26 @@ function UserProfileView() {
 
 	const fetchStats = async () => {
 		try {
-			// TODO: Replace with actual API call when stats endpoint is implemented
-			// const response = await authFetch(`http://localhost:4000/api/users/${targetUserId}/stats`)
-			// const data = await response.json()
-			// setStats(data)
-
-			// Mock stats
+			const response = await fetch(`/api/players/${targetUserId}`)
+			
+			if (!response.ok) {
+				throw new Error('Failed to fetch stats')
+			}
+			
+			const playerData = await response.json()
+			
+			// Extraire les stats des données du joueur
 			setStats({
-				gamesPlayed: 0,
-				gamesWon: 0,
-				gamesLost: 0,
-				totalScore: 0,
-				totalActions: 0,
-				triosOf7: 0,
-				totalCombos: 0,
-				longestCombo: 0,
-				perfectGames: 0
+				//todo: il va falloir que j'ajoute des slots de stat dans la base de donnees et que je vois quelles stats on affiche
+				gamesPlayed: playerData.games_played ,
+				gamesWon: playerData.won ,
+				gamesLost: playerData.games_lost ,
+				totalScore: playerData.score ,
+				totalActions: playerData.actions_played ,
+				triosOf7: playerData.trio_of_7 ,
+				totalCombos: playerData.combo ,
+				longestCombo: playerData.longest_combo ,
+				perfectGames: playerData.perfect_game
 			})
 		} catch (err) {
 			console.error('Failed to fetch stats:', err)
@@ -132,55 +128,93 @@ function UserProfileView() {
 
 	const handleAvatarUpload = async (file) => {
 		try {
-			// TODO: Replace with actual API call
-			// const formData = new FormData()
-			// formData.append('avatar', file)
-			// await authFetch(`http://localhost:4000/api/users/${user.id}/avatar`, {
-			//   method: 'POST',
-			//   body: formData
-			// })
-			// fetchProfileData()
-			console.log('Avatar upload not yet implemented:', file.name)
+			const formData = new FormData()
+			formData.append('profilePicture', file)  // Clé attendue par upload.single('profilePicture')
+
+			const response = await fetch(`/api/players/${user.id}/profile-picture`, {
+				method: 'POST',
+				body: formData
+				// NE PAS mettre de Content-Type, le navigateur le met automatiquement
+			})
+
+			if (!response.ok) {
+				throw new Error('Upload failed')
+			}
+
+			const data = await response.json()
+			setProfileData(prev => ({
+				...prev,
+				avatarUrl: data.player.pp_path
+			}))
 		} catch (err) {
+			console.error('Avatar upload error:', err)
 			setError('Failed to upload avatar')
 		}
 	}
 
 	const handleAvatarDelete = async () => {
 		try {
-			// TODO: Replace with actual API call
-			// await authFetch(`http://localhost:4000/api/users/${user.id}/avatar`, { method: 'DELETE' })
-			// fetchProfileData()
-			console.log('Avatar delete not yet implemented')
+			const response = await fetch(`/api/players/${user.id}/profile-picture`, {
+				method: 'DELETE'
+			})
+
+			if (!response.ok) {
+				throw new Error('Delete failed')
+			}
+
+			const data = await response.json()
+			setProfileData(prev => ({
+				...prev,
+				avatarUrl: data.pp_path
+			}))
 		} catch (err) {
+			console.error('Avatar delete error:', err)
 			setError('Failed to delete avatar')
 		}
 	}
 
 	const handleUpdateProfile = async (field, value) => {
 		try {
-			// TODO: Replace with actual API call
-			// await authFetch(`http://localhost:4000/api/users/${user.id}`, {
-			//   method: 'PUT',
-			//   headers: { 'Content-Type': 'application/json' },
-			//   body: JSON.stringify({ [field]: value })
-			// })
-			// fetchProfileData()
-			console.log(`Update ${field} not yet implemented:`, value)
+			//todo: ajouter une verif du format et de la disponibilite du username et de l'email avant d'envoyer la requete
+			//todo: WARN AUSSI MODIF la requete fetch pour qu'elle modifie le username email et mdp de l'auth et sa bdd
+			//todo: aussi permettre la modif du mot de passe
+			const response = await fetch(`/api/players/${user.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ [field]: value })
+			})
+
+			if (!response.ok) {
+				const error = await response.json()
+				throw new Error(error.error || 'Failed to update profile')
+			}
+
+			const updatedData = await response.json()
+			setProfileData(prev => ({
+				...prev,
+				[field]: updatedData[field]
+			}))
+
 			return { success: true }
 		} catch (err) {
-			return { success: false, error: 'Failed to update profile' }
+			console.error('Error updating profile:', err)
+			return { success: false, error: err.message }
 		}
 	}
 
 	const handleDeleteAccount = async () => {
 		try {
-			// TODO: Replace with actual API call
-			// await authFetch(`http://localhost:4000/api/users/${user.id}`, { method: 'DELETE' })
+			//todo: reverif que tout est dans la norme ca coute rien
+			//todo: modif la requete pour supprimer de l'auth aussi 
+
+			const response = await fetch(`/api/players/${user.id}`, {
+				method: 'DELETE'
+			})
+
 			await logout()
 			navigate('/')
 		} catch (err) {
-			setError('Failed to delete account')
+			setError('Failed to delete account', err)
 		}
 	}
 

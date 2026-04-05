@@ -59,7 +59,7 @@ function injectUserInfos(req, res, next) {
 const router = Router();
 
 router.use('/auth', authProxy);
-router.use('/players', playerProxy); // voir si ajouter injectUserInfos (normalement oui)
+router.use('/players', playerProxy, injectUserInfos); // voir si ajouter injectUserInfos (normalement oui)
 router.use('/chat', authGuard, injectUserInfos, chatProxy);
 router.use('/lobby', authGuard, injectUserInfos, lobbyProxy);
 router.use('/game', authGuard, injectUserInfos, gameProxy);

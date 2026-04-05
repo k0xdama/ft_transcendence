@@ -10,7 +10,7 @@ export async function register(req, res) {
 		const newUser = await authService.register({ email, username, password });
 
 		return res.status(201).json({
-			message: `${newUser.username}'s account has been successfully created!`,
+			message: `${newUser.username}'s account has been successfully created! (auth-controller)`,
 			user: newUser
 		});
 	}
