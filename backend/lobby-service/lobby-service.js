@@ -30,6 +30,7 @@ export const GAME_TYPES = {
 
 const lobbys = new Map();
 const lobbyBySocket = new Map();
+const onlineUsers = new Map();
 
 const app = express();
 app.use(express.json());
@@ -128,7 +129,17 @@ function publishUserStatus(userId, status) {
 }
 
 io.on('connection', (socket) => {
-	console.log(`Client connected: ${socket.id}`);
+	const existingSocketId = onlineUsers.get(socket.user.id);
+	if (existingSocketId) {
+		const existingSocket = io.sockets.sockets.get(existingSocketId);
+		if (existingSocket && existingSocket.connected) {
+			socket.emit('error', 'Trying to connect from an another device !');
+			socket.disconnect();
+			return;
+		}
+	}
+	onlineUsers.set(socket.user.id, socket.id);
+	console.log(`Client connected: ${socket.id} (user: ${socket.user.username})`);
 
 	socket.on('lobby:create', (data) => {
 		const lobbyId = generateLobbyId(lobbys);
@@ -302,6 +313,10 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', () => {
 		publishUserStatus(socket.user.id, 'offline');
+		console.log(`Client disconnected: ${socket.id}`);
+
+		if (onlineUsers.get(socket.user.id) === socket.id)
+			onlineUsers.delete(socket.user.id);
 
 		const lobbyId = lobbyBySocket.get(socket.id);
 		if (lobbyId != undefined) {
@@ -325,7 +340,6 @@ io.on('connection', (socket) => {
 					lobbyStruct.state = LOBBY_STATE.WAITING;
 				publishLobbyMembers(lobbyId, lobbyStruct);
 				io.to(lobbyId).emit('lobby:disconnected', { userId: socket.user.id });
-				console.log(`Client disconnected: ${socket.id}`);
 			}
 		}
 		else {

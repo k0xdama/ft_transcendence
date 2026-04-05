@@ -17,7 +17,7 @@ export function LobbyProvider({ children }) {
 	const socketRef = useRef(null);
 	const lobbyUrl = '/api/lobby';
 
-	const { user } = useAuth();
+	const { user, logout } = useAuth();
 
 	useEffect(() => {
 		console.log('LobbyContext useEffect - user:', user, 'socket:', socketRef.current);
@@ -87,6 +87,10 @@ export function LobbyProvider({ children }) {
 
 		socketRef.current.on('error', (message) => {
 			setLobbyError(message);
+			if (message === "Trying to connect from an another device !") {
+				socketRef.current = null;
+				logout();
+			}
 		});
 	}
 
