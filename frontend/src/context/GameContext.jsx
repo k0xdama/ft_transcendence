@@ -99,6 +99,20 @@ export function GameProvider({ children }) {
 		})
 	}
 
+	const disconnect = () => {
+		if (socketRef.current) {
+			socketRef.current.disconnect();
+			socketRef.current = null;
+		}
+		setGameStruct(null);
+		setGameResult(null);
+		setPendingCheck(false);
+		setLastAction(null);
+		setTurnTimer(false);
+		setDisconnectedPlayer(null);
+		setRevealedHandCards([]);
+	};
+
 	const	sendAction = (gameId, actionType, target = null) => {
 		socketRef.current.emit('game:action', { gameId, actionType, target })
 	}
@@ -112,6 +126,7 @@ export function GameProvider({ children }) {
 		gameError,
 		gameResult,
 		connect,
+		disconnect,
 		sendAction,
 		sendCheck,
 		turnTimer,
@@ -127,3 +142,5 @@ export function GameProvider({ children }) {
 		</GameContext.Provider>
 	)
 }
+
+

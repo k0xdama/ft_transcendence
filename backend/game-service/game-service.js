@@ -1,7 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import { createClient } from 'redis';
-import { createServer } from 'http';
+import { createServer } from 'https';
 import { Server } from 'socket.io';
 import { randomUUID } from 'crypto';
 import {
@@ -18,10 +18,15 @@ const gameBySocket = new Map();
 const playersTimers = new Map();
 const gameTimers = new Map();
 
+const sslOptions = {
+	key: fs.readFileSync('/run/secrets/ssl_key'),
+	cert: fs.readFileSync('/run/secrets/ssl_cert')
+};
+
 const app = express();
 app.use(express.json());
 
-const server = createServer(app);
+const server = createServer(sslOptions, app);
 const io = new Server(server);
 
 const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf-8').trim();

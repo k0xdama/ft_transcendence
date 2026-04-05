@@ -13,6 +13,7 @@ function LobbyView() {
 	const	chatSocketRef = useRef(null)
 
 	useEffect(() => {
+		console.log('LobbyView useEffect - gameId:', gameId);
 		if (gameId)
 			navigate(`/game/${gameId}`, { state: { lobbyId } })
 	}, [gameId])

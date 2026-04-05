@@ -20,6 +20,8 @@
 
 import express from 'express';
 import playerRoutes from './src/routes/player.js';
+import fs from 'fs';
+import { createServer } from 'https';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { statsWorker } from './src/workers/stats-worker.js';
@@ -27,6 +29,11 @@ import { statsWorker } from './src/workers/stats-worker.js';
 // Recréer __dirname pour ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const sslOptions = {
+    key: fs.readFileSync('/run/secrets/ssl_key'),
+    cert: fs.readFileSync('/run/secrets/ssl_cert'),
+};
 
 const app = express();
 
@@ -45,10 +52,12 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'player' });
 });
 
+const server = createServer(sslOptions, app);
+
 const port = 3001;
 
 if (process.env.NODE_ENV !== 'test') {
-    app.listen(port, '0.0.0.0', () => {
+    server.listen(port, '0.0.0.0', () => {
         console.log(`✅ Player service running on port ${port}`);
         console.log(`📁 Static files served from: ${path.join(__dirname, 'uploads')}`);
     });

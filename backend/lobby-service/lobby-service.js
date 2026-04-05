@@ -1,5 +1,5 @@
 import express from 'express';
-import { createServer } from 'http';
+import { createServer } from 'https';
 import { Server } from 'socket.io';
 import { createClient } from 'redis';
 import fs from 'fs';
@@ -32,10 +32,18 @@ const lobbys = new Map();
 const lobbyBySocket = new Map();
 const onlineUsers = new Map();
 
+const sslOptions = {
+	key: fs.readFileSync('/run/secrets/ssl_key'),
+	cert: fs.readFileSync('/run/secrets/ssl_cert')
+};
+
+//bypass auto sign certificate
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const app = express();
 app.use(express.json());
 
-const server = createServer(app);
+const server = createServer(sslOptions, app);
 const io = new Server(server);
 
 const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf8').trim();
@@ -171,7 +179,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//variable d'environnement docker compose ?
-			const res = await fetch("http://game:3002/create", {
+			const res = await fetch("https://game:3002/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -264,7 +272,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//env var via docker compose ?
-			const res = await fetch("http://game:3002/create", {
+			const res = await fetch("https://game:3002/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

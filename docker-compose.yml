@@ -64,6 +64,8 @@ services:
       dockerfile: Dockerfile
     secrets:
       - jwt_access
+      - ssl_key
+      - ssl_cert
     volumes:
       - ./backend/api-gateway/src:/app/src:ro
     networks:
@@ -83,6 +85,8 @@ services:
       - psql_services_passwd
       # - psql_auth_passwd
       - jwt_access
+      - ssl_key
+      - ssl_cert
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
@@ -108,6 +112,8 @@ services:
       # - psql_player_passwd
       - redis_passwd
       # - service_token
+      - ssl_key
+      - ssl_cert
     build:
       context: ./backend/player-service
       dockerfile: Dockerfile
@@ -133,6 +139,8 @@ services:
       - psql_services_passwd
       # - psql_chat_passwd
       - redis_passwd
+      - ssl_key
+      - ssl_cert
     build:
       context: ./backend/chat-service
       dockerfile: Dockerfile
@@ -155,6 +163,8 @@ services:
       dockerfile: Dockerfile
     secrets:
       - redis_passwd
+      - ssl_key
+      - ssl_cert
     volumes:
       - ./backend/lobby-service/src:/app/src:ro
     networks:
@@ -174,6 +184,8 @@ services:
       dockerfile: Dockerfile
     secrets:
       - redis_passwd
+      - ssl_key
+      - ssl_cert
     volumes:
       - ./backend/game-service/src:/app/src:ro
     networks:
@@ -188,6 +200,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    secrets:
+      - ssl_key
+      - ssl_cert
     volumes:
       - ./frontend/src:/app/src:ro
       - ./frontend/public:/app/public:ro
@@ -225,6 +240,10 @@ secrets:
     file: ./secrets/redis_passwd.txt
   jwt_access:
     file: ./secrets/jwt_access.txt
+  ssl_key:
+    file: ./secrets/ssl/key.pem
+  ssl_cert:
+    file: ./secrets/ssl/cert.pem
 
 networks:
   trio_network:

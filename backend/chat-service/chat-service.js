@@ -1,16 +1,22 @@
 import express from 'express';
-import { createServer } from 'http';
+import { createServer } from 'https';
 import { Server } from 'socket.io';
+import fs from 'fs';
 import chatRoutes from './src/routes/chat-router.js';
 import { redisSubscriber, lobbyMembers } from './src/config/redis.js';
 import { chatService } from './src/class/chat-service-class.js';
+
+const sslOptions = {
+	key: fs.readFileSync('/run/secrets/ssl_key'),
+	cert: fs.readFileSync('/run/secrets/ssl_cert')
+};
 
 const app = express();
 
 app.use(express.json());
 app.use('/chat', chatRoutes);
 
-const server = createServer(app);
+const server = createServer(sslOptions, app);
 const io = new Server(server);
 
 // Auth: headers are injected by the API Gateway after JWT verification

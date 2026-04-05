@@ -11,7 +11,8 @@ import crypto from 'crypto';
 import axios from 'axios';
 
 // Configuration
-const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'http://player:3001';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'https://player:3001';
 const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me';
 
 async function createPlayerProfile(userData) {

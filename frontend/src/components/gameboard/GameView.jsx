@@ -40,7 +40,7 @@ function GameView() {
 	const { gameId } = useParams()
 	const { state } = useLocation()
 	const lobbyId = state?.lobbyId || gameId
-	const { gameStruct, connect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
+	const { gameStruct, connect, disconnect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
 	const { user } = useAuth()
 	const [selectedOpponent, setSelectedOpponent] = useState(null)
 	const [checkSent, setCheckSent] = useState(false)
@@ -48,9 +48,13 @@ function GameView() {
 	const navigate = useNavigate()
 
 	useEffect(() => {
+		console.log('GameView mounted - gameId:', gameId);
 		document.body.classList.add('gameboard-active')
 		connect(gameId)
-		return () => document.body.classList.remove('gameboard-active')
+		return () => {
+			document.body.classList.remove('gameboard-active')
+			disconnect()
+		}
 	}, [])
 
 	useEffect(() => {

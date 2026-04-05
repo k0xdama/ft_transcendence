@@ -4,7 +4,7 @@ import cookie from 'cookie';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { createServer } from 'http';
+import { createServer } from 'https';
 import { router, lobbyProxy, gameProxy, chatWsProxy } from './src/routes/proxy-router.js';
 
 const JWT_SECRET = fs.readFileSync('/run/secrets/jwt_access', 'utf8').trim();
@@ -19,16 +19,21 @@ function authenticateUpgrade(req) {
 	return jwt.verify(accessToken, JWT_SECRET);
 };
 
+const sslOptions = {
+	key: fs.readFileSync('/run/secrets/ssl_key'),
+	cert: fs.readFileSync('/run/secrets/ssl_cert')
+};
+
 const app = express();
 
 app.use(cors({
-	origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+	origin: process.env.CORS_ORIGIN || 'https://localhost:5173',
 	credentials: true
 }));
 app.use(cookieParser());
 app.use('/api', router);
 
-const server = createServer(app);
+const server = createServer(sslOptions, app);
 
 server.on('upgrade', (req, socket, head) => {
 	try {
