@@ -20,10 +20,12 @@ export function LobbyProvider({ children }) {
 	const { user } = useAuth();
 
 	useEffect(() => {
+		console.log('LobbyContext useEffect - user:', user, 'socket:', socketRef.current);
 		if (user && !socketRef.current) {
 			connect();
 		}
 		if (!user && socketRef.current) {
+			console.log("Disconnecting lobby socket !");
 			socketRef.current.disconnect();
 			socketRef.current = null;
 			setLobbyStruct(null);
