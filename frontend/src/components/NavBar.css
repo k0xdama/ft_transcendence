@@ -74,3 +74,36 @@
 	cursor: pointer;
 }
 
+.navbar-footer {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 0;
+	background: rgba(10, 5, 20, 0.6);
+	backdrop-filter: blur(8px);
+	z-index: 100;
+}
+
+.footer-link {
+	font-size: 0.6rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: rgba(220, 190, 255, 0.4);
+	text-decoration: none;
+	transition: color 0.2s;
+}
+
+.footer-link:hover {
+	color: rgba(220, 190, 255, 0.8);
+}
+
+.footer-sep {
+	color: rgba(220, 190, 255, 0.2);
+	font-size: 0.6rem;
+}
+

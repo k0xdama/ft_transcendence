@@ -13,6 +13,8 @@ import LobbyView from './components/lobby/LobbyView'
 import GameView from './components/gameboard/GameView'
 import PublicMatchmakingView from './components/matchmaking/PublicMatchmakingView'
 import WaitingMatchmakingView from './components/matchmaking/WaitingMatchmakingView'
+import PrivacyPolicyView from './components/legal/PrivacyPolicyView'
+import TermsOfServiceView from './components/legal/TermsOfServiceView'
 
 function App() {
   const [ backendStatus, setBackendStatus ] = useState(null)
@@ -42,6 +44,8 @@ function App() {
           <Route path="/game/:gameId" element={<GameView />} />
           <Route path="/matchmaking" element={<PublicMatchmakingView />} />
           <Route path="/matchmaking/waiting" element={<WaitingMatchmakingView />} />
+          <Route path="/privacy" element={<PrivacyPolicyView />} />
+          <Route path="/terms" element={<TermsOfServiceView />} />
         </Routes>
       </div>
     </>
