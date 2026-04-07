@@ -72,6 +72,11 @@ services:
       - trio_network
     ports:
       - "4000:4000" # Only backend entrypoint
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-check-certificate --spider -q https://localhost:4000/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
 
   auth:

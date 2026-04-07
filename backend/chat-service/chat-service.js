@@ -110,6 +110,18 @@ await redisSubscriber.subscribe('user:statusChanged', (raw) => {
 // 	});
 // });
 
+// Purge expired messages every 24h
+const PURGE_INTERVAL = 24 * 60 * 60 * 1000;
+setInterval(async () => {
+	try {
+		const { wsDeleted, dmDeleted } = await chatService.purgeExpiredMessages();
+		if (wsDeleted || dmDeleted)
+			console.log(`Purged ${wsDeleted} ws + ${dmDeleted} dm expired messages`);
+	} catch (err) {
+		console.error('Purge expired messages failed:', err.message);
+	}
+}, PURGE_INTERVAL);
+
 const PORT = 2000;
 server.listen(PORT, '0.0.0.0', () => {
 	console.log(`CHAT-SERVICE running on ${PORT}`);

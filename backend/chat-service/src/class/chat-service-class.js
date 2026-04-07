@@ -212,6 +212,45 @@ class ChatService {
 		return history;
 	}
 
+	async purgeUserData(userId) {
+		await db.tx(async t => {
+			await t.none(
+				`DELETE FROM chat.direct_messages
+				WHERE conversation_id IN (
+					SELECT id FROM chat.direct_conversations
+					WHERE user1_id = $1 OR user2_id = $1
+				)`,
+				[userId]
+			);
+			await t.none(
+				`DELETE FROM chat.direct_conversations
+				WHERE user1_id = $1 OR user2_id = $1`,
+				[userId]
+			);
+			await t.none(
+				`DELETE FROM chat.ws_messages WHERE sender_id = $1`,
+				[userId]
+			);
+			await t.none(
+				`DELETE FROM chat.blocked_users
+				WHERE blocker_id = $1 OR blocked_id = $1`,
+				[userId]
+			);
+		});
+
+		await redisClient.del(`chat:blocked:${userId}`);
+	}
+
+	async purgeExpiredMessages() {
+		const ws = await db.result(
+			`DELETE FROM chat.ws_messages WHERE expires_at < NOW()`
+		);
+		const dm = await db.result(
+			`DELETE FROM chat.direct_messages WHERE expires_at < NOW()`
+		);
+		return { wsDeleted: ws.rowCount, dmDeleted: dm.rowCount };
+	}
+
 	async getMyDMs(userId) {
 		const conversations = await db.manyOrNone(
 			`SELECT

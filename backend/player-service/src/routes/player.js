@@ -1,37 +1,23 @@
-import 	express from 	'express';
-import	{ db } 	from	'../db/queries.js';
-
-import	path 	from	'path';
+import express from 'express';
+import { db } from '../config/db.js';
+import path from 'path';
 import { deleteFile, isDefaultProfilePicture } from '../utils/fileHandler.js';
 import upload, { UPLOAD_DIR, DEFAULT_PROFILE_PICTURE } from '../middleware/upload.js';
 
-//import { generateAccessToken } from '../../../auth-service/src/utils/jwt.js';//pas utilise pour le moment
-//import { verifyToken } from '../../../auth-service/src/middleware/verify-token.js';//pas utilise pour le moment
 
-const	router = express.Router();//on utilise router pour eviter de faire toutes les routes dans un meme fichier mais il faudra bien creer lke server.js qui contient 
+const	router = express.Router();
 
-// MON TRUC
-//const	PORT = 3001; //si modif ca aussi modif le port exposed dans dockerfile
-// MON TRUC
-
-//const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me-in-production';//token secret cunnu seulement des service permettant d'attester que c'est un service qui a fait la requete
-//const SERVICE_SECRET = fs.readFileSync('/run/secrets/service_token', 'utf8').trim();//version avec les secrets a tester une fis que les test avec token hardcode marche car en env docker on vois les mdp donc aucun interet
-const SERVICE_SECRET = 'change-me';//WARN A CHANGER PAR UNE LECTURE DU TOKEN DANS LES SECRETS
-
-
-const	verifyServiceToken = (req, res, next) => {
-	const	token = req.headers['service-token'];//on recup le token mis dans le header par auth WARN express convertit tout les headers en minuscule donc 'Service-token' devient 'service-token'
-	
-	if (token !== SERVICE_SECRET){
-		return res.status(403).json({ error: `Invalid Service token yours is "${token}" the good one is "${SERVICE_SECRET}"`});
-	}
-
+// Headers injected by the API Gateway after JWT verification
+router.use((req, res, next) => {
+	req.user = {
+		id: req.headers['x-user-id'],
+		username: req.headers['x-user-username'],
+		email: req.headers['x-user-email']
+	};
 	next();
-};
+});
 
-
-//WARN REST on doit avoir les nom au pluriel voir conv avec claude
-router.post('/', verifyServiceToken, async (req, res) => {// WARN route de la methode a changer carla convention REST implique deja que post creer donc on a juste post / pas post/create
+router.post('/', async (req, res) => {
 	const	{auth_user_id, username, email} = req.body;//A CHANGER SI RAJOUTE DES PARAMS DANS LA DB
 	
 	console.log('===== PLAYER CREATE REQUEST =====');
@@ -64,8 +50,8 @@ router.post('/', verifyServiceToken, async (req, res) => {// WARN route de la me
 // Sous-ressource : Photo de profil
 // ========================================
 
-router.post('/:auth_user_id/profile-picture', upload.single('profilePicture'), async (req, res) => {
-	const	playerId = req.params.auth_user_id;
+router.post('/me/profile-picture', upload.single('profilePicture'), async (req, res) => {
+	const	playerId = req.user.id;
 
 	console.log('===== PROFILE PICTURE UPLOAD =====');
     console.log(`Player ID: ${playerId}`);
@@ -154,8 +140,8 @@ router.get('/:auth_user_id/profile-picture', async (req, res) => {
 });
 
 // ✅ RESTful : DELETE /players/:auth_user_id/profile-picture (supprimer)
-router.delete('/:auth_user_id/profile-picture', async (req, res) => {
-    const playerId = req.params.auth_user_id;
+router.delete('/me/profile-picture', async (req, res) => {
+    const playerId = req.user.id;
 
     try {
         const player = await db.oneOrNone(
@@ -229,10 +215,10 @@ router.get('/:auth_user_id', async (req, res) => { //WARN j'ai CHANGE CAR pas se
 	}
 });
 
-router.delete('/:auth_user_id' , async (req, res) => {
+router.delete('/me', async (req, res) => {
 
 	try {
-		const	player = await db.oneOrNone('SELECT auth_user_id, pp_path FROM player.users WHERE auth_user_id = $1;', [req.params.auth_user_id]);
+		const	player = await db.oneOrNone('SELECT auth_user_id, pp_path FROM player.users WHERE auth_user_id = $1;', [req.user.id]);
 		
 		if (!player) {
 			return res.status(404).json({error : `Player not found`});
@@ -245,7 +231,18 @@ router.delete('/:auth_user_id' , async (req, res) => {
             console.log(`ℹ️  Player has default picture, skipping file deletion`);
         }
 
-		await db.none('DELETE FROM player.users WHERE auth_user_id = $1', [req.params.auth_user_id]);
+		await db.none('DELETE FROM player.users WHERE auth_user_id = $1', [req.user.id]);
+
+		// Purge chat data via chat-service (no cross-schema coupling)
+		try {
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+			const CHAT_URL = process.env.CHAT_SERVICE_URL || 'https://chat:2000';
+			await fetch(`${CHAT_URL}/chat/users/${player.auth_user_id}`, {
+				method: 'DELETE',
+			});
+		} catch (err) {
+			console.error('Failed to purge chat data:', err.message);
+		}
 
 		console.log(`Player with auth_user_id : ${player.auth_user_id} username : ${player.username} email : ${player.email} was deleted from player.users in player schema`);
 		res.status(204).send(); // 204 No Content (suppression réussie)
@@ -256,7 +253,7 @@ router.delete('/:auth_user_id' , async (req, res) => {
 	}
 });
 
-router.patch('/:auth_user_id', async (req, res) => {//WARN la verification de la validite des parametre doit se faire avent le patch
+router.patch('/me', async (req, res) => {
 	const	{ username, email } = req.body;
 
 	try {
@@ -277,9 +274,9 @@ router.patch('/:auth_user_id', async (req, res) => {//WARN la verification de la
 			return res.status(400).json({ error: `No fields to update`});
 		}
 
-		values.push(req.params.auth_user_id);
+		values.push(req.user.id);
 
-		const	updatedPlayer = await db.one(`UPDATE player.users SET ${updates.join(', ')} WHERE auth_user_id = $${paramIndex} RETURNING *`, values);//WARN on utilise bien id car paramIndex est un entier 
+		const	updatedPlayer = await db.one(`UPDATE player.users SET ${updates.join(', ')} WHERE auth_user_id = $${paramIndex} RETURNING *`, values);
 
 		res.json(updatedPlayer);
 	} catch (error) {
@@ -326,8 +323,8 @@ async function getUserIds(userAuthId, friendAuthId) {
  * POST /players/:auth_user_id/friend-requests/:friend_auth_user_id
  * Envoyer une demande d'ami
  */
-router.post('/:auth_user_id/friend-requests/:friend_auth_user_id', async (req, res) => {
-    const userAuthId = req.params.auth_user_id;
+router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
+    const userAuthId = req.user.id;
     const friendAuthId = req.params.friend_auth_user_id;
 
     console.log('===== FRIEND REQUEST =====');
@@ -411,8 +408,8 @@ router.post('/:auth_user_id/friend-requests/:friend_auth_user_id', async (req, r
  * POST /players/:auth_user_id/friend-requests/:friend_auth_user_id/accept
  * Accepter une demande d'ami
  */
-router.post('/:auth_user_id/friend-requests/:friend_auth_user_id/accept', async (req, res) => {
-    const userAuthId = req.params.auth_user_id;
+router.post('/me/friend-requests/:friend_auth_user_id/accept', async (req, res) => {
+    const userAuthId = req.user.id;
     const friendAuthId = req.params.friend_auth_user_id;
 
     console.log('===== ACCEPT FRIEND REQUEST =====');
@@ -455,8 +452,8 @@ router.post('/:auth_user_id/friend-requests/:friend_auth_user_id/accept', async 
  * DELETE /players/:auth_user_id/friend-requests/:friend_auth_user_id
  * Refuser ou annuler une demande d'ami
  */
-router.delete('/:auth_user_id/friend-requests/:friend_auth_user_id', async (req, res) => {
-    const userAuthId = req.params.auth_user_id;
+router.delete('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
+    const userAuthId = req.user.id;
     const friendAuthId = req.params.friend_auth_user_id;
 
     console.log('===== DECLINE/CANCEL FRIEND REQUEST =====');
@@ -494,35 +491,35 @@ router.delete('/:auth_user_id/friend-requests/:friend_auth_user_id', async (req,
  * GET /players/:auth_user_id/friends
  * Récupérer la liste d'amis (acceptés)
  */
-router.get('/:auth_user_id/friends', async (req, res) => {
+router.get('/me/friends', async (req, res) => {
     console.log('===== GET FRIENDS LIST =====');
-    console.log(`User: ${req.params.auth_user_id}`);
+    console.log(`User: ${req.user.id}`);
 
     try {
         const friends = await db.any(`
-            SELECT 
+            SELECT
                 u.id,
                 u.auth_user_id,
                 u.username,
                 u.pp_path,
-                CASE 
-                    WHEN f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1) 
-                    THEN f.requested_at 
-                    ELSE f.responded_at 
+                CASE
+                    WHEN f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
+                    THEN f.requested_at
+                    ELSE f.responded_at
                 END as friends_since
             FROM player.friendships f
             JOIN player.users u ON (
-                CASE 
-                    WHEN f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1) 
-                    THEN f.addressee_id 
-                    ELSE f.requester_id 
+                CASE
+                    WHEN f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
+                    THEN f.addressee_id
+                    ELSE f.requester_id
                 END = u.id
             )
             WHERE f.status = 'accepted'
               AND (f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
                 OR f.addressee_id = (SELECT id FROM player.users WHERE auth_user_id = $1))
             ORDER BY friends_since DESC
-        `, [req.params.auth_user_id]);
+        `, [req.user.id]);
 
         console.log(`✅ Found ${friends.length} friends`);
 
@@ -541,13 +538,13 @@ router.get('/:auth_user_id/friends', async (req, res) => {
  * GET /players/:auth_user_id/friend-requests/pending
  * Récupérer les demandes d'amis en attente (reçues)
  */
-router.get('/:auth_user_id/friend-requests/pending', async (req, res) => {
+router.get('/me/friend-requests/pending', async (req, res) => {
     console.log('===== GET PENDING FRIEND REQUESTS =====');
-    console.log(`User: ${req.params.auth_user_id}`);
+    console.log(`User: ${req.user.id}`);
 
     try {
         const requests = await db.any(`
-            SELECT 
+            SELECT
                 u.id,
                 u.auth_user_id,
                 u.username,
@@ -558,7 +555,7 @@ router.get('/:auth_user_id/friend-requests/pending', async (req, res) => {
             WHERE f.addressee_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
               AND f.status = 'pending'
             ORDER BY f.requested_at DESC
-        `, [req.params.auth_user_id]);
+        `, [req.user.id]);
 
         console.log(`✅ Found ${requests.length} pending requests`);
 
@@ -577,13 +574,13 @@ router.get('/:auth_user_id/friend-requests/pending', async (req, res) => {
  * GET /players/:auth_user_id/friend-requests/sent
  * Récupérer les demandes d'amis envoyées (en attente)
  */
-router.get('/:auth_user_id/friend-requests/sent', async (req, res) => {
+router.get('/me/friend-requests/sent', async (req, res) => {
     console.log('===== GET SENT FRIEND REQUESTS =====');
-    console.log(`User: ${req.params.auth_user_id}`);
+    console.log(`User: ${req.user.id}`);
 
     try {
         const requests = await db.any(`
-            SELECT 
+            SELECT
                 u.id,
                 u.auth_user_id,
                 u.username,
@@ -594,7 +591,7 @@ router.get('/:auth_user_id/friend-requests/sent', async (req, res) => {
             WHERE f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
               AND f.status = 'pending'
             ORDER BY f.requested_at DESC
-        `, [req.params.auth_user_id]);
+        `, [req.user.id]);
 
         console.log(`✅ Found ${requests.length} sent requests`);
 
@@ -613,8 +610,8 @@ router.get('/:auth_user_id/friend-requests/sent', async (req, res) => {
  * DELETE /players/:auth_user_id/friends/:friend_auth_user_id
  * Supprimer un ami
  */
-router.delete('/:auth_user_id/friends/:friend_auth_user_id', async (req, res) => {
-    const userAuthId = req.params.auth_user_id;
+router.delete('/me/friends/:friend_auth_user_id', async (req, res) => {
+    const userAuthId = req.user.id;
     const friendAuthId = req.params.friend_auth_user_id;
 
     console.log('===== REMOVE FRIEND =====');
@@ -652,8 +649,8 @@ router.delete('/:auth_user_id/friends/:friend_auth_user_id', async (req, res) =>
  * POST /players/:auth_user_id/blocked/:blocked_auth_user_id
  * Bloquer un utilisateur
  */
-router.post('/:auth_user_id/blocked/:blocked_auth_user_id', async (req, res) => {
-    const userAuthId = req.params.auth_user_id;
+router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
+    const userAuthId = req.user.id;
     const blockedAuthId = req.params.blocked_auth_user_id;
 
     console.log('===== BLOCK USER =====');
@@ -704,8 +701,8 @@ router.post('/:auth_user_id/blocked/:blocked_auth_user_id', async (req, res) => 
  * DELETE /players/:auth_user_id/blocked/:blocked_auth_user_id
  * Débloquer un utilisateur
  */
-router.delete('/:auth_user_id/blocked/:blocked_auth_user_id', async (req, res) => {
-    const userAuthId = req.params.auth_user_id;
+router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
+    const userAuthId = req.user.id;
     const blockedAuthId = req.params.blocked_auth_user_id;
 
     console.log('===== UNBLOCK USER =====');
@@ -742,13 +739,13 @@ router.delete('/:auth_user_id/blocked/:blocked_auth_user_id', async (req, res) =
  * GET /players/:auth_user_id/blocked
  * Récupérer la liste des utilisateurs bloqués
  */
-router.get('/:auth_user_id/blocked', async (req, res) => {
+router.get('/me/blocked', async (req, res) => {
     console.log('===== GET BLOCKED USERS =====');
-    console.log(`User: ${req.params.auth_user_id}`);
+    console.log(`User: ${req.user.id}`);
 
     try {
         const blocked = await db.any(`
-            SELECT 
+            SELECT
                 u.id,
                 u.auth_user_id,
                 u.username,
@@ -759,7 +756,7 @@ router.get('/:auth_user_id/blocked', async (req, res) => {
             WHERE f.requester_id = (SELECT id FROM player.users WHERE auth_user_id = $1)
               AND f.status = 'blocked'
             ORDER BY f.responded_at DESC
-        `, [req.params.auth_user_id]);
+        `, [req.user.id]);
 
         console.log(`✅ Found ${blocked.length} blocked users`);
 
@@ -778,8 +775,8 @@ router.get('/:auth_user_id/blocked', async (req, res) => {
  * GET /players/:auth_user_id/friends/:friend_auth_user_id/mutual
  * Récupérer les amis en commun avec un ami
  */
-router.get('/:auth_user_id/friends/:friend_auth_user_id/mutual', async (req, res) => {
-    const userAuthId = req.params.auth_user_id;
+router.get('/me/friends/:friend_auth_user_id/mutual', async (req, res) => {
+    const userAuthId = req.user.id;
     const friendAuthId = req.params.friend_auth_user_id;
 
     console.log('===== GET MUTUAL FRIENDS =====');

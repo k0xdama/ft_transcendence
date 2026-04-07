@@ -81,7 +81,8 @@ CREATE INDEX idx_player_email
 
 -------------------------------------------------
 -- Créer le type ENUM pour les statuts
-CREATE TYPE player.friendship_status AS ENUM ('pending', 'accepted', 'blocked');
+CREATE TYPE player.friendship_status
+	AS ENUM ('pending', 'accepted', 'blocked');
 
 -- Table des amitiés
 CREATE TABLE player.friendships (
@@ -182,7 +183,8 @@ CREATE TABLE chat.direct_messages (
 		CONSTRAINT check_dm_content_length
 		CHECK (char_length(content) BETWEEN 1 AND 500),
 	created_at		TIMESTAMPTZ DEFAULT NOW(),
-	read_at			TIMESTAMPTZ DEFAULT NULL
+	read_at			TIMESTAMPTZ DEFAULT NULL,
+	expires_at		TIMESTAMPTZ
 );
 
 CREATE INDEX idx_dm_recent
@@ -191,6 +193,9 @@ CREATE INDEX idx_dm_recent
 CREATE INDEX idx_dm_unread
 	ON chat.direct_messages(conversation_id, read_at)
 	WHERE read_at IS NULL;
+
+CREATE INDEX idx_dm_expiry
+	ON chat.direct_messages(expires_at);
 
 -------------------------------------------------
 CREATE TABLE chat.blocked_users (
@@ -246,3 +251,18 @@ CREATE TRIGGER trg_ws_messages_expiry
 	BEFORE INSERT ON chat.ws_messages
 	FOR EACH ROW
 	EXECUTE FUNCTION chat.set_lobby_message_expiry();
+
+-------------------------------------------------
+CREATE OR REPLACE FUNCTION chat.set_dm_message_expiry()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+	NEW.expires_at := NEW.created_at + INTERVAL '30 days';
+	RETURN NEW;
+END;
+$$;
+
+---
+CREATE TRIGGER trg_dm_messages_expiry
+	BEFORE INSERT ON chat.direct_messages
+	FOR EACH ROW
+	EXECUTE FUNCTION chat.set_dm_message_expiry();

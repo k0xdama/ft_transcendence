@@ -37,11 +37,11 @@ up:
 
 down:
 	docker compose down
-	@echo "${YELLOW}${BOLD}Containers has been shutdowned !${RESET}"
+	@echo "${YELLOW}${BOLD}Containers have been shutdowned !${RESET}"
 
 down-v:
 	docker compose down -v
-	@echo "${YELLOW}${BOLD}Containers has been shutdowned and volumes has been erased !${RESET}"
+	@echo "${YELLOW}${BOLD}Containers have been shutdowned and volumes have been erased !${RESET}"
 
 logs:
 	docker compose logs
@@ -54,10 +54,10 @@ status:
 
 restart:
 	docker compose restart
-	@echo "${GREEN}${BOLD}${BLINK}All containers has been restarted !${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been restarted !${RESET}"
 
 recreate: down up
-	@echo "${GREEN}${BOLD}${BLINK}All containers has been recreated !${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been recreated !${RESET}"
 
 clean:
 	docker compose down -v --rmi all
