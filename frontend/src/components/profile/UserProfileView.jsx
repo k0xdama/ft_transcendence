@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import ProfileHeader from './ProfileHeader'
 import ProfileStats from './ProfileStats'
 import ProfileAchievements from './ProfileAchievements'
+import ProfileFriends from './ProfileFriends'
 import ProfileSettings from './ProfileSettings'
 import DeleteAccountModal from './DeleteAccountModal'
 import './UserProfileView.css'
@@ -269,6 +270,12 @@ function UserProfileView() {
 					>
 						Achievements
 					</button>
+					<button
+						className={`profile-tab ${activeTab === 'friends' ? 'active' : ''}`}
+						onClick={() => setActiveTab('friends')}
+					>
+						Friends
+					</button>
 					{isOwnProfile && (
 						<button
 							className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
@@ -285,6 +292,9 @@ function UserProfileView() {
 					)}
 					{activeTab === 'achievements' && (
 						<ProfileAchievements stats={stats} />
+					)}
+					{activeTab === 'friends' && (
+						<ProfileFriends />
 					)}
 					{activeTab === 'settings' && isOwnProfile && (
 						<ProfileSettings
