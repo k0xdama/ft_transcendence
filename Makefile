@@ -1,15 +1,15 @@
-RESET		:=	\033[0m
-BOLD		:=	\033[1m
-ITAL		:=	\033[3m
-BLINK		:=	\033[5m
+RESET	:=	\033[0m
+BOLD	:=	\033[1m
+ITAL	:=	\033[3m
+BLINK	:=	\033[5m
 
-RED			:=	\033[30m
-GREEN		:=	\033[32m
-YELLOW		:=	\033[33m
-BLUE		:=	\033[34m
-CYAN		:=	\033[36m
+RED		:=	\033[30m
+GREEN	:=	\033[32m
+YELLOW	:=	\033[33m
+BLUE	:=	\033[34m
+CYAN	:=	\033[36m
 
-NAME = ft_transcendence
+NAME	:=	ft_transcendence
 
 all: cert build up
 
@@ -115,5 +115,6 @@ help:
 	@echo "${BLUE}${ITAL}${BOLD} make shell-chat${RESET}	${CYAN}${ITAL}- Execute a shell inside chat container${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make shell-db${RESET}	${CYAN}${ITAL}- Execute a shell inside postgres container${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make shell-redis${RESET}	${CYAN}${ITAL}- Execute a shell inside redis container${RESET}"
+
 
 .PHONY: all up down build clean fclean re

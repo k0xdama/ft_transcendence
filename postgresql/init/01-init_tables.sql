@@ -67,7 +67,6 @@ CREATE TABLE player.users (
 	combo			INTEGER DEFAULT 0,
 	trio_of_7		INTEGER DEFAULT 0,
 	perfect_game	INTEGER DEFAULT 0
-
 );
 
 CREATE INDEX idx_player_auth_user_id

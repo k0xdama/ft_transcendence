@@ -7,7 +7,6 @@ import {
 	InvalidCredentialsError } from '../utils/errors.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-// ***** DEBUT BLOC ANTOINE *********************************************************
 import axios from 'axios';
 
 // Configuration
@@ -28,7 +27,6 @@ async function createPlayerProfile(userData) {
 		throw error;
 	}
 }
-// ***** FIN BLOC ANTOINE *********************************************************
 
 function hashToken(token) {
 	return crypto.createHash('sha256').update(token).digest('hex');
@@ -50,7 +48,6 @@ class AuthService {
 				[email, username, passwordHash]
 			);
 
-			// ***** DEBUT BLOC ANTOINE *********************************************************
 			console.log(`✅ User created in auth schema: ${newUser.username} (${newUser.id})`);
 
 			// Créer le profil dans player.users
@@ -74,8 +71,6 @@ class AuthService {
 			console.log(`register (auth-service-class.js) [username] -> ${newUser.username}`);
 			// ✅ RETOURNER les données (pas de res.json ici)
 			return newUser;
-
-			// ***** FIN BLOC ANTOINE *********************************************************
 		}
 		catch (error) {
 			if (error.code === '23505') {
