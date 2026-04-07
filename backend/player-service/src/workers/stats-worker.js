@@ -1,5 +1,5 @@
 import	{ createClient }	from 'redis';
-import	{ db }				from '../db/queries.js';
+import	{ db }				from '../config/db.js';
 import	fs					from 'fs';
 
 const	REDIS_URL = process.env.REDIS_URL || 'redis://redis:6379';
