@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
 import { useEffect, useRef } from 'react'
-import ChatOverlay from './ChatOverlay'
+import ChatOverlay from './ChatOverlay-Lobby'
 import './LobbyView.css'
 
 function LobbyView() {
