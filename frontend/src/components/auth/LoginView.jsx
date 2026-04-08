@@ -79,9 +79,9 @@ function LoginView() {
 			<form onSubmit={handleLogin}>
 				<div className='inputs'>
 					<label>Username/Email:</label>
-					<input name= 'id' value={formData.id} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
+					<input name= 'id' value={formData.id} onChange={handleChange} disabled={loading} type="text" className='inputField' autoComplete="username"/>
 					<label>Password:</label>
-					<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
+					<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput' autoComplete='current-password'/>
 				</div>
 				<button className='comBut'
 				type='submit'

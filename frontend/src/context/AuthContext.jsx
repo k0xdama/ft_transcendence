@@ -18,6 +18,11 @@ export const AuthProvider = ({ children }) => {
 
 	useEffect(() => {
 		const tryRestoreSession = async () => {
+			const userData = localStorage.getItem('user');
+			if (userData === null) {
+				setLoading(false);
+				return;
+			}
 			try {
 				const res = await fetch(`${authUrl}/refresh`, {
 					method: 'POST',

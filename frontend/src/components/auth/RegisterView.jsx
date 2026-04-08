@@ -91,11 +91,11 @@ function RegisterView() {
 					<label>Username:</label>
 					<input name= 'username' value={formData.username} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
 					<label>Email address:</label>
-					<input name= 'email' value={formData.email} onChange={handleChange} disabled={loading} type="text" className='inputField'/>
+					<input name= 'email' value={formData.email} onChange={handleChange} disabled={loading} type="text" className='inputField' autoComplete='email'/>
 					<label>Password:</label>
-					<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
+					<input name= 'password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='passInput' autoComplete='new-password'/>
 					<label>Confirm password:</label>
-					<input name= 'confirmPassword' value={formData.confirmPassword} onChange={handleChange} disabled={loading} type="password" className='passInput'/>
+					<input name= 'confirmPassword' value={formData.confirmPassword} onChange={handleChange} disabled={loading} type="password" className='passInput' autoComplete='new-password'/>
 				</div>
 				<button className='comBut'
 				type='submit'

@@ -40,7 +40,7 @@ function JoinGameView() {
 				<h2 className='boxTitle'>Join Game</h2>
 				{(error || lobbyError) && (<p className='error-msg'>{error || lobbyError}</p>)}
 				<div className='joinInputs'>
-					<label className>Game ID</label>
+					<label>Game ID</label>
 					<input
 						type='text'
 						className='gameID' 
