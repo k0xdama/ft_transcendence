@@ -13,6 +13,7 @@ export function LobbyProvider({ children }) {
 	const [lobbyId, setLobbyId] = useState(null);
 	const [gameId, setGameId] = useState(null);
 	const [matchmakingStatus, setMatchmakingStatus] = useState(null);
+	const [connected, setConnected] = useState(false)
 	const [lobbyError, setLobbyError] = useState(null);
 	const socketRef = useRef(null);
 	const lobbyUrl = '/api/lobby';
@@ -58,6 +59,10 @@ export function LobbyProvider({ children }) {
 				onLobbyJoined(lobbyStruct.lobbyId);
 		});
 
+		socketRef.current.on('lobby:rulesChanged', ({ lobbyStruct }) => {
+			setLobbyStruct(lobbyStruct)
+		});
+
 		socketRef.current.on('lobby:readyChanged', (struct) => {
 			setLobbyStruct(struct.lobbyStruct);
 		});
@@ -74,6 +79,7 @@ export function LobbyProvider({ children }) {
 		});
 
 		socketRef.current.on('connect', () => {
+			setConnected(true);
 			if(onConnected)
 				onConnected();
 		});
@@ -97,6 +103,10 @@ export function LobbyProvider({ children }) {
 	const createLobby = (gameMode, gameType, maxUsers) => {
 		socketRef.current.emit('lobby:create', { gameMode, gameType, maxUsers });
 	};
+
+	const updateRules = (lobbyId, rules) => {
+		socketRef.current.emit('lobby:updateRules', { lobbyId, ...rules })
+	}
 
 	const joinLobby = (lobbyId) => {
 		socketRef.current.emit('lobby:join', { lobbyId });
@@ -125,10 +135,12 @@ export function LobbyProvider({ children }) {
 			lobbyStruct,
 			lobbyError,
 			setLobbyError,
+			connected,
 			lobbyId,
 			connect,
 			createLobby,
 			joinLobby,
+			updateRules,
 			joinMatchmaking,
 			leaveMatchmaking,
 			toggleReady,

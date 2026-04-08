@@ -105,9 +105,10 @@ function generateLobbyId(lobbysMap) {
 	return result;
 }
 
-function addUser(lobbyStruct, userId) {
+function addUser(lobbyStruct, userId, username) {
 	const user = {
 		id: userId,
+		username: username,
 		ready: false
 	};
 	lobbyStruct.users.push(user);
@@ -154,7 +155,7 @@ io.on('connection', (socket) => {
 		const lobbyStruct = createLobby(lobbyId, data.gameMode, data.gameType, socket.user.id, data.maxUsers);
 		lobbys.set(lobbyId, lobbyStruct);
 		socket.join(lobbyId);
-		addUser(lobbyStruct, socket.user.id);
+		addUser(lobbyStruct, socket.user.id, socket.user.username);
 		console.log(`Lobby created: ${lobbyId}`);
 		console.log(`${socket.user.username} joined the lobby ${lobbyId} (client ${socket.id})`);
 		lobbyBySocket.set(socket.id, lobbyId);
@@ -228,13 +229,32 @@ io.on('connection', (socket) => {
 			return;
 		}
 		socket.join(data.lobbyId);
-		addUser(lobbyStruct, socket.user.id);
+		addUser(lobbyStruct, socket.user.id, socket.user.username);
 		console.log(`${socket.user.username} (client: ${socket.id}) joined the lobby ${data.lobbyId}`);
 		lobbyBySocket.set(socket.id, data.lobbyId);
 		if (lobbyStruct.users.length === lobbyStruct.rules.maxUsers)
 			lobbyStruct.state = LOBBY_STATE.FULL;
 		publishLobbyMembers(data.lobbyId, lobbyStruct);
 		io.to(data.lobbyId).emit('lobby:joined', { lobbyStruct });
+	});
+
+	socket.on('lobby:updateRules', (data) => {
+		const lobbyStruct = lobbys.get(data.lobbyId);
+		if (!lobbyStruct) {
+			socket.emit('error', 'Something went wrong...');
+			return;
+		}
+		if (socket.user.id !== lobbyStruct.creatorId) {
+			socket.emit('error', 'Only the host can change the rules');
+			return;
+		}
+
+		if (data.maxUsers) lobbyStruct.rules.maxUsers = Math.max(3, Math.min(6, data.maxUsers));
+		if (data.gameMode) lobbyStruct.rules.gameMode = data.gameMode;
+		if (data.gameType) lobbyStruct.rules.gameType = data.gameType;
+
+		if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED) return;
+		io.to(data.lobbyId).emit('lobby:rulesChanged', { lobbyStruct })
 	});
 
 	socket.on('lobby:ready', (data) => {
