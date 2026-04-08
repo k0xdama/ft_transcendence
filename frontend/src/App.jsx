@@ -34,7 +34,6 @@ function App() {
       <div className='main-container'>
         <Routes>
           <Route path="/" element={<HomeView />} />
-          <Route path="/create" element={<CreateGameView />} />
           <Route path="/join" element={<JoinGameView />} />
           <Route path="/register" element={<RegisterView />} />
           <Route path="/login" element={<LoginView />} />
