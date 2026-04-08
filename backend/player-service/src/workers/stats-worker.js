@@ -83,7 +83,7 @@ class StatsWorker {
 		try {
 			// Récupérer le player par auth_user_id
 			const player = await db.oneOrNone(
-                'SELECT id, won, rank, score, actions_played, combo, trio_of_7, perfect_game FROM player.users WHERE auth_user_id = $1',
+                'SELECT id, won, rank, score, actions_played, combo, trio_of_7, perfect_game, played_game FROM player.users WHERE auth_user_id = $1',
                 [userId]
             );
 
@@ -101,7 +101,8 @@ class StatsWorker {
                 actions_played: (player.actions_played || 0) + playerStats.actionsPlayed,
                 combo: Math.max(player.combo || 0, playerStats.achievements.COMBO),
                 trio_of_7: (player.trio_of_7 || 0) + playerStats.achievements.TRIO_OF_7,
-                perfect_game: (player.perfect_game || 0) + playerStats.achievements.PERFECT_GAME
+                perfect_game: (player.perfect_game || 0) + playerStats.achievements.PERFECT_GAME,
+				played_game: (player.played_game || 0) + 1
             };
 
 			// Mettre à jour dans la DB
@@ -114,8 +115,9 @@ class StatsWorker {
                     actions_played = $4,
                     combo = $5,
                     trio_of_7 = $6,
-                    perfect_game = $7
-                WHERE id = $8
+                    perfect_game = $7,
+					played_game = $8
+                WHERE id = $9
             `, [
                 newStats.won,
                 newStats.rank,
@@ -124,6 +126,7 @@ class StatsWorker {
                 newStats.combo,
                 newStats.trio_of_7,
                 newStats.perfect_game,
+				newStats.played_game,
                 player.id
             ]);
 

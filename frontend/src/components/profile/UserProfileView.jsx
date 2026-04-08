@@ -46,7 +46,7 @@ function UserProfileView() {
 				id: playerData.auth_user_id,
 				username: playerData.username,
 				email: playerData.email,
-				avatarUrl: playerData.pp_path,
+				avatarUrl: (playerData.pp_path && playerData.pp_path !== '/uploads/profilePictures/default_profile_picture.png') ? `/api/players/${targetUserId}/profile-picture` : null,
 				createdAt: playerData.created_at
 			})
 		} catch (err) {
@@ -70,15 +70,15 @@ function UserProfileView() {
 			// Extraire les stats des données du joueur
 			setStats({
 				//todo: il va falloir que j'ajoute des slots de stat dans la base de donnees et que je vois quelles stats on affiche
-				gamesPlayed: playerData.games_played ,
-				gamesWon: playerData.won ,
-				gamesLost: playerData.games_lost ,
-				totalScore: playerData.score ,
-				totalActions: playerData.actions_played ,
-				triosOf7: playerData.trio_of_7 ,
-				totalCombos: playerData.combo ,
-				longestCombo: playerData.longest_combo ,
-				perfectGames: playerData.perfect_game
+				gamesPlayed: playerData.played_game || 0,
+				gamesWon: playerData.won || 0,
+				gamesLost: (playerData.played_game - playerData.won) || 0,
+				totalScore: playerData.score || 0,
+				totalActions: playerData.actions_played || 0,
+				triosOf7: playerData.trio_of_7 || 0,
+				totalCombos: playerData.combo ,//remplacer lui par rank peut etre
+				longestCombo: playerData.longest_combo || 0,
+				perfectGames: playerData.perfect_game || 0
 			})
 		} catch (err) {
 			console.error('Failed to fetch stats:', err)
@@ -132,7 +132,7 @@ function UserProfileView() {
 			const formData = new FormData()
 			formData.append('profilePicture', file)  // Clé attendue par upload.single('profilePicture')
 
-			const response = await fetch(`/api/players/${user.id}/profile-picture`, {
+			const response = await authFetch(`/api/players/me/profile-picture`, {
 				method: 'POST',
 				body: formData
 				// NE PAS mettre de Content-Type, le navigateur le met automatiquement
@@ -142,10 +142,10 @@ function UserProfileView() {
 				throw new Error('Upload failed')
 			}
 
-			const data = await response.json()
+			await response.json()
 			setProfileData(prev => ({
 				...prev,
-				avatarUrl: data.player.pp_path
+				avatarUrl: `/api/players/${user.id}/profile-picture`
 			}))
 		} catch (err) {
 			console.error('Avatar upload error:', err)
@@ -155,7 +155,7 @@ function UserProfileView() {
 
 	const handleAvatarDelete = async () => {
 		try {
-			const response = await fetch(`/api/players/${user.id}/profile-picture`, {
+			const response = await authFetch(`/api/players/me/profile-picture`, {
 				method: 'DELETE'
 			})
 
@@ -163,10 +163,10 @@ function UserProfileView() {
 				throw new Error('Delete failed')
 			}
 
-			const data = await response.json()
+			await response.json()
 			setProfileData(prev => ({
 				...prev,
-				avatarUrl: data.pp_path
+				avatarUrl: null
 			}))
 		} catch (err) {
 			console.error('Avatar delete error:', err)

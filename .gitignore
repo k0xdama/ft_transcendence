@@ -6,3 +6,4 @@ secrets/
 .vscode/
 *.log
 example.tsx
+FRONTEND_REFERENCE.md

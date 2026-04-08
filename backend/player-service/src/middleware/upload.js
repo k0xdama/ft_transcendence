@@ -50,7 +50,7 @@ const	storage = multer.diskStorage({
 		cb(null, UPLOAD_DIR);
 	},
 	filename: (req, file, cb) => {
-		const	authUserId = req.params.auth_user_id || 'unknown';// le 'unknown' au cas ou pas de uuid
+		const	authUserId = req.params.auth_user_id || req.user?.id || 'unknown';
 		const	timestamp = Date.now();
 		const	extension = path.extname(file.originalname);
 		const	filename = `${authUserId}_${timestamp}${extension}`;

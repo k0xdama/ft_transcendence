@@ -64,7 +64,7 @@ clean:
 	@echo "${YELLOW}${BOLD}Containers shutdowned, data and ALL images erased !${RESET}"
 
 fclean:
-	docker compose down --rmi all
+	docker compose down -v --rmi all
 	rm -rf ./secrets/ssl/
 	docker builder prune -af
 	@echo "${RED}${BOLD}Full clean-up has been achieved !${RESET}"

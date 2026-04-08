@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../config/db.js';
+import fs from 'fs';
 import path from 'path';
 import { deleteFile, isDefaultProfilePicture } from '../utils/fileHandler.js';
 import upload, { UPLOAD_DIR, DEFAULT_PROFILE_PICTURE } from '../middleware/upload.js';
@@ -18,13 +19,13 @@ router.use((req, res, next) => {
 });
 
 router.post('/', async (req, res) => {
-	const	{ auth_user_id, username, email } = req.body;//A CHANGER SI RAJOUTE DES PARAMS DANS LA DB
+	const	{auth_user_id, username, email} = req.body;//A CHANGER SI RAJOUTE DES PARAMS DANS LA DB
 	
 	console.log('===== PLAYER CREATE REQUEST =====');
-    console.log(`Received : id = ${auth_user_id}, username = ${username}, email = ${email}`);
+    console.log(`Received : id = ${auth_user_id}, unsername = ${username}, email = ${email}`);
 
 	if(!auth_user_id || !username || !email){
-		return	res.status(400).json({error: 'Missing required field'});
+		return	res.status(400).json({error : 'Missing required field'});
 	}
 
 	try {
@@ -34,13 +35,13 @@ router.post('/', async (req, res) => {
 			[auth_user_id, username, email, DEFAULT_PROFILE_PICTURE]
 		);
 
-		console.log(`Player user created auth_user_id: ${newPlayerUsers.auth_user_id} username : ${newPlayerUsers.username} in player schema`);
+		console.log(`Player user created auth_user_id : ${newPlayerUsers.auth_user_id} username : ${newPlayerUsers.username} in player schema`);
 		res.status(201).json({
 			message: 'Player profile created',
       		player: newPlayerUsers
 		});
 	} catch (error) {
-		console.error('Cannot create new user in player schema: ', error);
+		console.error('Cannot create new user un player schema : ', error);
 		res.status(500).json({
 			error : 'Failed to create player user in player schema'});
 	}
@@ -130,8 +131,13 @@ router.get('/:auth_user_id/profile-picture', async (req, res) => {
             return res.status(404).json({ error: 'No profile picture' });
         }
 
-        // Redirection vers le fichier statique
-        res.redirect(player.pp_path);
+        const filePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
+
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'Profile picture file not found' });
+        }
+
+        res.sendFile(filePath);
 
     } catch (error) {
         console.error('Error fetching profile picture:', error);
@@ -188,6 +194,9 @@ router.delete('/me/profile-picture', async (req, res) => {
 // ========================================
 // CRUD de base sur /players
 // ========================================
+
+
+
 
 router.get('/:auth_user_id', async (req, res) => { //WARN j'ai CHANGE CAR pas secu on ne met jamais de SERIAL dans une routes car c'est une faiblesse tres simpl a exploiter on met de l'UUID ici authUserId
 
