@@ -12,11 +12,14 @@
 }
 
 .profile-card {
+	display: flex;
+	flex-direction: column;
 	background: rgba(10, 5, 20, 0.75);
 	border: 1px solid rgba(180, 60, 255, 0.4);
 	border-radius: 16px;
 	padding: 32px 40px;
 	width: 560px;
+	height: 53vh;
 	max-width: 90vw;
 	backdrop-filter: blur(12px);
 	box-shadow: 0 0 40px rgba(125, 116, 129, 0.2), inset 0 0 20px rgba(169, 98, 216, 0.4);
@@ -202,6 +205,12 @@
 	margin-bottom: 24px;
 	border-bottom: 1px solid rgba(180, 60, 255, 0.15);
 	padding-bottom: 0;
+}
+
+.profile-tab-content {
+  flex: 1;          /* fills whatever vertical space the card has left */
+  overflow-y: auto; /* enables scrolling when content overflows */
+  min-height: 0;    /* critical — without this, flex children ignore overflow */
 }
 
 .profile-tab {
