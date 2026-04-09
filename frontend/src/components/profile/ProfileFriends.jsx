@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../../context/AuthContext'
 
 // Mock data for visual preparation — will be replaced with real API calls
+//DEVRA CONTENIR api/players/UUID/friends qui renvoie le json des amis avec donnees
 const MOCK_FRIENDS = [
 	{ id: '1', username: 'NeonSlayer42', avatarUrl: null, status: 'online' },
 	{ id: '2', username: 'CyberPunk_X', avatarUrl: null, status: 'in-game' },
@@ -20,20 +22,69 @@ const STATUS_ORDER = { 'online': 0, 'in-game': 1, 'offline': 2 }
 const STATUS_LABELS = { 'online': 'Online', 'in-game': 'In Game', 'offline': 'Offline' }
 
 function ProfileFriends() {
+	const { authFetch } = useAuth()
+	const [friends, setFriends] = useState([])
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState('')
 	const [searchQuery, setSearchQuery] = useState('')
 
-	const filtered = MOCK_FRIENDS
+	useEffect(() => {
+		fetchFriends()
+	}, [])
+
+	const fetchFriends = async () => {
+		try {
+			const response = await authFetch('/api/players/me/friends')
+			if (!response.ok) {
+				throw new Error('Failed to fetch friends')
+			}
+			const data = await response.json()
+			// Transform API data to match component expectations
+			const transformedFriends = data.friends.map(friend => ({
+				id: friend.auth_user_id,
+				username: friend.username,
+				avatarUrl: friend.pp_path && friend.pp_path !== '/uploads/profilePictures/default_profile_picture.png' 
+					? `/api/players/${friend.auth_user_id}/profile-picture` 
+					: null,
+				status: 'online' // TODO: Add real status from API if available
+			}))
+			setFriends(transformedFriends)
+		} catch (err) {
+			setError('Failed to load friends')
+			console.error('Error fetching friends:', err)
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const filtered = friends
 		.filter(f => f.username.toLowerCase().includes(searchQuery.toLowerCase()))
 		.sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
 
-	const onlineCount = MOCK_FRIENDS.filter(f => f.status !== 'offline').length
+	const onlineCount = friends.filter(f => f.status !== 'offline').length
+
+	if (loading) {
+		return (
+			<div className="friends-container">
+				<p>Loading friends...</p>
+			</div>
+		)
+	}
+
+	if (error) {
+		return (
+			<div className="friends-container">
+				<p className="friends-error">{error}</p>
+			</div>
+		)
+	}
 
 	return (
 		<div className="friends-container">
 			<div className="friends-header-row">
 				<span className="friends-count">
 					<span className="friends-count-online">{onlineCount}</span>
-					<span className="friends-count-total">/ {MOCK_FRIENDS.length} online</span>
+					<span className="friends-count-total">/ {friends.length} online</span>
 				</span>
 				<input
 					type="text"

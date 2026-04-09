@@ -5,6 +5,7 @@ import ProfileHeader from './ProfileHeader'
 import ProfileStats from './ProfileStats'
 import ProfileAchievements from './ProfileAchievements'
 import ProfileFriends from './ProfileFriends'
+import ProfileFriendRequests from './ProfileFriendRequests'
 import ProfileSettings from './ProfileSettings'
 import DeleteAccountModal from './DeleteAccountModal'
 import './UserProfileView.css'
@@ -276,6 +277,12 @@ function UserProfileView() {
 					>
 						Friends
 					</button>
+					<button
+						className={`profile-tab ${activeTab === 'friend-requests' ? 'active' : ''}`}
+						onClick={() => setActiveTab('friend-requests')}
+					>
+						Friend Requests
+					</button>
 					{isOwnProfile && (
 						<button
 							className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
@@ -295,6 +302,9 @@ function UserProfileView() {
 					)}
 					{activeTab === 'friends' && (
 						<ProfileFriends />
+					)}
+					{activeTab === 'friend-requests' && (
+						<ProfileFriendRequests />
 					)}
 					{activeTab === 'settings' && isOwnProfile && (
 						<ProfileSettings
