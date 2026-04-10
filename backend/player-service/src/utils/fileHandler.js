@@ -11,7 +11,8 @@ import	path	from	'path';
  * @returns {boolean}
  */
 export function isDefaultProfilePicture(filePath) {
-    if (!filePath) return false;
+    if (!filePath)
+		return false;
     
     // Normaliser le chemin pour la comparaison
     const normalizedPath = filePath.toLowerCase();
@@ -27,7 +28,8 @@ export function isDefaultProfilePicture(filePath) {
  */
 
 export	function	deleteFile(filePath){
-	if(!filePath) return;
+	if(!filePath)
+		return;
 
 	// ✅ Protection : Ne jamais supprimer l'image par défaut
     if (isDefaultProfilePicture(filePath)) {

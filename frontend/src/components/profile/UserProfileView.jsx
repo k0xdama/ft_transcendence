@@ -27,17 +27,19 @@ function UserProfileView() {
 	const targetUserId = userId || (user && user.id)
 
 	useEffect(() => {
-		if (!targetUserId) return
+		if (!targetUserId)
+			return
 		fetchProfileData()
 		fetchStats()
-		if (!isOwnProfile) fetchFriendStatus()
+		if (!isOwnProfile)
+			fetchFriendStatus()
 	}, [targetUserId])
 
 	const fetchProfileData = async () => {
 		setLoading(true)
 		try {
 			// todo: Peut etre Mettre des donnees par defaut en cas de fail de fetch pour eviter les trous
-			const response = await fetch(`/api/players/${targetUserId}`)
+			const response = await authFetch(`/api/players/${targetUserId}`)
 			if (!response.ok) {
 				throw new Error('Failed to fetch profile data')
 			}
@@ -46,7 +48,10 @@ function UserProfileView() {
 			setProfileData({
 				id: playerData.auth_user_id,
 				username: playerData.username,
-				email: playerData.email,
+				// email is owned by auth-service and only available for the current user via JWT
+				email: isOwnProfile
+					? (user && user.email)
+					: null,
 				avatarUrl: (playerData.pp_path && playerData.pp_path !== '/uploads/profilePictures/default_profile_picture.png') ? `/api/players/${targetUserId}/profile-picture` : null,
 				createdAt: playerData.created_at
 			})
@@ -60,8 +65,8 @@ function UserProfileView() {
 
 	const fetchStats = async () => {
 		try {
-			const response = await fetch(`/api/players/${targetUserId}`)
-			
+			const response = await authFetch(`/api/players/${targetUserId}`)
+
 			if (!response.ok) {
 				throw new Error('Failed to fetch stats')
 			}
@@ -196,9 +201,8 @@ function UserProfileView() {
 	const handleUpdateProfile = async (field, value) => {
 		try {
 			//todo: ajouter une verif du format et de la disponibilite du username et de l'email avant d'envoyer la requete
-			//todo: WARN AUSSI MODIF la requete fetch pour qu'elle modifie le username email et mdp de l'auth et sa bdd
 			//todo: aussi permettre la modif du mot de passe
-			const response = await fetch(`/api/players/${user.id}`, {
+			const response = await authFetch(`/api/players/me`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ [field]: value })
@@ -225,11 +229,14 @@ function UserProfileView() {
 	const handleDeleteAccount = async () => {
 		try {
 			//todo: reverif que tout est dans la norme ca coute rien
-			//todo: modif la requete pour supprimer de l'auth aussi 
 
-			const response = await fetch(`/api/players/${user.id}`, {
+			const response = await authFetch(`/api/players/me`, {
 				method: 'DELETE'
 			})
+
+			if (!response.ok) {
+				throw new Error('Failed to delete account')
+			}
 
 			await logout()
 			navigate('/')

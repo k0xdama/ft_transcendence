@@ -47,7 +47,9 @@ io.use((socket, next) => {
 	next();
 });
 
-app.post('/create', (req, res) => {
+// Mounted at '/internal' — unreachable from the public internet because
+// the API gateway only proxies WebSocket upgrades for '/api/game'
+app.post('/internal/create', (req, res) => {
 	const gameId = randomUUID();
 	const gameStruct = createGame(gameId, req.body.gameMode, req.body.gameType, req.body.creatorId);
 	gameStruct.expectedUsersIds = req.body.users;

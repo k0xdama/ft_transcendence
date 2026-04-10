@@ -2,13 +2,16 @@ import express from 'express';
 import { blockUser, unblockUser } from '../controllers/block-controller.js';
 import { sendWsMessage, getChatWsHistory } from '../controllers/chat-ws-controller.js';
 import { createDM, sendDM, getDMHistory, getMyDMs, markAsRead } from '../controllers/dm-controller.js';
-import { purgeUserData } from '../controllers/purge-controller.js';
 
 const router = express.Router();
 
 router.use((req, res, next) => {
+	const userId = req.headers['x-user-id'];
+	if (!userId) {
+		return res.status(401).json({ error: 'Missing user context' });
+	}
 	req.user = {
-		id: req.headers['x-user-id'],
+		id: userId,
 		username: req.headers['x-user-username'],
 		email: req.headers['x-user-email']
 	};
@@ -22,9 +25,6 @@ router.delete('/unblock/:userId', unblockUser);
 // ─── Chat WS messages (lobby → game → post-game) ──────────────────────────
 router.post('/room/send', sendWsMessage);
 router.get('/room/:lobbyId/history', getChatWsHistory);
-
-// ─── Purge (internal, called by player-service) ──────────────────────────
-router.delete('/users/:userId', purgeUserData);
 
 // ─── DM ───────────────────────────────────────────────────────────────────
 router.post('/dm', createDM);

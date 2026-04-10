@@ -101,7 +101,9 @@ function RegisterView() {
 				type='submit'
 				disabled={loading}
 				>
-					{loading ? 'Registering...' : 'Register'}
+					{loading
+						? 'Registering...'
+						: 'Register'}
 				</button>
 			</form>
 			<p>Already have an account? <Link to="/login">Sign in</Link></p>

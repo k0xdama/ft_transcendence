@@ -130,24 +130,26 @@ export function LobbyProvider({ children }) {
 		socketRef.current.emit('lobby:start', { lobbyId });
 	};
 
+	const value = {
+		lobbyStruct,
+		lobbyError,
+		setLobbyError,
+		connected,
+		lobbyId,
+		connect,
+		createLobby,
+		joinLobby,
+		updateRules,
+		joinMatchmaking,
+		leaveMatchmaking,
+		toggleReady,
+		startGame,
+		matchmakingStatus,
+		gameId
+	};
+
 	return (
-		<LobbyContext.Provider value={{
-			lobbyStruct,
-			lobbyError,
-			setLobbyError,
-			connected,
-			lobbyId,
-			connect,
-			createLobby,
-			joinLobby,
-			updateRules,
-			joinMatchmaking,
-			leaveMatchmaking,
-			toggleReady,
-			startGame,
-			matchmakingStatus,
-			gameId
-		}}>
+		<LobbyContext.Provider value={value}>
 			{children}
 		</LobbyContext.Provider>
 	);

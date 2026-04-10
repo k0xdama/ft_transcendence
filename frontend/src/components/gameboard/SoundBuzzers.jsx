@@ -1,3 +1,4 @@
+import { useChat } from "../../context/ChatContext";
 import ahhhSound from "../../assets/sounds/ahhh.mp3";
 import faaahSound from "../../assets/sounds/faaahh.mp3";
 import "./SoundBuzzers.css";
@@ -12,11 +13,14 @@ const BUZZERS = [
 	{ name: 'faaahh', label: '💀' }
 ];
 
-function SoundBuzzers({ socketRef, lobbyId }) {
+function SoundBuzzers({ lobbyId }) {
+	const { emit } = useChat();
+
 	const playSound = (name) => {
 		const src = SOUNDS[name];
-		if (src) new Audio(src).play().catch(() => {});
-		socketRef.current?.emit('chat:sound', { lobbyId, sound: name });
+		if (src)
+			new Audio(src).play().catch(() => {});
+		emit('chat:sound', { lobbyId, sound: name });
 	};
 
 	return (

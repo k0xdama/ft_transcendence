@@ -87,7 +87,9 @@ function LoginView() {
 				type='submit'
 				disabled={loading}
 				>
-					{loading ? 'Logging in...' : 'Log in'}
+					{loading
+						? 'Logging in...'
+						: 'Log in'}
 				</button>
 			</form>
 			<p>Don't have an account? <Link to="/register">Sign up</Link></p>

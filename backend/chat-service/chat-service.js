@@ -3,6 +3,7 @@ import { createServer } from 'https';
 import { Server } from 'socket.io';
 import fs from 'fs';
 import chatRoutes from './src/routes/chat-router.js';
+import internalRoutes from './src/routes/internal-router.js';
 import { redisSubscriber, lobbyMembers } from './src/config/redis.js';
 import { chatService } from './src/class/chat-service-class.js';
 
@@ -15,6 +16,7 @@ const app = express();
 
 app.use(express.json());
 app.use('/chat', chatRoutes);
+app.use('/internal', internalRoutes);
 
 const server = createServer(sslOptions, app);
 const io = new Server(server);

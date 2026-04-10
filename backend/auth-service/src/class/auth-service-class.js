@@ -4,7 +4,8 @@ import {
 	ValidationError,
 	EmailAlreadyExistsError,
 	UsernameAlreadyExistsError,
-	InvalidCredentialsError } from '../utils/errors.js';
+	InvalidCredentialsError,
+	UserNotFoundError } from '../utils/errors.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import axios from 'axios';
@@ -12,14 +13,12 @@ import axios from 'axios';
 // Configuration
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'https://player:3001';
-const SERVICE_SECRET = process.env.SERVICE_SECRET || 'change-me';
 
 async function createPlayerProfile(userData) {
 	try {
 		console.log("createPlayerProfil : [username] -> ", userData.username);
-		const response = await axios.post(`${PLAYER_SERVICE_URL}/players`, userData, {
-			timeout: 5000,
-			headers: { 'service-token': SERVICE_SECRET }
+		const response = await axios.post(`${PLAYER_SERVICE_URL}/internal/users`, userData, {
+			timeout: 5000
 		});
 		return response.data;
 	} catch (error) {
@@ -50,12 +49,11 @@ class AuthService {
 
 			console.log(`✅ User created in auth schema: ${newUser.username} (${newUser.id})`);
 
-			// Créer le profil dans player.users
+			// Créer le profil dans player.users (email is not stored in player schema)
 			try {
 				const playerProfile = await createPlayerProfile({
 					auth_user_id: newUser.id,
-					username: newUser.username,
-					email: newUser.email
+					username: newUser.username
 				});
 
 				console.log(`✅ Player profile created: id=${playerProfile.auth_user_id}, username=${playerProfile.username}`);
@@ -171,6 +169,73 @@ class AuthService {
 
 		if (!record)
 			return;
+	}
+
+	// Called by another service (player-service) over the private network via
+	// the /internal endpoint. Removes the user from auth.users — the ON DELETE
+	// CASCADE on auth.refresh_tokens takes care of revoking any active session.
+	async deleteUser(userId) {
+		const result = await db.result(
+			`DELETE FROM auth.users WHERE id = $1`,
+			[userId]
+		);
+
+		if (result.rowCount === 0)
+			throw new UserNotFoundError();
+
+		console.log(`✅ User ${userId} deleted from auth schema`);
+	}
+
+	// Called by another service (player-service) over the private network via
+	// the /internal endpoint. Updates mutable fields on auth.users so that
+	// login credentials stay in sync with the user's profile elsewhere.
+	async updateUser(userId, { username, email }) {
+		const updates = [];
+		const values = [];
+		let paramIndex = 1;
+
+		if (username !== undefined) {
+			validateUsername(username);
+			updates.push(`username = $${paramIndex++}`);
+			values.push(username);
+		}
+		if (email !== undefined) {
+			validateEmail(email);
+			updates.push(`email = $${paramIndex++}`);
+			values.push(email);
+		}
+
+		if (updates.length === 0)
+			throw new ValidationError('No fields to update');
+
+		values.push(userId);
+
+		try {
+			const updated = await db.oneOrNone(
+				`UPDATE auth.users
+				SET ${updates.join(', ')}
+				WHERE id = $${paramIndex}
+				RETURNING id, email, username`,
+				values
+			);
+
+			if (!updated)
+				throw new UserNotFoundError();
+
+			console.log(`✅ User ${userId} updated in auth schema (${updates.join(', ')})`);
+			return updated;
+		}
+		catch (error) {
+			if (error.code === '23505') {
+				if (error.constraint === 'users_email_key')
+					throw new EmailAlreadyExistsError();
+				if (error.constraint === 'users_username_key')
+					throw new UsernameAlreadyExistsError();
+			}
+			if (error.code === '23514')
+				throw new ValidationError('Invalid data format');
+			throw error;
+		}
 	}
 }
 

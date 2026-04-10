@@ -24,8 +24,10 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 	}
 
 	const handleCancel = (field) => {
-		if (field === 'username') setUsername(profileData.username)
-		if (field === 'email') setEmail(profileData.email || '')
+		if (field === 'username')
+			setUsername(profileData.username)
+		if (field === 'email')
+			setEmail(profileData.email || '')
 		setEditingField(null)
 		setMessage({ text: '', type: '' })
 	}

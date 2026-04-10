@@ -114,7 +114,8 @@ function ProfileFriendRequests() {
 	}
 
 	const handleSendRequest = async () => {
-		if (!sendQuery.trim()) return
+		if (!sendQuery.trim())
+			return
 
 		setSending(true)
 		try {

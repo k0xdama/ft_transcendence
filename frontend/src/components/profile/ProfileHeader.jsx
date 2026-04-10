@@ -15,7 +15,8 @@ function ProfileHeader({
 
 	const handleFileSelect = (e) => {
 		const file = e.target.files[0]
-		if (file) onAvatarUpload(file)
+		if (file)
+			onAvatarUpload(file)
 	}
 
 	const formatDate = (dateStr) => {

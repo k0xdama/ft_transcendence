@@ -1,5 +1,6 @@
 function ProfileAchievements({ stats }) {
-	if (!stats) return <p className="profile-loading">Loading achievements...</p>
+	if (!stats)
+		return <p className="profile-loading">Loading achievements...</p>
 
 	const achievements = [
 		{

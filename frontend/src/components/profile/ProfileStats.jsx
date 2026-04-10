@@ -1,5 +1,6 @@
 function ProfileStats({ stats }) {
-	if (!stats) return <p className="profile-loading">Loading stats...</p>
+	if (!stats)
+		return <p className="profile-loading">Loading stats...</p>
 
 	const winRate = stats.gamesPlayed > 0
 		? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)

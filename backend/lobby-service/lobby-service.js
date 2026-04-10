@@ -180,7 +180,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//variable d'environnement docker compose ?
-			const res = await fetch("https://game:3002/create", {
+			const res = await fetch("https://game:3002/internal/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -249,11 +249,18 @@ io.on('connection', (socket) => {
 			return;
 		}
 
-		if (data.maxUsers) lobbyStruct.rules.maxUsers = Math.max(3, Math.min(6, data.maxUsers));
-		if (data.gameMode) lobbyStruct.rules.gameMode = data.gameMode;
-		if (data.gameType) lobbyStruct.rules.gameType = data.gameType;
+		if (data.maxUsers)
+			lobbyStruct.rules.maxUsers = Math.max(3, Math.min(6, data.maxUsers));
 
-		if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED) return;
+		if (data.gameMode)
+			lobbyStruct.rules.gameMode = data.gameMode;
+
+		if (data.gameType)
+			lobbyStruct.rules.gameType = data.gameType;
+
+		if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED)
+			return;
+
 		io.to(data.lobbyId).emit('lobby:rulesChanged', { lobbyStruct })
 	});
 
@@ -292,7 +299,7 @@ io.on('connection', (socket) => {
 		}
 		try {
 			//env var via docker compose ?
-			const res = await fetch("https://game:3002/create", {
+			const res = await fetch("https://game:3002/internal/create", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

@@ -20,6 +20,7 @@
 
 import express from 'express';
 import playerRoutes from './src/routes/player.js';
+import internalRoutes from './src/routes/internal-router.js';
 import fs from 'fs';
 import { createServer } from 'https';
 import path from 'path';
@@ -46,6 +47,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ✅ Monter les routes sur /players (PLURIEL - convention REST)
 app.use('/players', playerRoutes);
+app.use('/internal', internalRoutes);
 
 // Health check (optionnel mais utile)
 app.get('/health', (req, res) => {

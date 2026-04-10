@@ -11,11 +11,13 @@ function CreateLobbyView() {
 	const	navigate = useNavigate()
 
 	useEffect(() => {
-		if (connected) createLobby('CLASSIC', 'SOLO', 3)
+		if (connected)
+			createLobby('CLASSIC', 'SOLO', 3)
 	}, [connected])
 
 	useEffect(() => {
-		if (lobbyId) navigate(`/lobby/${lobbyId}`, { replace: true })
+		if (lobbyId)
+			navigate(`/lobby/${lobbyId}`, { replace: true })
 	}, [lobbyId])
 
 	if (!lobbyStruct) {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
+import { useChat } from "../../context/ChatContext";
 import { SOUNDS } from "./SoundBuzzers";
 import "./ChatOverlay.css"
 
@@ -19,7 +19,7 @@ function getAuthorColor(author) {
 	return NEON_COLORS[Math.abs(hash) % NEON_COLORS.length];
 }
 
-function ChatOverlay({ lobbyId, socketRef }) {
+function ChatOverlay({ lobbyId }) {
 	const [messages, setMessages] = useState([])
 	const [draft, setDraft] = useState("")
 	const [typingUsers, setTypingUsers] = useState([])
@@ -27,8 +27,10 @@ function ChatOverlay({ lobbyId, socketRef }) {
 	const typingTimers = useRef({})
 	const typingDebounce = useRef(null)
 	const { authFetch, user } = useAuth()
+	const { connected, on, emit } = useChat()
 	const chatUrl = '/api/chat'
 
+	// Fetch history separately — runs once when the room/user changes.
 	useEffect(() => {
 		if (!user || !lobbyId)
 			return
@@ -45,22 +47,21 @@ function ChatOverlay({ lobbyId, socketRef }) {
 			}
 		}
 		fetchHistory()
+	}, [lobbyId, user])
 
-		socketRef.current = io({
-			path: `${chatUrl}/socket.io`,
-			withCredentials: true,
-			transports: ['websocket']
-		})
+	// Wire chat events through the shared ChatContext socket.
+	// Wait until 'connected' so the 'chat:join' emit isn't dropped.
+	useEffect(() => {
+		if (!user || !lobbyId || !connected)
+			return
 
-		socketRef.current.on('connect', () => {
-			socketRef.current.emit('chat:join', { lobbyId })
-		})
+		emit('chat:join', { lobbyId })
 
-		socketRef.current.on('chat:message', (msg) => {
+		const offMessage = on('chat:message', (msg) => {
 			setMessages(prev => [...prev, mapMessage(user.id, msg)])
 		})
 
-		socketRef.current.on('chat:typing', ({ username }) => {
+		const offTyping = on('chat:typing', ({ username }) => {
 			setTypingUsers(prev => [...new Set([...prev, username])])
 			clearTimeout(typingTimers.current[username])
 			typingTimers.current[username] = setTimeout(() => {
@@ -68,12 +69,13 @@ function ChatOverlay({ lobbyId, socketRef }) {
 			}, TYPING_TIMEOUT_MS)
 		})
 
-		socketRef.current.on('chat:sound', ({ sound }) => {
+		const offSound = on('chat:sound', ({ sound }) => {
 			const src = SOUNDS[sound]
-			if (src) new Audio(src).play().catch(() => {})
+			if (src)
+				new Audio(src).play().catch(() => {})
 		})
 
-		socketRef.current.on('chat:notification', (notif) => {
+		const offNotif = on('chat:notification', (notif) => {
 			setMessages(prev => [...prev, {
 				id: `notif-${Date.now()}`,
 				author: 'System',
@@ -83,10 +85,12 @@ function ChatOverlay({ lobbyId, socketRef }) {
 		})
 
 		return () => {
-			socketRef.current?.disconnect()
-			socketRef.current = null
+			offMessage()
+			offTyping()
+			offSound()
+			offNotif()
 		}
-	}, [lobbyId, user])
+	}, [lobbyId, user, connected, on, emit])
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -118,7 +122,7 @@ function ChatOverlay({ lobbyId, socketRef }) {
 		if (!value.trim())
 			return
 		clearTimeout(typingDebounce.current)
-		typingDebounce.current = setTimeout(() => { socketRef.current?.emit('chat:typing', { lobbyId })}, 100)
+		typingDebounce.current = setTimeout(() => { emit('chat:typing', { lobbyId })}, 100)
 	}
 
 	const handleKey = (e) => {
@@ -180,7 +184,9 @@ function ChatMessage({ msg }) {
 function mapMessage(userId, msg) {
 	return {
 		id: msg.id,
-		author: msg.sender_id === userId ? 'You' : msg.username,
+		author: msg.sender_id === userId
+			? 'You'
+			: msg.username,
 		text: msg.content,
 		type: msg.message_type
 	}

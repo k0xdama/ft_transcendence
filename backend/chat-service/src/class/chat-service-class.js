@@ -105,10 +105,14 @@ class ChatService {
 				content, message_type, created_at
 			FROM chat.ws_messages
 			WHERE lobby_id = $1
-			${blockedIds.length ? 'AND sender_id != ALL($3::uuid[])' : ''}
+			${blockedIds.length
+				? 'AND sender_id != ALL($3::uuid[])'
+				: ''}
 			ORDER BY created_at DESC
 			LIMIT $2`,
-			blockedIds.length ? [lobbyId, limit, blockedIds] : [lobbyId, limit]
+			blockedIds.length
+				? [lobbyId, limit, blockedIds]
+				: [lobbyId, limit]
 		);
 
 		return history;

@@ -5,7 +5,8 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import './main.css'
 import App from './App.jsx'
 import { LobbyProvider } from './context/LobbyContext.jsx'
-import { GameProvider } from './context/GameContext.jsx' 
+import { GameProvider } from './context/GameContext.jsx'
+import { ChatProvider } from './context/ChatContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <LobbyProvider>
           <GameProvider>
+            <ChatProvider>
               <App />
+            </ChatProvider>
           </GameProvider>
         </LobbyProvider>
       </AuthProvider>

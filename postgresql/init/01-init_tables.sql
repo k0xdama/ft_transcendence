@@ -52,8 +52,7 @@ SET ROLE player_user;
 
 CREATE TABLE player.users (
 	id 				SERIAL PRIMARY KEY,
-	auth_user_id	UUID UNIQUE NOT NULL,	 -- peut-etre a retirer pour faire un appel au service auth
-	email			VARCHAR(255) UNIQUE NOT NULL,
+	auth_user_id	UUID NOT NULL,	-- logical FK to auth.users(id) (cross-schema, not enforced by PG)
 	username		VARCHAR(50) UNIQUE NOT NULL,
 	pp_path			VARCHAR(255) NOT NULL,
 	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -76,9 +75,6 @@ CREATE INDEX idx_player_auth_user_id
 
 CREATE INDEX idx_player_username
 	ON player.users(username);
-
-CREATE INDEX idx_player_email
-	ON player.users(email);
 
 -------------------------------------------------
 -- Créer le type ENUM pour les statuts
