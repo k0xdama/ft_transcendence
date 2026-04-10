@@ -1,22 +1,20 @@
-.lobby-view {
+.createLobbyView {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding-top: 80px;
-	gap: 24px;
 }
 
-.lobby-card {
+.lobbyCard {
 	background: rgba(10, 5, 20, 0.75);
 	border: 1px solid rgba(180, 60, 255, 0.4);
 	border-radius: 16px;
-	padding: 32px 40px;
-	width: 420px;
+	padding: 2vh 3vh;
+	width: 460px;
 	backdrop-filter: blur(12px);
 	box-shadow: 0 0 40px rgba(125, 116, 129, 0.2), inset 0 0 20px rgba(169, 98, 216, 0.4);
 }
 
-.lobby-title {
+.lobbyTitle {
 	font-size: 1.1rem;
 	letter-spacing: 0.15em;
 	text-transform: uppercase;
@@ -26,38 +24,145 @@
 	text-align: center;
 }
 
-.lobby-info {
-	display: flex;
-	justify-content: center;
-	gap: 24px;
-	margin-bottom: 24px;
-	padding-bottom: 20px;
-	border-bottom: 1px solid rgba(180, 60, 255, 0.2);
+.lobbyCreating {
+	text-align: center;
+	color: rgba(200, 160, 255, 0.6);
+	font-size: 0.8rem;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
 }
 
-.lobby-info p {
-	margin: 0;
+/* Lobby code */
+.lobbyCodeRow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	margin-bottom: 24px;
+	padding: 12px 16px;
+	background: rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(0, 220, 255, 0.25);
+	border-radius: 10px;
+}
+
+.lobbyCode {
+	font-size: 1.6rem;
+	letter-spacing: 0.35em;
+	font-weight: bold;
+	color: #00dcff;
+	text-shadow: 0 0 12px rgba(0, 220, 255, 0.6);
+	font-family: monospace;
+}
+
+.btnCopy {
+	padding: 6px 14px;
+	border-radius: 6px;
+	border: 1px solid rgba(0, 220, 255, 0.4);
+	background: rgba(0, 200, 255, 0.08);
+	color: #00dcff;
+	font-size: 0.7rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background 0.2s, box-shadow 0.2s;
+	white-space: nowrap;
+}
+
+.btnCopy:hover {
+	background: rgba(0, 200, 255, 0.18);
+	box-shadow: 0 0 10px rgba(0, 200, 255, 0.3);
+}
+
+/* Rules sections — same toggle style as matchmaking */
+.rulesSection {
+	margin-bottom: 20px;
+}
+
+.lobbySectionLabel {
+	margin: 0 0 10px 0;
 	font-size: 0.72rem;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: rgba(223, 213, 236, 0.7);
 }
 
-.lobby-info span {
-	color: #e0aaff;
-	font-weight: bold;
+.modeOptions, .typeOptions, .playerOptions {
+	display: flex;
+	gap: 10px;
+	justify-content: center;
 }
 
-.player-list {
-	list-style: none;
-	padding: 0;
-	margin: 0 0 28px 0;
+.modeBtn, .typeBtn, .playerBtn {
+	flex: 1;
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	padding: 12px 10px;
+	border-radius: 10px;
+	border: 1px solid rgba(180, 60, 255, 0.15);
+	background: rgba(255, 255, 255, 0.04);
+	color: rgba(220, 190, 255, 0.85);
+	cursor: pointer;
+	transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.player-list li {
+.typeBtn, .playerBtn {
+	flex-direction: row;
+	padding: 10px;
+}
+
+.playerBtn { flex: 0 0 48px; height: 48px; font-size: 1rem; font-weight: bold; }
+
+.modeBtn:hover, .typeBtn:hover, .playerBtn:hover {
+	border-color: rgba(180, 60, 255, 0.4);
+	background: rgba(140, 40, 200, 0.1);
+}
+
+/* Disabled state for non-host */
+.modeBtn:disabled, .typeBtn:disabled, .playerBtn:disabled {
+	cursor: default;
+}
+.modeBtn:disabled:hover, .typeBtn:disabled:hover, .playerBtn:disabled:hover {
+	border-color: rgba(180, 60, 255, 0.15);
+	background: rgba(255, 255, 255, 0.04);
+	box-shadow: none;
+}
+
+.modeActive, .typeActive, .playerActive {
+	border-color: rgba(180, 60, 255, 0.6);
+	background: rgba(140, 40, 200, 0.2);
+	box-shadow: 0 0 16px rgba(140, 40, 200, 0.3);
+}
+
+.modeName {
+	font-size: 0.85rem;
+	font-weight: bold;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #e0aaff;
+}
+
+.modeDesc {
+	font-size: 0.65rem;
+	letter-spacing: 0.05em;
+	color: rgba(223, 213, 236, 0.5);
+}
+
+/* Player list */
+.playerList {
+	list-style: none;
+	padding: 0;
+	margin: 20px 0 24px 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	border-top: 1px solid rgba(180, 60, 255, 0.15);
+	padding-top: 20px;
+}
+
+.playerList li {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -70,13 +175,48 @@
 	color: rgba(220, 190, 255, 0.85);
 }
 
-.lobby-action {
+.playerSlotEmpty {
+	border-style: dashed;
+	opacity: 0.4;
+}
+
+.emptyLabel {
+	font-size: 0.7rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: rgba(200, 160, 255, 0.5);
+	width: 100%;
+	text-align: center;
+}
+
+.readyBadge {
+	font-size: 0.65rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	padding: 3px 8px;
+	border-radius: 4px;
+}
+
+.readyBadge.ready {
+	color: #00dcff;
+	background: rgba(0, 220, 255, 0.1);
+	border: 1px solid rgba(0, 220, 255, 0.3);
+}
+
+.readyBadge.notReady {
+	color: rgba(200, 160, 255, 0.5);
+	background: rgba(180, 60, 255, 0.05);
+	border: 1px solid rgba(180, 60, 255, 0.15);
+}
+
+/* Actions */
+.lobbyAction {
 	display: flex;
 	gap: 12px;
 	justify-content: center;
 }
 
-.btn-ready {
+.btnReady {
 	padding: 10px 28px;
 	border-radius: 8px;
 	border: 1px solid rgba(0, 220, 255, 0.5);
@@ -89,12 +229,12 @@
 	transition: background 0.2s, box-shadow 0.2s;
 }
 
-.btn-ready:hover {
+.btnReady:hover {
 	background: rgba(0, 200, 255, 0.18);
 	box-shadow: 0 0 16px rgba(0, 200, 255, 0.3);
 }
 
-.btn-start {
+.btnStart {
 	padding: 10px 28px;
 	border-radius: 8px;
 	border: 1px solid rgba(180, 60, 255, 0.5);
@@ -107,12 +247,20 @@
 	transition: background 0.2s, box-shadow 0.2s;
 }
 
-.btn-start:hover:not(:disabled) {
+.btnStart:hover:not(:disabled) {
 	background: rgba(140, 40, 200, 0.3);
 	box-shadow: 0 0 16px rgba(140, 40, 200, 0.4);
 }
 
-.btn-start:disabled {
+.btnStart:disabled {
 	opacity: 0.35;
 	cursor: not-allowed;
+}
+
+.errorMsg {
+	color: #ff4466;
+	font-size: 0.75rem;
+	text-align: center;
+	margin: 0 0 16px 0;
+	letter-spacing: 0.05em;
 }

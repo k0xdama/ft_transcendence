@@ -1,6 +1,5 @@
 function ProfileAchievements({ stats }) {
-	if (!stats)
-		return <p className="profile-loading">Loading achievements...</p>
+	if (!stats) return <p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading achievements...</p>
 
 	const achievements = [
 		{
@@ -129,29 +128,29 @@ function ProfileAchievements({ stats }) {
 	const unlocked = achievements.filter(a => a.unlocked).length
 
 	return (
-		<div className="achievements-container">
-			<div className="achievements-summary">
-				<span className="achievements-count" style={{ color: '#ffd700' }}>{unlocked}</span>
-				<span className="achievements-total">/ {achievements.length} unlocked</span>
+		<div className="flex flex-col gap-5">
+			<div className="text-center pb-4 border-b border-purple-dim">
+				<span className="text-3xl font-bold tracking-wide" style={{ color: '#ffd700' }}>{unlocked}</span>
+				<span className="text-xs uppercase tracking-ui text-purple-pale/60 ml-1">/ {achievements.length} unlocked</span>
 			</div>
 
-			<div className="achievements-grid">
+			<div className="flex flex-col gap-2.5">
 				{achievements.map((achievement) => (
 					<div
-						className={`achievement-badge ${achievement.unlocked ? 'unlocked' : 'locked'}`}
+						className={`flex items-start gap-3.5 px-4 py-3 bg-white/4 border rounded-xl transition-all ${achievement.unlocked ? 'border-yellow-600/35 shadow-lg shadow-yellow-500/10' : 'opacity-45 border-purple-dim'}`}
 						key={achievement.id}
 					>
-						<span className="achievement-icon">{achievement.icon}</span>
-						<div className="achievement-info">
-							<span className="achievement-name">{achievement.name}</span>
-							<span className="achievement-desc">{achievement.description}</span>
+						<span className="text-2xl min-w-9 text-center">{achievement.icon}</span>
+						<div className="flex flex-col gap-0.5 flex-1">
+							<span className={`text-sm font-bold uppercase tracking-wider ${achievement.unlocked ? 'text-purple-pale' : 'text-purple-pale/60'}`}>{achievement.name}</span>
+							<span className={`text-xs uppercase tracking-wider ${achievement.unlocked ? 'text-purple-pale/55' : 'text-purple-pale/55'}`}>{achievement.description}</span>
 							{!achievement.unlocked && achievement.progress !== undefined && (
-								<div className="achievement-progress-bar">
+								<div className="relative w-full h-1 bg-white/6 rounded mt-1 overflow-hidden">
 									<div
-										className="achievement-progress-fill"
+										className="h-full bg-purple-brand/60 rounded transition-all duration-400"
 										style={{ width: `${(achievement.progress / achievement.max) * 100}%` }}
 									/>
-									<span className="achievement-progress-text">
+									<span className="absolute right-1 -top-3 text-xs uppercase tracking-wider text-purple-pale/50">
 										{achievement.progress}/{achievement.max}
 									</span>
 								</div>

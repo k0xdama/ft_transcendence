@@ -1,6 +1,5 @@
 function ProfileStats({ stats }) {
-	if (!stats)
-		return <p className="profile-loading">Loading stats...</p>
+	if (!stats) return <p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading stats...</p>
 
 	const winRate = stats.gamesPlayed > 0
 		? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
@@ -79,27 +78,27 @@ function ProfileStats({ stats }) {
 	]
 
 	return (
-		<div className="stats-container">
-			<div className="stats-grid">
+		<div className="flex flex-col gap-7">
+			<div className="grid grid-cols-2 gap-3">
 				{statCards.map((card) => (
-					<div className="stat-card" key={card.label}>
-						<span className="stat-icon">{card.icon}</span>
-						<span className="stat-value" style={{ color: card.color }}>{card.value}</span>
-						<span className="stat-label">{card.label}</span>
+					<div className="flex flex-col items-center gap-1 p-4 bg-white/4 border border-purple-dim rounded-xl hover:border-purple-mid hover:shadow-lg hover:shadow-purple-brand/15 transition-all" key={card.label}>
+						<span className="text-2xl">{card.icon}</span>
+						<span className="text-2xl font-bold tracking-wide" style={{ color: card.color }}>{card.value}</span>
+						<span className="text-xs uppercase tracking-ui text-white/60">{card.label}</span>
 					</div>
 				))}
 			</div>
 
-			<div className="stats-bars">
+			<div className="flex flex-col gap-4">
 				{detailStats.map((stat) => (
-					<div className="stat-bar-row" key={stat.label}>
-						<div className="stat-bar-header">
-							<span className="stat-bar-label">{stat.label}</span>
-							<span className="stat-bar-value" style={{ color: stat.color }}>{stat.value}</span>
+					<div className="flex flex-col gap-1.5" key={stat.label}>
+						<div className="flex justify-between items-center">
+							<span className="text-xs uppercase tracking-ui text-purple-pale/70">{stat.label}</span>
+							<span className="text-sm font-bold tracking-wide" style={{ color: stat.color }}>{stat.value}</span>
 						</div>
-						<div className="stat-bar-track">
+						<div className="w-full h-1.5 bg-white/6 rounded overflow-hidden">
 							<div
-								className="stat-bar-fill"
+								className="h-full rounded transition-all duration-600"
 								style={{
 									width: `${Math.min((stat.current / stat.maxValue) * 100, 100)}%`,
 									backgroundColor: stat.color,

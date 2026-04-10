@@ -1,22 +1,36 @@
 import { Link } from 'react-router-dom'
-import './HomeView.css'
+// import './HomeView.css'
 
 function HomeView() {
   return (
-    <div className='homeView'>
-      <h1>Triple</h1>
-      {/* <p>"A card, deduction, and memory game for 3 to 6 players with two game modes: “Simple” or “Spicy”"</p> */}
-        <div className='buttonContainer'>
-          <Link to="/lobby/new">
-            <button className='createBut'>Create game</button>
-          </Link>
-          <Link to="/join">
-            <button className='But'>Join game</button>
-          </Link>
-          <Link to="/matchmaking">
-            <button className='But'>Public Match</button>
-          </Link>
+    <div className='flex min-h-[calc(100vh-170px)] w-full flex-col items-center justify-center'>
+      <div className='relative w-full max-w-[560px] rounded-3xl border border-purple-mid bg-[rgba(10,5,20,0.72)] px-10 py-10 shadow-card backdrop-blur-3xl'>
+        <div className='pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(circle_at_top,rgba(192,96,255,0.12),transparent_60%)]'></div>
+
+        <div className='relative z-10 flex flex-col items-center'>
+          <h1 className='mb-8 text-[4.6rem] text-white text-shadow-[0_0_12px_rgba(11,25,105,0.8),0_0_28px_rgba(11,25,105,0.65)]'>
+            Triple
+          </h1>
+
+          <div className='mx-auto flex w-full max-w-[260px] flex-col justify-center gap-4'>
+            <Link to="/lobby/new">
+              <button className='w-full rounded-lg border border-purple-mid/60 bg-purple-brand/25 px-6 py-3 text-xs uppercase tracking-ui text-purple-pale transition-all hover:border-purple-str hover:bg-purple-brand/40 hover:shadow-btn-purple'>
+                Create game
+              </button>
+            </Link>
+            <Link to="/join">
+              <button className='w-full rounded-lg border border-purple-mid/50 bg-card px-6 py-3 text-xs uppercase tracking-ui text-white/85 transition-all hover:border-purple-mid hover:bg-purple-brand/15'>
+                Join game
+              </button>
+            </Link>
+            <Link to="/matchmaking">
+              <button className='w-full rounded-lg border border-cyan-mid bg-card px-6 py-3 text-xs uppercase tracking-ui text-cyan-glow transition-all hover:border-cyan-str hover:bg-cyan-glow/15'>
+                Public match
+              </button>
+            </Link>
+          </div>
         </div>
+      </div>
     </div>
   );
 }

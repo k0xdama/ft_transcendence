@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
-import './WaitingMatchmakingView.css'
+// import './WaitingMatchmakingView.css'
 
 function WaitingMatchmakingView() {
 	const navigate = useNavigate()
@@ -31,28 +31,28 @@ function WaitingMatchmakingView() {
 		return null
 
 	return (
-		<div className='waiting-view'>
-			<div className='waiting-card'>
-				<h2 className='waiting-title'>Searching for opponents</h2>
+		<div className='flex flex-col items-center pt-20 gap-6'>
+			<div className='bg-card border border-purple-mid rounded-2xl p-8 w-96 backdrop-blur-3xl shadow-card text-center'>
+				<h2 className='text-lg uppercase tracking-title text-purple-pale text-shadow-purple m-0 mb-6 animate-crt-pulse'>Searching for opponents</h2>
 
-				<div className='waiting-info'>
-					<p>Mode <span>{gameMode}</span></p>
-					<p>Type <span>{gameType}</span></p>
-					<p>Players <span>{maxUsers}</span></p>
+				<div className='flex justify-center gap-6 mb-6 pb-5 border-b border-purple-dim'>
+					<p className='text-xs uppercase tracking-ui text-white/70 m-0'>Mode <span className='text-purple-pale font-bold'>{gameMode}</span></p>
+					<p className='text-xs uppercase tracking-ui text-white/70 m-0'>Type <span className='text-purple-pale font-bold'>{gameType}</span></p>
+					<p className='text-xs uppercase tracking-ui text-white/70 m-0'>Players <span className='text-purple-pale font-bold'>{maxUsers}</span></p>
 				</div>
 
-				<div className='waiting-animation'>
-					<div className='waiting-dots'>
-						<span className='dot'></span>
-						<span className='dot'></span>
-						<span className='dot'></span>
+				<div className='my-8 flex flex-col items-center gap-4'>
+					<div className='flex gap-3'>
+						<span className='w-3 h-3 rounded-full bg-purple-light shadow-lg shadow-purple-light/60 animate-dot-bounce'></span>
+						<span className='w-3 h-3 rounded-full bg-purple-light shadow-lg shadow-purple-light/60 animate-dot-bounce' style={{animationDelay: '0.2s'}}></span>
+						<span className='w-3 h-3 rounded-full bg-purple-light shadow-lg shadow-purple-light/60 animate-dot-bounce' style={{animationDelay: '0.4s'}}></span>
 					</div>
-					<p className='waiting-text'>Looking for players</p>
+					<p className='text-xs uppercase tracking-ui text-white/85 m-0 animate-crt-blink'>Looking for players</p>
 				</div>
 
-				{error && <p className='waiting-error'>{error}</p>}
+				{error && <p className='text-red-500 text-xs mb-4'>{error}</p>}
 
-				<button className='btn-cancel' onClick={handleCancel}>
+				<button className='px-7 py-2.5 rounded border border-cyan-str bg-cyan-glow/8 text-cyan-glow uppercase tracking-ui text-xs hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 transition-all cursor-pointer' onClick={handleCancel}>
 					Cancel
 				</button>
 			</div>

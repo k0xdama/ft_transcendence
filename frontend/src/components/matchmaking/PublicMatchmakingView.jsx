@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
-import './PublicMatchmakingView.css'
+// import './PublicMatchmakingView.css'
 
 function PublicMatchmakingView() {
 	const [gameMode, setGameMode] = useState('CLASSIC')
@@ -39,35 +39,35 @@ function PublicMatchmakingView() {
 	const playerOptions = [3, 4, 5, 6]
 
 	return (
-		<div className='matchmaking-view'>
-			<div className='matchmaking-card'>
-				<h2 className='matchmaking-title'>Public Match</h2>
+		<div className='flex flex-col items-center pt-20 gap-6'>
+			<div className='bg-card border border-purple-mid rounded-2xl p-8 w-96 backdrop-blur-3xl shadow-card'>
+				<h2 className='text-lg uppercase tracking-title text-purple-pale text-shadow-purple m-0 mb-7 text-center'>Public Match</h2>
 
-				{error && <p className='matchmaking-error'>{error}</p>}
+				{error && <p className='text-red-500 text-xs text-center mb-4'>{error}</p>}
 
-				<div className='matchmaking-section'>
-					<p className='section-label'>Game Mode</p>
-					<div className='mode-options'>
+				<div className='mb-6'>
+					<p className='m-0 mb-2.5 text-xs uppercase tracking-ui text-white/70'>Game Mode</p>
+					<div className='flex gap-3'>
 						{modes.map(mode => (
 							<button
 								key={mode.value}
-								className={`mode-btn ${gameMode === mode.value ? 'mode-active' : ''}`}
+								className={`flex-1 flex flex-col items-center gap-1 px-3 py-3.5 rounded-lg border transition-all cursor-pointer ${gameMode === mode.value ? 'border-purple-str bg-purple-brand/20 shadow-lg shadow-purple-brand/30' : 'border-purple-dim bg-card hover:border-purple-mid hover:bg-purple-brand/10'}`}
 								onClick={() => setGameMode(mode.value)}
 							>
-								<span className='mode-name'>{mode.label}</span>
-								<span className='mode-desc'>{mode.desc}</span>
+								<span className='text-sm font-bold uppercase tracking-ui text-purple-pale'>{mode.label}</span>
+								<span className='text-xs tracking-widest text-white/50'>{mode.desc}</span>
 							</button>
 						))}
 					</div>
 				</div>
 
-				<div className='matchmaking-section'>
-					<p className='section-label'>Game Type</p>
-					<div className='type-options'>
+				<div className='mb-6'>
+					<p className='m-0 mb-2.5 text-xs uppercase tracking-ui text-white/70'>Game Type</p>
+					<div className='flex gap-3'>
 						{types.map(type => (
 							<button
 								key={type.value}
-								className={`type-btn ${gameType === type.value ? 'type-active' : ''}`}
+								className={`flex-1 px-4 py-2.5 rounded border text-xs uppercase tracking-ui transition-all cursor-pointer ${gameType === type.value ? 'border-purple-str bg-purple-brand/20 shadow-lg shadow-purple-brand/30 text-purple-pale' : 'border-purple-dim bg-card text-white/85 hover:border-purple-mid hover:bg-purple-brand/10'}`}
 								onClick={() => setGameType(type.value)}
 							>
 								{type.label}
@@ -76,13 +76,13 @@ function PublicMatchmakingView() {
 					</div>
 				</div>
 
-				<div className='matchmaking-section'>
-					<p className='section-label'>Players</p>
-					<div className='player-options'>
+				<div className='mb-6'>
+					<p className='m-0 mb-2.5 text-xs uppercase tracking-ui text-white/70'>Players</p>
+					<div className='flex gap-3'>
 						{playerOptions.map(n => (
 							<button
 								key={n}
-								className={`player-btn ${maxUsers === n ? 'player-active' : ''}`}
+								className={`inline-flex h-12 w-12 items-center justify-center rounded-lg border text-base font-bold leading-none transition-all cursor-pointer ${maxUsers === n ? 'border-purple-str bg-purple-brand/20 shadow-lg shadow-purple-brand/30 text-purple-pale' : 'border-purple-mid/40 bg-card text-white/85 hover:border-purple-mid hover:bg-purple-brand/12'}`}
 								onClick={() => setMaxUsers(n)}
 							>
 								{n}
@@ -91,7 +91,7 @@ function PublicMatchmakingView() {
 					</div>
 				</div>
 
-				<button className='btn-search' onClick={handleSearch}>
+				<button className='w-full px-7 py-3 rounded border border-purple-mid/50 bg-purple-brand/15 text-purple-light uppercase tracking-ui text-sm hover:bg-purple-brand/30 hover:shadow-lg hover:shadow-purple-brand/40 transition-all cursor-pointer' onClick={handleSearch}>
 					Search Game
 				</button>
 			</div>

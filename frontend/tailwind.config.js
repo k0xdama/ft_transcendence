@@ -1,0 +1,91 @@
+// tailwind.config.js — built from your existing CSS
+module.exports = {
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],  // scan all component files
+
+  theme: {
+    extend: {
+      // ── Colors ─────────────────────────────────────────
+      // From: #752586, #9d4edd, #c060ff, #e0aaff, #00dcff
+      colors: {
+        purple: {
+          brand:  '#752586',   // buttons, profile border
+          hover:  '#9d4edd',   // hover accents
+          light:  '#c060ff',   // lobby start button
+          pale:   '#e0aaff',   // section titles, labels
+        },
+        cyan: {
+          glow:   '#00dcff',   // lobby code, ready badge
+        },
+      },
+
+      // ── Background opacity shorthands ───────────────────
+      // From: rgba(10,5,20,0.75), rgba(0,0,0,0.3) etc.
+      backgroundColor: {
+        'card':        'rgba(10, 5, 20, 0.75)',
+        'card-input':  'rgba(0, 0, 0, 0.3)',
+        'btn-muted':   'rgba(255, 255, 255, 0.04)',
+        'btn-purple':  'rgba(140, 40, 200, 0.15)',
+        'btn-cyan':    'rgba(0, 200, 255, 0.08)',
+      },
+
+      // ── Box shadows ─────────────────────────────────────
+      // From: box-shadow on .lobbyCard, .matchmaking-card
+      boxShadow: {
+        'card': '0 0 40px rgba(125,116,129,0.2), inset 0 0 20px rgba(169,98,216,0.4)',
+        'btn-purple': '0 0 16px rgba(140, 40, 200, 0.3)',
+        'btn-cyan': '0 0 16px rgba(0, 200, 255, 0.3)',
+        'glow-purple': '0 0 16px rgba(140, 40, 200, 0.4)',
+      },
+
+      // ── Text shadows (via plugin) ────────────────────────
+      // From: text-shadow on .lobbyTitle, .waiting-title
+      textShadow: {
+        'purple':  '0 0 12px rgba(180, 80, 255, 0.8)',
+        'purple-lg': '0 0 20px rgba(180, 80, 255, 1), 0 0 40px rgba(180, 80, 255, 0.4)',
+        'cyan':    '0 0 12px rgba(0, 220, 255, 0.6)',
+      },
+
+      // ── Border colors (rgba) ─────────────────────────────
+      borderColor: {
+        'purple-dim':  'rgba(180, 60, 255, 0.15)',
+        'purple-mid':  'rgba(180, 60, 255, 0.4)',
+        'purple-str':  'rgba(180, 60, 255, 0.6)',
+        'cyan-mid':    'rgba(0, 220, 255, 0.25)',
+        'cyan-str':    'rgba(0, 220, 255, 0.5)',
+      },
+
+      // ── Letter spacing ───────────────────────────────────
+      // From: letter-spacing: 0.15em, 0.35em etc.
+      letterSpacing: {
+        'ui':    '0.12em',
+        'title': '0.15em',
+        'code':  '0.35em',
+      },
+
+      // ── Width / height ───────────────────────────────────
+      width: { '18': '4.5rem' },
+      height: { '18': '4.5rem' },
+
+      // ── Animations ──────────────────────────────────────
+      // Keyframes stay in CSS (or global.css) — see last tab
+      animation: {
+        'pulse-name':  'pulse-name 1.5s ease-in-out infinite',
+        'dot-bounce':  'dot-bounce 1.4s ease-in-out infinite',
+        'crt-blink':   'crt-blink 1.5s step-end infinite',
+        'crt-pulse':   'crt-pulse 2s ease-in-out infinite',
+        'fade-in':     'fade-in 0.6s ease forwards',
+        'pulse-check': 'pulse-check 1.2s ease-in-out infinite',
+      },
+    },
+  },
+
+  plugins: [
+    // text-shadow isn't built into Tailwind — add it via plugin
+    function({ matchUtilities, theme }) {
+      matchUtilities(
+        { 'text-shadow': (value) => ({ textShadow: value }) },
+        { values: theme('textShadow') }
+      );
+    },
+  ],
+};

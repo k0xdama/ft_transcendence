@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from './context/AuthContext'
-import './App.css'
 import HomeView from './components/HomeView'
 import NavBar from './components/NavBar'
 import RegisterView from './components/auth/RegisterView'
@@ -31,7 +30,7 @@ function App() {
     <>
       <NavBar />
 
-      <div className='main-container'>
+      <div className='mx-auto p-8 text-center flex justify-center items-center min-h-[calc(100vh-100px)]'>
         <Routes>
           <Route path="/" element={<HomeView />} />
           <Route path="/join" element={<JoinGameView />} />

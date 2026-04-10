@@ -151,26 +151,26 @@ function ProfileFriendRequests() {
 
 	if (loading) {
 		return (
-			<div className="friend-requests-container">
-				<p>Loading friend requests...</p>
+			<div className="flex flex-col gap-5">
+				<p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink m-0 py-6">Loading friend requests...</p>
 			</div>
 		)
 	}
 
 	return (
-		<div className="friend-requests-container">
+		<div className="flex flex-col gap-5">
 			{/* Send request bar */}
-			<div className="friend-requests-header">
+			<div className="flex items-center gap-2.5">
 				<input
 					type="text"
-					className="friend-requests-search"
+					className="flex-1 px-3 py-2 rounded text-xs uppercase tracking-ui text-white/87 bg-card-input border border-purple-mid/25 placeholder-white/35 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 transition-all"
 					placeholder="Send friend request (enter friend's username)..."
 					value={sendQuery}
 					onChange={e => setSendQuery(e.target.value)}
 					onKeyPress={e => e.key === 'Enter' && handleSendRequest()}
 				/>
 				<button 
-					className="btn-send-request" 
+					className="px-4 py-2 rounded text-xs uppercase tracking-ui text-cyan-glow bg-cyan-glow/8 border border-cyan-glow/50 hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer" 
 					onClick={handleSendRequest}
 					disabled={sending || !sendQuery.trim()}
 				>
@@ -179,37 +179,37 @@ function ProfileFriendRequests() {
 			</div>
 
 			{/* Pending requests */}
-			<div className="friend-requests-section">
-				<h3>Pending Requests ({pendingRequests.length})</h3>
-				<div className="friend-requests-list">
+			<div className="flex flex-col gap-2.5">
+				<h3 className="m-0 text-xs uppercase tracking-ui text-purple-pale">Pending Requests ({pendingRequests.length})</h3>
+				<div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
 					{pendingRequests.length === 0 ? (
-						<p className="friend-requests-empty">No pending requests</p>
+						<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-4 m-0">No pending requests</p>
 					) : (
 						pendingRequests.map(request => (
-							<div key={request.id} className="friend-request-item">
-								<div className="friend-avatar-wrapper">
+							<div key={request.id} className="flex items-center gap-3 px-3.5 py-2.5 bg-white/4 border border-purple-dim rounded-xl hover:border-purple-mid hover:shadow-lg hover:shadow-purple-brand/10 transition-all">
+								<div className="relative flex-shrink-0">
 									<img
-										className="friend-avatar"
+										className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
 										src={request.avatarUrl || '/src/assets/PFP_Default.webp'}
 										alt={request.username}
 									/>
 								</div>
-								<div className="friend-info">
-									<span className="friend-username">{request.username}</span>
-									<span className="friend-request-date">
+								<div className="flex flex-col gap-0.5 flex-1 min-w-0">
+									<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{request.username}</span>
+									<span className="text-xs uppercase tracking-ui text-purple-pale/50">
 										Requested {new Date(request.requestedAt).toLocaleDateString()}
 									</span>
 								</div>
-								<div className="friend-actions">
+								<div className="flex gap-1.5 flex-shrink-0">
 									<button 
-										className="btn-friend-action btn-accept-request" 
+										className="w-7 h-7 rounded border border-green-500/40 bg-green-500/8 text-green-400 text-xs cursor-pointer flex items-center justify-center hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 transition-all" 
 										title="Accept Request"
 										onClick={() => handleAccept(request.id)}
 									>
 										✓
 									</button>
 									<button 
-										className="btn-friend-action btn-decline-request" 
+										className="w-7 h-7 rounded border border-red-500/40 bg-red-500/8 text-red-400 text-xs cursor-pointer flex items-center justify-center hover:bg-red-500/18 hover:shadow-lg hover:shadow-red-500/30 transition-all" 
 										title="Decline Request"
 										onClick={() => handleDecline(request.id)}
 									>
@@ -224,30 +224,30 @@ function ProfileFriendRequests() {
 
 
 			{/* Sent requests */}
-			<div className="friend-requests-section">
-				<h3>Sent Requests ({sentRequests.length})</h3>
-				<div className="friend-requests-list">
+			<div className="flex flex-col gap-2.5">
+				<h3 className="m-0 text-xs uppercase tracking-ui text-purple-pale">Sent Requests ({sentRequests.length})</h3>
+				<div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
 					{sentRequests.length === 0 ? (
-						<p className="friend-requests-empty">No sent requests</p>
+						<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-4 m-0">No sent requests</p>
 					) : (
 						sentRequests.map(request => (
-							<div key={request.id} className="friend-request-item">
-								<div className="friend-avatar-wrapper">
+							<div key={request.id} className="flex items-center gap-3 px-3.5 py-2.5 bg-white/4 border border-purple-dim rounded-xl hover:border-purple-mid hover:shadow-lg hover:shadow-purple-brand/10 transition-all">
+								<div className="relative flex-shrink-0">
 									<img
-										className="friend-avatar"
+										className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
 										src={request.avatarUrl || '/src/assets/PFP_Default.webp'}
 										alt={request.username}
 									/>
 								</div>
-								<div className="friend-info">
-									<span className="friend-username">{request.username}</span>
-									<span className="friend-request-date">
+								<div className="flex flex-col gap-0.5 flex-1 min-w-0">
+									<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{request.username}</span>
+									<span className="text-xs uppercase tracking-ui text-purple-pale/50">
 										Sent {new Date(request.requestedAt).toLocaleDateString()}
 									</span>
 								</div>
-								<div className="friend-actions">
+								<div className="flex gap-1.5 flex-shrink-0">
 									<button 
-										className="btn-friend-action btn-cancel-request" 
+										className="px-2.5 h-7 rounded border border-orange-500/40 bg-orange-500/8 text-orange-400 text-xs uppercase tracking-ui cursor-pointer flex items-center justify-center hover:bg-orange-500/18 hover:shadow-lg hover:shadow-orange-500/30 transition-all" 
 										title="Cancel Request"
 										onClick={() => handleCancel(request.id)}
 									>
@@ -260,7 +260,7 @@ function ProfileFriendRequests() {
 				</div>
 			</div>
 
-			{error && <p className="friend-requests-error">{error}</p>}
+			{error && <p className="text-red-500 text-xs text-center m-0">{error}</p>}
 		</div>
 
 	)

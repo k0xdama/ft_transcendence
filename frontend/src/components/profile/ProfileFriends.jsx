@@ -1,23 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 
-// Mock data for visual preparation — will be replaced with real API calls
-//DEVRA CONTENIR api/players/UUID/friends qui renvoie le json des amis avec donnees
-const MOCK_FRIENDS = [
-	{ id: '1', username: 'NeonSlayer42', avatarUrl: null, status: 'online' },
-	{ id: '2', username: 'CyberPunk_X', avatarUrl: null, status: 'in-game' },
-	{ id: '3', username: 'RetroWave', avatarUrl: null, status: 'offline' },
-	{ id: '4', username: 'PixelDrift', avatarUrl: null, status: 'online' },
-	{ id: '5', username: 'SynthRider', avatarUrl: null, status: 'offline' },
-	{ id: '6', username: 'GlitchHunter', avatarUrl: null, status: 'in-game' },
-	{ id: '7', username: 'VaporTrail', avatarUrl: null, status: 'online' },
-	{ id: '8', username: 'DarkMatter99', avatarUrl: null, status: 'offline' },
-	{ id: '9', username: 'ZeroGravity', avatarUrl: null, status: 'online' },
-	{ id: '10', username: 'NovaStrike', avatarUrl: null, status: 'offline' },
-	{ id: '11', username: 'ByteCrusher', avatarUrl: null, status: 'in-game' },
-	{ id: '12', username: 'PhantomAce', avatarUrl: null, status: 'online' },
-]
-
 const STATUS_ORDER = { 'online': 0, 'in-game': 1, 'offline': 2 }
 const STATUS_LABELS = { 'online': 'Online', 'in-game': 'In Game', 'offline': 'Offline' }
 
@@ -99,66 +82,74 @@ function ProfileFriends() {
 
 	if (loading) {
 		return (
-			<div className="friends-container">
-				<p>Loading friends...</p>
+			<div className="flex flex-col gap-4 max-h-96 min-h-0">
+				<p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink m-0 py-6">Loading friends...</p>
 			</div>
 		)
 	}
 
 	if (error) {
 		return (
-			<div className="friends-container">
-				<p className="friends-error">{error}</p>
+			<div className="flex flex-col gap-4 max-h-96 min-h-0">
+				<p className="text-red-500 text-xs text-center m-0 py-6">{error}</p>
 			</div>
 		)
 	}
 
 	return (
-		<div className="friends-container">
-			<div className="friends-header-row">
-				<span className="friends-count">
-					<span className="friends-count-online">{onlineCount}</span>
-					<span className="friends-count-total">/ {friends.length} online</span>
+		<div className="flex flex-col gap-4 max-h-96 min-h-0">
+			<div className="flex justify-between items-center gap-3 flex-shrink-0">
+				<span className="whitespace-nowrap">
+					<span className="text-lg font-bold text-green-400 tracking-wide">{onlineCount}</span>
+					<span className="text-xs uppercase tracking-ui text-purple-pale/50 ml-1">/ {friends.length} online</span>
 				</span>
 				<input
 					type="text"
-					className="friends-search"
+					className="flex-1 max-w-52 px-3 py-1.5 rounded text-xs uppercase tracking-wider text-white/87 bg-card-input border border-purple-mid/25 placeholder-white/35 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 transition-all"
 					placeholder="Search friends..."
 					value={searchQuery}
 					onChange={e => setSearchQuery(e.target.value)}
 				/>
 			</div>
 
-			<div className="friends-list">
+			<div className="flex flex-col gap-1.5 overflow-y-auto min-h-0 flex-1 pr-1">
 				{filtered.length === 0 && (
-					<p className="friends-empty">No friends found</p>
+					<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-6 m-0">No friends found</p>
 				)}
 				{filtered.map(friend => (
-					<div key={friend.id} className="friend-item">
-						<div className="friend-avatar-wrapper">
+					<div key={friend.id} className="flex items-center gap-3 px-3.5 py-2.5 bg-white/4 border border-purple-dim rounded-xl hover:border-purple-mid hover:shadow-lg hover:shadow-purple-brand/10 transition-all">
+						<div className="relative flex-shrink-0">
 							<img
-								className="friend-avatar"
+								className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
 								src={friend.avatarUrl || '/src/assets/PFP_Default.webp'}
 								alt={friend.username}
 							/>
-							<span className={`friend-status-dot status-${friend.status}`} />
+							<span className={`absolute bottom-0 right-0.5 w-2.5 h-2.5 rounded-full border-2 border-opacity-90 ${
+								friend.status === 'online' ? 'bg-green-400 shadow-lg shadow-green-400/50' :
+								friend.status === 'in-game' ? 'bg-cyan-glow shadow-lg shadow-cyan-glow/50' :
+								'bg-purple-pale/30'
+							}`} />
 						</div>
-						<div className="friend-info">
-							<span className="friend-username">{friend.username}</span>
-							<span className={`friend-status-text status-${friend.status}`}>
+						<div className="flex flex-col gap-0.5 flex-1 min-w-0">
+							<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{friend.username}</span>
+							<span className={`text-xs uppercase tracking-ui ${
+								friend.status === 'online' ? 'text-green-400' :
+								friend.status === 'in-game' ? 'text-cyan-glow' :
+								'text-purple-pale/40'
+							}`}>
 								{STATUS_LABELS[friend.status]}
 							</span>
 						</div>
-						<div className="friend-actions">
-							<button className="btn-friend-action btn-friend-profile" title="View Profile">
+						<div className="flex gap-1.5 flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity">
+							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-cyan-glow/50 hover:bg-cyan-glow/10 hover:text-cyan-glow transition-all" title="View Profile">
 								&#9782;
 							</button>
-							<button className="btn-friend-action btn-friend-remove" title="Remove Friend" onClick={() => handleRemoveFriend(friend.id)}>
+							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all" title="Remove Friend" onClick={() => handleRemoveFriend(friend.id)}>
 								&#10005;
 							</button>
-                            <button className="btn-friend-action btn-block-user" title="Block User" onClick={() => handleBlockUser(friend.id)}>
-                                &#128274;
-                            </button>
+							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400 transition-all" title="Block User" onClick={() => handleBlockUser(friend.id)}>
+								&#128274;
+							</button>
 						</div>
 					</div>
 				))}

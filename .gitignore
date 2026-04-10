@@ -7,3 +7,4 @@ secrets/
 *.log
 example.tsx
 FRONTEND_REFERENCE.md
+commit-msg.txt

@@ -8,7 +8,7 @@ import ProfileFriends from './ProfileFriends'
 import ProfileFriendRequests from './ProfileFriendRequests'
 import ProfileSettings from './ProfileSettings'
 import DeleteAccountModal from './DeleteAccountModal'
-import './UserProfileView.css'
+// import './UserProfileView.css'
 
 function UserProfileView() {
 	const { userId } = useParams()
@@ -22,6 +22,7 @@ function UserProfileView() {
 	const [error, setError] = useState('')
 	const [friendStatus, setFriendStatus] = useState(null) // 'friend', 'pending', 'none', 'blocked'
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
+	const tabBaseClass = 'w-full min-w-0 !rounded-none !bg-transparent !border-0 border-b-2 border-b-transparent px-2 py-2 text-[0.64rem] uppercase tracking-ui cursor-pointer transition-colors focus:outline-none focus-visible:outline-none'
 
 	const isOwnProfile = !userId || (user && userId === user.id)
 	const targetUserId = userId || (user && user.id)
@@ -251,9 +252,9 @@ function UserProfileView() {
 
 	if (loading) {
 		return (
-			<div className="profile-view">
-				<div className="profile-card">
-					<p className="profile-loading">Loading profile...</p>
+			<div className="flex flex-col items-center pt-10 gap-6 w-full">
+				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-8 w-[620px] h-[62vh] max-w-[92vw] backdrop-blur-3xl shadow-card">
+					<p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading profile...</p>
 				</div>
 			</div>
 		)
@@ -261,17 +262,17 @@ function UserProfileView() {
 
 	if (error && !profileData) {
 		return (
-			<div className="profile-view">
-				<div className="profile-card">
-					<p className="profile-error">{error}</p>
+			<div className="flex flex-col items-center pt-10 gap-6 w-full">
+				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-8 w-[620px] h-[62vh] max-w-[92vw] backdrop-blur-3xl shadow-card">
+					<p className="text-red-500 text-xs text-center mt-2">{error}</p>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="profile-view">
-			<div className="profile-card">
+		<div className="flex flex-col items-center pt-10 gap-6 w-full">
+			<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-8 w-[620px] h-[62vh] max-w-[92vw] backdrop-blur-3xl shadow-card">
 				<ProfileHeader
 					profileData={profileData}
 					isOwnProfile={isOwnProfile}
@@ -283,34 +284,34 @@ function UserProfileView() {
 					onBlock={handleBlock}
 				/>
 
-				<div className="profile-tabs">
+				<div className={`mb-5 grid w-full ${isOwnProfile ? 'grid-cols-5' : 'grid-cols-4'} gap-1 border-b border-purple-dim pb-1`}>
 					<button
-						className={`profile-tab ${activeTab === 'stats' ? 'active' : ''}`}
+						className={`${tabBaseClass} ${activeTab === 'stats' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
 						onClick={() => setActiveTab('stats')}
 					>
 						Stats
 					</button>
 					<button
-						className={`profile-tab ${activeTab === 'achievements' ? 'active' : ''}`}
+						className={`${tabBaseClass} ${activeTab === 'achievements' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
 						onClick={() => setActiveTab('achievements')}
 					>
 						Achievements
 					</button>
 					<button
-						className={`profile-tab ${activeTab === 'friends' ? 'active' : ''}`}
+						className={`${tabBaseClass} ${activeTab === 'friends' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
 						onClick={() => setActiveTab('friends')}
 					>
 						Friends
 					</button>
 					<button
-						className={`profile-tab ${activeTab === 'friend-requests' ? 'active' : ''}`}
+						className={`${tabBaseClass} ${activeTab === 'friend-requests' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
 						onClick={() => setActiveTab('friend-requests')}
 					>
 						Friend Requests
 					</button>
 					{isOwnProfile && (
 						<button
-							className={`profile-tab ${activeTab === 'settings' ? 'active' : ''}`}
+							className={`${tabBaseClass} ${activeTab === 'settings' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
 							onClick={() => setActiveTab('settings')}
 						>
 							Settings
@@ -318,7 +319,7 @@ function UserProfileView() {
 					)}
 				</div>
 
-				<div className="profile-tab-content">
+				<div className="profile-scrollbar flex-1 min-h-0 overflow-y-auto pr-2">
 					{activeTab === 'stats' && (
 						<ProfileStats stats={stats} />
 					)}
@@ -348,7 +349,7 @@ function UserProfileView() {
 				/>
 			)}
 
-			{error && <p className="profile-error">{error}</p>}
+			{error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
 		</div>
 	)
 }
