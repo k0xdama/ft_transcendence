@@ -100,8 +100,14 @@ function UserProfileView() {
 
 	const handleAddFriend = async () => {
 		try {
-			// TODO: Replace with actual API call
-			// await authFetch(`http://localhost:4000/api/users/${user.id}/friends/${targetUserId}`, { method: 'POST' })
+			const response = await authFetch(`/api/players/me/friend-requests/${targetUserId}`, {
+				method: 'POST'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to send friend request')
+			}
+
 			setFriendStatus('pending')
 		} catch (err) {
 			setError('Failed to send friend request')
@@ -110,8 +116,14 @@ function UserProfileView() {
 
 	const handleRemoveFriend = async () => {
 		try {
-			// TODO: Replace with actual API call
-			// await authFetch(`http://localhost:4000/api/users/${user.id}/friends/${targetUserId}`, { method: 'DELETE' })
+			const response = await authFetch(`/api/players/me/friends/${targetUserId}`, {
+				method: 'DELETE'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to remove friend')
+			}
+
 			setFriendStatus('none')
 		} catch (err) {
 			setError('Failed to remove friend')
@@ -120,8 +132,14 @@ function UserProfileView() {
 
 	const handleBlock = async () => {
 		try {
-			// TODO: Replace with actual API call
-			// await authFetch(`http://localhost:4000/api/users/${user.id}/block/${targetUserId}`, { method: 'POST' })
+			const response = await authFetch(`/api/players/me/blocked/${targetUserId}`, {
+				method: 'POST'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to block user')
+			}
+
 			setFriendStatus('blocked')
 		} catch (err) {
 			setError('Failed to block user')

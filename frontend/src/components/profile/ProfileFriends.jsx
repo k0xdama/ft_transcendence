@@ -43,8 +43,8 @@ function ProfileFriends() {
 			const transformedFriends = data.friends.map(friend => ({
 				id: friend.auth_user_id,
 				username: friend.username,
-				avatarUrl: friend.pp_path && friend.pp_path !== '/uploads/profilePictures/default_profile_picture.png' 
-					? `/api/players/${friend.auth_user_id}/profile-picture` 
+				avatarUrl: friend.pp_path && friend.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
+					? `/api/players/${friend.auth_user_id}/profile-picture`
 					: null,
 				status: 'online' // TODO: Add real status from API if available
 			}))
@@ -54,6 +54,40 @@ function ProfileFriends() {
 			console.error('Error fetching friends:', err)
 		} finally {
 			setLoading(false)
+		}
+	}
+
+	const handleRemoveFriend = async (friendId) => {
+		try {
+			const response = await authFetch(`/api/players/me/friends/${friendId}`, {
+				method: 'DELETE'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to remove friend')
+			}
+
+			await fetchFriends()
+		} catch (err) {
+			setError('Failed to remove friend')
+			console.error('Error removing friend:', err)
+		}
+	}
+
+	const handleBlockUser = async (friendId) => {
+		try {
+			const response = await authFetch(`/api/players/me/blocked/${friendId}`, {
+				method: 'POST'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to block user')
+			}
+
+			await fetchFriends()
+		} catch (err) {
+			setError('Failed to block user')
+			console.error('Error blocking user:', err)
 		}
 	}
 
@@ -119,9 +153,12 @@ function ProfileFriends() {
 							<button className="btn-friend-action btn-friend-profile" title="View Profile">
 								&#9782;
 							</button>
-							<button className="btn-friend-action btn-friend-remove" title="Remove Friend">
+							<button className="btn-friend-action btn-friend-remove" title="Remove Friend" onClick={() => handleRemoveFriend(friend.id)}>
 								&#10005;
 							</button>
+                            <button className="btn-friend-action btn-block-user" title="Block User" onClick={() => handleBlockUser(friend.id)}>
+                                &#128274;
+                            </button>
 						</div>
 					</div>
 				))}

@@ -14,6 +14,15 @@ function ProfileFriendRequests() {
 		fetchRequests()
 	}, [])
 
+	const transformRequest = (req) => ({
+		id: req.auth_user_id,
+		username: req.username,
+		avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
+			? `/api/players/${req.auth_user_id}/profile-picture`
+			: null,
+		requestedAt: req.requested_at
+	})
+
 	const fetchRequests = async () => {
 		try {
 			const [pendingRes, sentRes] = await Promise.all([
@@ -28,16 +37,6 @@ function ProfileFriendRequests() {
 			const pendingData = await pendingRes.json()
 			const sentData = await sentRes.json()
 
-			// Transform data
-			const transformRequest = (req) => ({
-				id: req.auth_user_id,
-				username: req.username,
-				avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png' 
-					? `/api/players/${req.auth_user_id}/profile-picture` 
-					: null,
-				requestedAt: req.requested_at
-			})
-
 			setPendingRequests(pendingData.requests.map(transformRequest))
 			setSentRequests(sentData.requests.map(transformRequest))
 		} catch (err) {
@@ -48,14 +47,36 @@ function ProfileFriendRequests() {
 		}
 	}
 
+	const fetchPendingRequests = async () => {
+		const pendingRes = await authFetch('/api/players/me/friend-requests/pending')
+		if (pendingRes.ok) {
+			const pendingData = await pendingRes.json()
+			setPendingRequests(pendingData.requests.map(transformRequest))
+		}
+	}
+
+	const fetchSentRequests = async () => {
+		const sentRes = await authFetch('/api/players/me/friend-requests/sent')
+		if (sentRes.ok) {
+			const sentData = await sentRes.json()
+			setSentRequests(sentData.requests.map(transformRequest))
+		}
+	}
+
 	const handleAccept = async (friendId) => {
 		try {
-			const response = await authFetch(`api/players/me/${friendId}/accept`, {
+			const response = await authFetch(`/api/players/me/friend-requests/${friendId}/accept`, {
 				method: 'POST'
 			})
-		} catch (error) {
-			setError('Failed to accept friend request');
-			console.error('Error accepting request:', err);
+
+			if (!response.ok) {
+				throw new Error('Failed to accept friend request')
+			}
+
+			await fetchPendingRequests()
+		} catch (err) {
+			setError('Failed to accept friend request')
+			console.error('Error accepting request:', err)
 		}
 	}
 
@@ -67,22 +88,28 @@ function ProfileFriendRequests() {
 			if (!response.ok) {
 				throw new Error('Failed to decline friend request')
 			}
-			// Refresh pending requests
-			const pendingRes = await authFetch('/api/players/me/friend-requests/pending')
-			if (pendingRes.ok) {
-				const pendingData = await pendingRes.json()
-				setPendingRequests(pendingData.requests.map(req => ({
-					id: req.auth_user_id,
-					username: req.username,
-					avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png' 
-						? `/api/players/${req.auth_user_id}/profile-picture` 
-						: null,
-					requestedAt: req.requested_at
-				})))
-			}
+
+			await fetchPendingRequests()
 		} catch (err) {
-			setError('Failed to decline friend request');
-			console.error('Error declining request:', err);
+			setError('Failed to decline friend request')
+			console.error('Error declining request:', err)
+		}
+	}
+
+	const handleCancel = async (friendId) => {
+		try {
+			const response = await authFetch(`/api/players/me/friend-requests/${friendId}`, {
+				method: 'DELETE'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to cancel friend request')
+			}
+
+			await fetchSentRequests()
+		} catch (err) {
+			setError('Failed to cancel friend request')
+			console.error('Error canceling request:', err)
 		}
 	}
 
@@ -136,7 +163,7 @@ function ProfileFriendRequests() {
 				<input
 					type="text"
 					className="friend-requests-search"
-					placeholder="Send friend request (enter friend's auth_user_id)..."
+					placeholder="Send friend request (enter friend's username)..."
 					value={sendQuery}
 					onChange={e => setSendQuery(e.target.value)}
 					onKeyPress={e => e.key === 'Enter' && handleSendRequest()}
@@ -194,6 +221,7 @@ function ProfileFriendRequests() {
 				</div>
 			</div>
 
+
 			{/* Sent requests */}
 			<div className="friend-requests-section">
 				<h3>Sent Requests ({sentRequests.length})</h3>
@@ -233,6 +261,7 @@ function ProfileFriendRequests() {
 
 			{error && <p className="friend-requests-error">{error}</p>}
 		</div>
+
 	)
 }
 

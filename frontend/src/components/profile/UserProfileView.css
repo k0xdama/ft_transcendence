@@ -1039,11 +1039,11 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 12px;
-	border-radius: 8px;
-	background: rgba(255, 255, 255, 0.02);
-	border: 1px solid rgba(180, 60, 255, 0.1);
-	transition: background 0.2s, border-color 0.2s;
+	padding: 10px 14px;
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid rgba(180, 60, 255, 0.15);
+	border-radius: 10px;
+	transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .friend-request-item:hover {
@@ -1069,20 +1069,43 @@
 	color: #50ff50;
 }
 
+.btn-decline-request {
+	border: 1px solid rgba(255, 80, 80, 0.5);
+	background: rgba(255, 80, 80, 0.08);
+	color: #ff6b6b;
+}
+
 .btn-decline-request:hover {
-	border-color: rgba(255, 80, 80, 0.5);
-	background: rgba(255, 80, 80, 0.1);
+	border-color: rgba(255, 80, 80, 0.7);
+	background: rgba(255, 80, 80, 0.15);
 	color: #ff6b6b;
 }
 
 .btn-cancel-request {
-	font-size: 0.65rem;
-	padding: 4px 8px;
+	min-width: 72px;
+	width: auto;
+	height: auto;
+	padding: 6px 10px;
+	border: 1px solid rgba(255, 150, 80, 0.5);
+	background: rgba(255, 150, 80, 0.08);
+	color: #ffb376;
 }
 
 .btn-cancel-request:hover {
-	border-color: rgba(255, 150, 80, 0.5);
-	background: rgba(255, 150, 80, 0.1);
+	border-color: rgba(255, 150, 80, 0.7);
+	background: rgba(255, 150, 80, 0.15);
+	color: #ff9a50;
+}
+
+.btn-block-user {
+	border: 1px solid rgba(255, 100, 0, 0.5);
+	background: rgba(255, 100, 0, 0.08);
+	color: #ffb76b;
+}
+
+.btn-block-user:hover {
+	border-color: rgba(255, 120, 0, 0.7);
+	background: rgba(255, 120, 0, 0.16);
 	color: #ff9a50;
 }
 

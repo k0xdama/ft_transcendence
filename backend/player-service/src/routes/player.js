@@ -314,7 +314,7 @@ async function getUserIds(userAuthId, friendAuthId) {
     }
 
     const friend = await db.oneOrNone(
-        'SELECT id, username FROM player.users WHERE auth_user_id = $1',
+        'SELECT id, username FROM player.users WHERE auth_user_id = $1 OR LOWER(username) = LOWER($1)',
         [friendAuthId]
     );
     
