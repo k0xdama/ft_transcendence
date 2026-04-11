@@ -7,12 +7,14 @@ const STATUS_LABELS = { 'online': 'Online', 'in-game': 'In Game', 'offline': 'Of
 function ProfileFriends() {
 	const { authFetch } = useAuth()
 	const [friends, setFriends] = useState([])
+	const [blocked, setBlocked] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
 	const [searchQuery, setSearchQuery] = useState('')
 
 	useEffect(() => {
 		fetchFriends()
+		fetchBlocked()
 	}, [])
 
 	const fetchFriends = async () => {
@@ -37,6 +39,27 @@ function ProfileFriends() {
 			console.error('Error fetching friends:', err)
 		} finally {
 			setLoading(false)
+		}
+	}
+
+	const fetchBlocked = async () => {
+		try {
+			const response = await authFetch('/api/players/me/blocked')
+			if (!response.ok) {
+				throw new Error('Failed to fetch blocked users')
+			}
+			const data = await response.json()
+			const transformedBlocked = data.blocked.map(user => ({
+				id: user.auth_user_id,
+				username: user.username,
+				avatarUrl: user.pp_path && user.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
+					? `/api/players/${user.auth_user_id}/profile-picture`
+					: null,
+				blockedAt: user.blocked_at
+			}))
+			setBlocked(transformedBlocked)
+		} catch (err) {
+			console.error('Error fetching blocked users:', err)
 		}
 	}
 
@@ -71,6 +94,23 @@ function ProfileFriends() {
 		} catch (err) {
 			setError('Failed to block user')
 			console.error('Error blocking user:', err)
+		}
+	}
+
+	const handleUnblockUser = async (userId) => {
+		try {
+			const response = await authFetch(`/api/players/me/blocked/${userId}`, {
+				method: 'DELETE'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to unblock user')
+			}
+
+			await fetchBlocked()
+		} catch (err) {
+			setError('Failed to unblock user')
+			console.error('Error unblocking user:', err)
 		}
 	}
 
@@ -153,6 +193,43 @@ function ProfileFriends() {
 						</div>
 					</div>
 				))}
+			</div>
+
+			{/* Blocked users */}
+			<div className="friends-section">
+				<h3>Blocked Users ({blocked.length})</h3>
+				<div className="friends-list">
+					{blocked.length === 0 ? (
+						<p className="friends-empty">No blocked users</p>
+					) : (
+						blocked.map(user => (
+							<div key={user.id} className="friend-item">
+								<div className="friend-avatar-wrapper">
+									<img
+										className="friend-avatar"
+										src={user.avatarUrl || '/src/assets/PFP_Default.webp'}
+										alt={user.username}
+									/>
+								</div>
+								<div className="friend-info">
+									<span className="friend-username">{user.username}</span>
+									<span className="friend-request-date">
+										Blocked {new Date(user.blockedAt).toLocaleDateString()}
+									</span>
+								</div>
+								<div className="friend-actions">
+									<button
+										className="btn-friend-action btn-unblock-user"
+										title="Unblock User"
+										onClick={() => handleUnblockUser(user.id)}
+									>
+										Unblock
+									</button>
+								</div>
+							</div>
+						))
+					)}
+				</div>
 			</div>
 		</div>
 	)

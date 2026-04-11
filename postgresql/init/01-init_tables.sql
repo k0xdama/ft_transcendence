@@ -99,6 +99,18 @@ CREATE TABLE player.friendships (
 	CHECK (requester_id != addressee_id)
 );
 
+CREATE TABLE player.blocked (
+    id              SERIAL PRIMARY KEY,
+    requester_id    INTEGER REFERENCES player.users(id) ON DELETE CASCADE,
+    addressee_id    INTEGER REFERENCES player.users(id) ON DELETE CASCADE,
+    -- blocked_status	BOOLEAN DEFAULT 0, pas besoin car deja dans la table
+    requested_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Contrainte : pas d'auto-block
+    CONSTRAINT no_self_block
+	CHECK (requester_id != addressee_id)
+);
+
 -- Index pour performance
 CREATE INDEX idx_friendships_requester
 	ON player.friendships(requester_id);

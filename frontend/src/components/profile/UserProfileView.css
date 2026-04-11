@@ -812,14 +812,22 @@
 	background: rgba(180, 60, 255, 0.5);
 }
 
-.friends-empty {
-	text-align: center;
-	font-size: 0.75rem;
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-	color: rgba(220, 190, 255, 0.4);
-	padding: 24px 0;
+.friends-section {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid rgba(180, 60, 255, 0.2);
+}
+
+.friends-section h3 {
+	font-size: 1rem;
+	color: #e0aaff;
 	margin: 0;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
 }
 
 .friend-item {
@@ -915,7 +923,7 @@
 	display: flex;
 	gap: 6px;
 	flex-shrink: 0;
-	opacity: 0;
+	opacity: 1;
 	transition: opacity 0.2s;
 }
 
@@ -1107,6 +1115,18 @@
 	border-color: rgba(255, 120, 0, 0.7);
 	background: rgba(255, 120, 0, 0.16);
 	color: #ff9a50;
+}
+
+.btn-unblock-user {
+	border: 1px solid rgba(0, 255, 135, 0.5);
+	background: rgba(0, 255, 135, 0.08);
+	color: #00ff87;
+}
+
+.btn-unblock-user:hover {
+	border-color: rgba(0, 255, 135, 0.7);
+	background: rgba(0, 255, 135, 0.16);
+	color: #00ff87;
 }
 
 .friend-requests-error {
