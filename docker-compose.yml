@@ -24,7 +24,7 @@ services:
       - postgres_data:/var/lib/postgresql/
       - ./postgresql/init:/docker-entrypoint-initdb.d:ro
     networks:
-      - trio_network
+      - triple_network
     expose:
       - "5432"
     healthcheck:
@@ -47,7 +47,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - trio_network
+      - triple_network
     expose:
       - "6379"
     healthcheck:
@@ -81,7 +81,7 @@ services:
     volumes:
       - ./backend/api-gateway/src:/app/src:ro
     networks:
-      - trio_network
+      - triple_network
     ports:
       - "4000:4000" # Only backend entrypoint
     healthcheck:
@@ -114,9 +114,9 @@ services:
     volumes:
       - ./backend/auth-service/src:/app/src:ro
     networks:
-      - trio_network
+      - triple_network
     expose:
-      - "3000" # Only accessible on trio_network
+      - "3000" # Only accessible on triple_network
     restart: unless-stopped
 
   player:
@@ -145,7 +145,7 @@ services:
       - ./backend/player-service/src:/app/src:ro
       - ./backend/player-service/uploads:/app/uploads
     networks:
-      - trio_network
+      - triple_network
     expose:
       - "3001"
     restart: unless-stopped
@@ -171,9 +171,9 @@ services:
     volumes:
       - ./backend/chat-service/src:/app/src:ro
     networks:
-      - trio_network
+      - triple_network
     expose:
-      - "2000" # Only accessible on trio_network
+      - "2000" # Only accessible on triple_network
     restart: unless-stopped
 
   lobby:
@@ -192,9 +192,9 @@ services:
     volumes:
       - ./backend/lobby-service/src:/app/src:ro
     networks:
-      - trio_network
+      - triple_network
     expose:
-      - "3003" # Only accessible on trio_network
+      - "3003" # Only accessible on triple_network
     restart: unless-stopped
 
   game:
@@ -213,9 +213,9 @@ services:
     volumes:
       - ./backend/game-service/src:/app/src:ro
     networks:
-      - trio_network
+      - triple_network
     expose:
-      - "3002" # Only accessible on trio_network
+      - "3002" # Only accessible on triple_network
     restart: unless-stopped
 
   frontend:
@@ -228,7 +228,7 @@ services:
       - ssl_key
       - ssl_cert
     networks:
-      - trio_network
+      - triple_network
     ports:
       - "8443:8443"
     restart: unless-stopped
