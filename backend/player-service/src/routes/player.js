@@ -398,13 +398,32 @@ async function getUserIds(userAuthId, friendAuthId) {
         throw { status: 404, message: 'User not found' };
     }
 
-    const friend = await db.oneOrNone(
-        `SELECT id, username
-		FROM player.users
-		WHERE auth_user_id = $1 OR LOWER(username) = LOWER($1)`,
-        [friendAuthId]
-    );
+    // const friend = await db.oneOrNone(
+    //     `SELECT id, username
+	// 	FROM player.users
+	// 	WHERE auth_user_id = $1 OR LOWER(username) = LOWER($1)`,
+    //     [friendAuthId]
+    // );
     
+     // Regex pour détecter si c'est un UUID valide
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(friendAuthId);
+
+    const friend = isUUID
+        ? await db.oneOrNone(
+            `SELECT id, username
+            FROM player.users
+            WHERE auth_user_id = $1`,
+            [friendAuthId]
+          )
+        : await db.oneOrNone(
+            `SELECT id, username
+            FROM player.users
+            WHERE LOWER(username) = LOWER($1)`,
+            [friendAuthId]
+          );
+
+
+
     if (!friend) {
         throw { status: 404, message: 'Friend not found' };
     }
