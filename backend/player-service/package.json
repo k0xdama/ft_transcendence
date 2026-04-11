@@ -1,6 +1,7 @@
 {
   "name": "player-service",
   "version": "1.0.0",
+  "type": "module",
   "main": "player-service.js",
   "scripts": {
     "start": "node player-service.js",

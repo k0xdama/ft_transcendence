@@ -171,11 +171,11 @@ export function shuffleAndDeal(gameStruct, deck) {
 		case 3: 
 			nbInMiddle = 9, nbByPlayer = 9; break;
 		case 4: 
-			nbInMiddle = 7, nbByPlayer = 8; break;
+			nbInMiddle = 8, nbByPlayer = 7; break;
 		case 5: 
 			nbInMiddle = 6, nbByPlayer = 6; break;
 		case 6: 
-			nbInMiddle = 5, nbByPlayer = 6; break;
+			nbInMiddle = 6, nbByPlayer = 5; break;
 	}
 	const shuffled = [...deck];
 	console.log('deck avant shuffle:', shuffled.map(c => c.value));
@@ -386,7 +386,7 @@ export function getLinkedValues(cardValue) {
 		4: [3, 11],
 		5: [2, 12],
 		6: [1],
-		7: [], // ??
+		7: [],
 		8: [1],
 		9: [2],
 		10: [3],

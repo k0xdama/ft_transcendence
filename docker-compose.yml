@@ -266,5 +266,5 @@ secrets:
     file: ./secrets/ssl/cert.pem
 
 networks:
-  trio_network:
+  triple_network:
     driver: bridge
