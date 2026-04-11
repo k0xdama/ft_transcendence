@@ -3,7 +3,7 @@ function	CountdownRing({duration, label, color = '#00dcff'}) {
 	const	circumference = 2 * Math.PI * radius
 
 	return (
-		<div className="countdown-ring-wrapper">
+		<div className="relative flex flex-col items-center gap-1">
 			<svg width="70" height="70" viewBox="0 0 70 70">
 				<circle cx="35" cy="35" r={radius}
 					fill='none' stroke="rgba(255, 255, 255, 0.08)" strokeWidth="4" />
@@ -22,7 +22,7 @@ function	CountdownRing({duration, label, color = '#00dcff'}) {
 					}}
 				/>
 			</svg>
-			{label && <span className="countdown-label">{label}</span>}
+			{label && <span className="text-[0.6rem] uppercase tracking-[0.15em] text-[rgba(200,160,255,0.6)]">{label}</span>}
 		</div>
 	)
 }

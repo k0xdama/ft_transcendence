@@ -123,39 +123,43 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	}
 
 	return (
-		<div className="chat-overlay chat-lobby">
-			<div className="chat-header">
-				<button className="chat-invite-btn" onClick={sendInvite}>Send Invite</button>
+		<div className="absolute bottom-12 left-4 z-10 flex max-h-[380px] w-[340px] flex-col overflow-hidden rounded-lg bg-black/45 transition-colors duration-300 hover:bg-black/55">
+			<div className="flex justify-end border-b border-white/[0.08] px-2 py-[0.3rem]">
+				<button className="rounded border border-[rgba(157,78,221,0.4)] bg-[rgba(157,78,221,0.15)] px-[0.6rem] py-[0.2rem] font-sans text-[0.7rem] text-white/75 transition-colors duration-150 hover:border-[#9d4edd] hover:bg-[rgba(157,78,221,0.3)] hover:text-white" onClick={sendInvite}>Send Invite</button>
 			</div>
 
-			<div className="chat-messages">
+			<div className="min-h-0 flex flex-1 flex-col items-start gap-[0.2rem] overflow-y-auto px-3 py-2 text-[0.8rem] [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-[2px] [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar]:w-1">
 				{messages.map(msg => <ChatMessage key={msg.id} msg={msg} onJoin={navigate} />)}
 				<div ref={bottomRef} />
 			</div>
 
 			{typingUsers.length > 0 && (
-				<p className="chat-typing">
+				<p className="m-0 shrink-0 px-3 py-[0.2rem] font-sans text-[0.7rem] italic text-white/40">
 					{typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
 				</p>
 			)}
 
-			<div className="chat-quick-replies">
+			<div className="shrink-0 flex gap-[0.35rem] overflow-x-auto border-t border-white/[0.08] px-[0.6rem] py-[0.3rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 				{QUICK_REPLIES.map(text => (
-					<button key={text} className="chat-quick-reply" onClick={() => sendQuickReply(text)}>
+					<button
+						key={text}
+						className="shrink-0 rounded-full border border-white/20 bg-transparent px-[0.6rem] py-[0.2rem] text-center font-sans text-[0.72rem] text-white/75 transition-colors duration-150 hover:border-[#9d4edd] hover:bg-[rgba(157,78,221,0.15)] hover:text-white"
+						onClick={() => sendQuickReply(text)}
+					>
 						{text}
 					</button>
 				))}
 			</div>
 
-			<div className="chat-input-row">
+			<div className="shrink-0 flex border-t border-white/10">
 				<input
-					className="chat-input"
+					className="flex-1 border-none bg-transparent px-[0.6rem] py-[0.4rem] font-sans text-[0.8rem] text-white outline-none placeholder:text-white/35"
 					value={draft}
 					onChange={e => { setDraft(e.target.value); handleTyping() }}
 					onKeyDown={handleKey}
 					placeholder="Type a message..."
 				/>
-				<button className="chat-send" onClick={sendMessage}>Send</button>
+				<button className="cursor-pointer rounded-none border-none border-l border-white/10 bg-transparent px-[0.6rem] py-[0.4rem] text-base text-[#9d4edd] hover:border-transparent hover:bg-white/5" onClick={sendMessage}>Send</button>
 			</div>
 		</div>
 	)
@@ -164,27 +168,26 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 function ChatMessage({ msg, onJoin }) {
 	if (msg.type === 'notification')
 		return (
-			<div className="chat-message chat-notification">
-				<span className="chat-text">⚙ {msg.text}</span>
+			<div className="w-full shrink-0 break-words text-left leading-[1.4]">
+				<span className="font-sans text-[0.75rem] italic text-white/45">⚙ {msg.text}</span>
 			</div>
 		)
 
 	if (msg.type === 'game_invite' && msg.author !== 'You')
 		return (
-			<div className="chat-message chat-invite-card">
-				<span className="chat-invite-from">{msg.author}</span>
-				<span className="chat-invite-label"> invites you to play</span>
-				<button className="chat-join-btn" onClick={() => onJoin(`/lobby/${msg.text}`)}>
+			<div className="w-full shrink-0 break-words text-left leading-[1.4]">
+				<span className="font-bold text-[#9d4edd]">{msg.author}</span>
+				<span className="font-sans text-white/90"> invites you to play </span>
+				<button className="rounded border border-[#9d4edd]/50 bg-[#9d4edd]/15 px-2 py-[0.1rem] text-[0.72rem] text-white/90 hover:bg-[#9d4edd]/30" onClick={() => onJoin(`/lobby/${msg.text}`)}>
 					Join
 				</button>
 			</div>
 		)
 
 	return (
-		<div className={`chat-message ${msg.author === 'You' ? 'chat-self' : ''}`}>
-			<span className={`chat-author ${msg.author !== 'You' ? 'chat-author-link' : ''}`}
-					onClick={() => msg.author !== 'You' && onJoin(`/profile/${msg.senderId}`)}>{msg.author}: </span>
-			<span className="chat-text">{msg.text}</span>
+		<div className="w-full shrink-0 break-words text-left leading-[1.4]">
+			<span className={`font-bold ${msg.author === 'You' ? 'text-[#7eb8f7]' : 'text-[#9d4edd]'}`}>{msg.author}: </span>
+			<span className="font-sans text-white/90">{msg.text}</span>
 		</div>
 	)
 }

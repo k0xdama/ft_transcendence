@@ -133,35 +133,39 @@ function ChatOverlay({ lobbyId }) {
 	}
 
 	return (
-		<div className="chat-overlay">
-			<div className="chat-messages">
+		<div className="absolute bottom-12 left-4 z-10 flex max-h-[220px] w-[280px] flex-col overflow-hidden rounded-lg bg-black/10 transition-colors duration-300 hover:bg-black/55">
+			<div className="min-h-0 flex flex-1 flex-col items-start gap-[0.2rem] overflow-y-auto px-3 py-2 text-[0.8rem] [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-[2px] [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar]:w-1">
 				{messages.map(msg => <ChatMessage key={msg.id} msg={msg} onNavigate={navigate} />)}
 				<div ref={bottomRef} />
 			</div>
 
 			{typingUsers.length > 0 && (
-				<p className="chat-typing">
+				<p className="m-0 shrink-0 px-3 py-[0.2rem] text-left text-[0.7rem] italic text-white/45">
 					{typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
 				</p>
 			)}
 
-			<div className="chat-quick-replies">
+			<div className="shrink-0 flex gap-[0.35rem] overflow-x-auto border-t border-white/[0.08] px-[0.6rem] py-[0.3rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 				{QUICK_REPLIES.map(text => (
-					<button key={text} className="chat-quick-reply" onClick={() => sendQuickReply(text)}>
+					<button
+						key={text}
+						className="shrink-0 rounded-full border border-white/20 bg-transparent px-[0.6rem] py-[0.2rem] text-center font-sans text-[0.72rem] text-white/75 transition-colors duration-150 hover:border-[#9d4edd] hover:bg-[rgba(157,78,221,0.15)] hover:text-white"
+						onClick={() => sendQuickReply(text)}
+					>
 						{text}
 					</button>
 				))}
 			</div>
 
-			<div className="chat-input-row">
+			<div className="shrink-0 flex border-t border-white/10">
 				<input
-					className="chat-input"
+					className="flex-1 border-none bg-transparent px-[0.6rem] py-[0.4rem] font-sans text-[0.8rem] text-white outline-none placeholder:text-white/35"
 					value={draft}
 					onChange={e => { setDraft(e.target.value); handleTyping(e.target.value) }}
 					onKeyDown={handleKey}
 					placeholder="Type a message..."
 				/>
-				<button className="chat-send" onClick={sendMessage}>Send</button>
+				<button className="cursor-pointer rounded-none border-none border-l border-white/10 bg-transparent px-[0.6rem] py-[0.4rem] text-base text-[#9d4edd] hover:border-transparent hover:bg-white/5" onClick={sendMessage}>Send</button>
 			</div>
 		</div>
 	)
@@ -170,17 +174,21 @@ function ChatOverlay({ lobbyId }) {
 function ChatMessage({ msg, onNavigate }) {
 	if (msg.type === 'notification')
 		return (
-			<div className="chat-message chat-notification">
-				<span className="chat-text">{msg.text}</span>
+			<div className="w-full shrink-0 break-words text-left leading-[1.4]">
+				<span className="font-sans text-white/90">{msg.text}</span>
 			</div>
 		)
 
 	return (
-		<div className={`chat-message ${msg.author === 'You' ? 'chat-self' : ''}`}>
-			<span className={`chat-author ${msg.author !== 'You' ? 'chat-author-link' : ''}`}
-					style={{ color: getAuthorColor(msg.author) }}
-					onClick={() => msg.author !== 'You' && onNavigate(`/profile/${msg.senderId}`)}>{msg.author}: </span>
-			<span className="chat-text">{msg.text}</span>
+		<div className="w-full shrink-0 break-words text-left leading-[1.4]">
+			<span
+				className={`font-bold ${msg.author !== 'You' ? 'cursor-pointer hover:underline' : ''}`}
+				style={{ color: getAuthorColor(msg.author) }}
+				onClick={() => msg.author !== 'You' && onNavigate(`/profile/${msg.senderId}`)}
+			>
+				{msg.author}: 
+			</span>
+			<span className="font-sans text-white/90">{msg.text}</span>
 		</div>
 	)
 }

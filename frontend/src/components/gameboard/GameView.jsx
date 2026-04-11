@@ -9,6 +9,7 @@ import ChatOverlay from './ChatOverlay'
 import SoundBuzzers from './SoundBuzzers'
 import './GameView.css'
 import CountdownRing from './CountdownRing'
+import boardBackdrop from '../../assets/Board_backdrop.png'
 
 const LAYOUTS = {
 	3: {
@@ -80,7 +81,12 @@ function GameView() {
 	const canAct = isMyTurn && gameStruct.cardsRevealed.length === expectedRevealed[currentAction]
 
 	return (
-		<div className='gameboard'>
+		<div className='relative h-[calc(100vh-var(--navbar-height))] w-screen overflow-hidden'>
+			<div
+				className="pointer-events-none fixed inset-0 z-0 h-full w-full bg-cover bg-center brightness-[0.8] blur-[2px]"
+				style={{ backgroundImage: `url(${boardBackdrop})` }}
+			/>
+			<div className="relative z-10 h-full w-full">
 			{opponents.map((player, index) => (
 				<PlayerSlot
 					key={player.id}
@@ -107,10 +113,10 @@ function GameView() {
 			/>
 
 			{myRevCards.length > 0 && (
-				<div className={`revealed-hand-cards self-revealed-${layout.playerSeat}`}>
+				<div className={`absolute z-[5] flex gap-2 ${layout.playerSeat === 'bottom-center' ? 'bottom-[calc(2vh+150px)] left-1/2 -translate-x-1/2' : 'bottom-[calc(8vh+150px)] right-[22vw]'}`}>
 					{myRevCards.map(rc => (
-						<div key={rc.cardId} className="card card-front revealed-card">
-							<img src={getCardImage(rc.value)} className="card-img" alt={`Card ${rc.value}`} />
+						<div key={rc.cardId} className="flex h-[5.5vw] min-h-[90px] w-[4vw] min-w-[70px] items-center justify-center rounded-md border border-[rgba(180,60,255,0.6)] bg-black font-bold shadow-[0_0_10px_rgba(140,40,200,0.4)]">
+							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-contain" alt={`Card ${rc.value}`} />
 						</div>
 					))}
 				</div>
@@ -128,9 +134,9 @@ function GameView() {
 			<SoundBuzzers lobbyId={lobbyId} />
 
 			{pendingCheck && (
-				<div className="check-prompt">
+				<div className="absolute bottom-[calc(2vh+150px)] left-1/2 z-40 -translate-x-1/2">
 					<button
-						className={`btn-check ${checkSent ? 'btn-check-sent' : ''}`}
+						className={`cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.1)] px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-[#00dcff] ${checkSent ? 'cursor-not-allowed opacity-45 shadow-none' : 'animate-[pulse-check_1.2s_ease-in-out_infinite]'}`}
 						disabled={checkSent}
 						onClick={() => sendCheck(gameId)}
 					>
@@ -140,54 +146,55 @@ function GameView() {
 			)}
 
 			{turnTimer && (
-				<div className='turn-timer-ring'>
+				<div className='absolute bottom-0 right-1/4 z-10 -translate-x-1/2 translate-y-[calc(-50%-120px)]'>
 					<CountdownRing duration={7} label="next turn" />
 				</div>
 			)}
 
 			{disconnectedPlayer && (
-				<div className='disconnect-timer-ring'>
+				<div className='absolute right-5 top-5 z-10'>
 					<CountdownRing duration={30} color="#ff6b6b" label="player disconnected" />
 				</div>
 			)}
 
 			{selectedOpponent && (
-				<div className='action-prompt-overlay' onClick={() => setSelectedOpponent(null)}>
-					<div className='action-prompt' onClick={e => e.stopPropagation()}>
-						<p className='prompt-title'>Choose an action</p>
-						<div className='prompt-actions'>
-							<button className='prompt-btn' onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
+				<div className='absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[4px]' onClick={() => setSelectedOpponent(null)}>
+					<div className='flex flex-col items-center gap-5 rounded-2xl border border-[rgba(180,60,255,0.4)] bg-[rgba(10,5,20,0.9)] px-10 py-8 shadow-[0_0_40px_rgba(140,40,200,0.3)]' onClick={e => e.stopPropagation()}>
+						<p className='m-0 text-[0.85rem] uppercase tracking-[0.15em] text-[#e0aaff] [text-shadow:0_0_10px_rgba(180,80,255,0.6)]'>Choose an action</p>
+						<div className='flex gap-4'>
+							<button className='cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]' onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
 								Highest card
 							</button>
-							<button className='prompt-btn' onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
+							<button className='cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]' onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
 								Lowest card
 							</button>
 						</div>
-						<button className='prompt-cancel' onClick={() => setSelectedOpponent(null)}>Cancel</button>
+						<button className='cursor-pointer border-none bg-transparent text-[0.7rem] uppercase tracking-[0.1em] text-[rgba(200,160,255,0.4)] transition-colors duration-200 hover:text-[rgba(200,160,255,0.8)]' onClick={() => setSelectedOpponent(null)}>Cancel</button>
 					</div>
 				</div>
 			)}
 				{gameResult && (
-					<div className="game-over-overlay">
+					<div className="absolute inset-0 z-[100] flex animate-[fade-in_0.6s_ease_forwards] items-center justify-center bg-black/75 backdrop-blur-[6px]">
 						<div
-							className="game-over-content"
+							className="flex flex-col items-center gap-4"
 							style={{
 								'--game-over-color': gameResult.winnerId === user?.id ? '#00dcff' : '#ff4466',
 								'--game-over-glow':  gameResult.winnerId === user?.id ? 'rgba(0,220,255,0.6)' : 'rgba(255,60,80,0.6)'
 							}}
 						>
-							<p className="game-over-text">
+							<p className="m-0 text-[clamp(3rem,8vw,6rem)] font-bold uppercase tracking-[0.1em] text-[var(--game-over-color)] [text-shadow:0_0_30px_var(--game-over-glow),0_0_60px_var(--game-over-glow)] animate-[pulse-result_2s_ease-in-out_infinite]">
 								{gameResult.winnerId === user?.id ? 'You win!' : 'You lose!'}
 							</p>
 							{gameResult.reason === 'FORFEIT' && (
-								<p className="game-over-reason">Opponent forfeited</p>
+								<p className="m-0 text-[0.9rem] uppercase tracking-[0.2em] text-[rgba(200,160,255,0.7)]">Opponent forfeited</p>
 							)}
-							<button className='game-over-btn' onClick={() => navigate('/')}>
+							<button className='mt-2 cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_20px_rgba(0,200,255,0.35)]' onClick={() => navigate('/')}>
 								Back to home
 							</button>
 						</div>
 					</div>
 				)}
+			</div>
 		</div>
 	)
 }
