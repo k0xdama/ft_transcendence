@@ -7,6 +7,7 @@ import App from './App.jsx'
 import { LobbyProvider } from './context/LobbyContext.jsx'
 import { GameProvider } from './context/GameContext.jsx'
 import { ChatProvider } from './context/ChatContext.jsx'
+import { DMProvider } from './context/DMContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')).render(
         <LobbyProvider>
           <GameProvider>
             <ChatProvider>
-              <App />
+              <DMProvider>
+                <App />
+              </DMProvider>
             </ChatProvider>
           </GameProvider>
         </LobbyProvider>

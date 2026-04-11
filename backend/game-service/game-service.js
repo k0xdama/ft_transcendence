@@ -43,6 +43,7 @@ io.use((socket, next) => {
 	if (!userId || !username) {
 		return next(new Error('Missing user identity headers'));
 	}
+
 	socket.user = { id: userId, username: username };
 	next();
 });

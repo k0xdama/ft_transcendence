@@ -42,6 +42,7 @@ function ChatOverlay({ lobbyId }) {
 				const res = await authFetch(`${chatRoute}/room/${lobbyId}/history`)
 				if (!res || !res.ok)
 					return
+
 				const data = await res.json()
 				setMessages(data.reverse().map(msg => mapMessage(user.id, msg)))
 			} catch (err) {

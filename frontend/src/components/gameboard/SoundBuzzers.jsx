@@ -9,7 +9,7 @@ const SOUNDS = {
 };
 
 const BUZZERS = [
-	{ name: 'ahhh', label: '😱' },
+	{ name: 'ahhh', label: '👹' },
 	{ name: 'faaahh', label: '💀' }
 ];
 

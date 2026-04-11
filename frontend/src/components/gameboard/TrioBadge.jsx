@@ -1,8 +1,8 @@
 const	cardImages = import.meta.glob('../../assets/cards/Card_*.png', { eager: true })
 
 const	getCardImage = (label) => {
-	const	key = `../../assets/cards/Card_${label}.png`
-	return	cardImages[key]?.default
+	const key = `../../assets/cards/Card_${label}.png`
+	return cardImages[key]?.default
 }
 
 function TrioBadge({ trios }) {

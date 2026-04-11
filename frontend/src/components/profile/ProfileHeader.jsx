@@ -9,7 +9,8 @@ function ProfileHeader({
 	onAvatarDelete,
 	onAddFriend,
 	onRemoveFriend,
-	onBlock
+	onBlock,
+	onSendMessage
 }) {
 	const fileInputRef = useRef(null)
 
@@ -72,18 +73,23 @@ function ProfileHeader({
 				<div className="flex gap-2.5">
 					{friendStatus === 'none' && (
 						<button className="px-5 py-2 rounded text-xs uppercase tracking-ui text-cyan-glow bg-cyan-glow/8 border border-cyan-glow/50 hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 transition-all cursor-pointer" onClick={onAddFriend}>
-							Add Friend
+							Add friend
 						</button>
 					)}
 					{friendStatus === 'pending' && (
 						<button className="px-5 py-2 rounded text-xs uppercase tracking-ui text-white/60 bg-purple-brand/10 border border-purple-brand/30 cursor-not-allowed" disabled>
-							Request Sent
+							Request sent
 						</button>
 					)}
 					{friendStatus === 'friend' && (
-						<button className="px-5 py-2 rounded text-xs uppercase tracking-ui text-orange-400 bg-orange-500/8 border border-orange-500/50 hover:bg-orange-500/18 hover:shadow-lg hover:shadow-orange-500/30 transition-all cursor-pointer" onClick={onRemoveFriend}>
-							Remove Friend
-						</button>
+						<>
+							<button className="px-5 py-2 rounded text-xs uppercase tracking-ui text-purple-pale bg-purple-brand/15 border border-purple-brand/50 hover:bg-purple-brand/25 hover:shadow-lg hover:shadow-purple-brand/30 transition-all cursor-pointer" onClick={onSendMessage}>
+								Send message
+							</button>
+							<button className="px-5 py-2 rounded text-xs uppercase tracking-ui text-orange-400 bg-orange-500/8 border border-orange-500/50 hover:bg-orange-500/18 hover:shadow-lg hover:shadow-orange-500/30 transition-all cursor-pointer" onClick={onRemoveFriend}>
+								Remove friend
+							</button>
+						</>
 					)}
 					{friendStatus !== 'blocked' && (
 						<button className="px-5 py-2 rounded text-xs uppercase tracking-ui text-red-400/70 bg-red-500/8 border border-red-500/50 hover:bg-red-500/18 hover:shadow-lg hover:shadow-red-500/30 transition-all cursor-pointer" onClick={onBlock}>

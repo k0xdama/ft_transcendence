@@ -25,14 +25,16 @@ const io = new Server(server);
 io.use((socket, next) => {
 	const userId = socket.handshake.headers['x-user-id'];
 	const username = socket.handshake.headers['x-user-username'];
+
 	if (!userId || !username)
 		return next(new Error('Missing user identity headers'));
+
 	socket.user = { id: userId, username };
 	next();
 });
 
 io.on('connection', (socket) => {
-	console.log(`Chat connected: ${socket.user.username} (${socket.id})`);
+	console.log(`Chat connected: ${socket.user.username} (id: ${socket.id})`);
 
 	// Personal room for DM events (read receipts, etc.)
 	socket.join(`user:${socket.user.id}`);
@@ -50,12 +52,28 @@ io.on('connection', (socket) => {
 		socket.to(lobbyId).emit('chat:sound', { sound, username: socket.user.username });
 	});
 
+	socket.on('dm:typing', async ({ conversationId }) => {
+		try {
+			const conversation = await chatService.verifyDMConversationMember(conversationId, socket.user.id);
+			const otherId = socket.user.id === conversation.user1_id
+				? conversation.user2_id
+				: conversation.user1_id;
+			io.to(`user:${otherId}`).emit('dm:typing', {
+				conversationId,
+				username: socket.user.username
+			});
+		} catch (err) {
+			// Silently ignore — user may not be a member
+		}
+	});
+
 	socket.on('dm:read', async ({ conversationId }) => {
 		try {
 			const { readCount, otherId } = await chatService.markDMsAsRead({
 				conversationId,
 				userId: socket.user.id
 			});
+
 			if (readCount > 0) {
 				const readAt = new Date().toISOString();
 				socket.emit('dm:read', { conversationId, readBy: socket.user.id, readAt });
@@ -67,8 +85,15 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('disconnect', () => {
-		console.log(`Chat disconnected: ${socket.user.username} (${socket.id})`);
+		console.log(`Chat disconnected: ${socket.user.username} (id: ${socket.id})`);
 	});
+});
+
+// Deliver DM messages in real-time to both participants
+await redisSubscriber.subscribe('dm:newMessage', (raw) => {
+	const { recipientId, ...message } = JSON.parse(raw);
+	io.to(`user:${message.sender_id}`).emit('dm:message', message);
+	io.to(`user:${recipientId}`).emit('dm:message', message);
 });
 
 // Broadcast messages published to Redis to the relevant Socket.io room
@@ -118,12 +143,14 @@ setInterval(async () => {
 		const { wsDeleted, dmDeleted } = await chatService.purgeExpiredMessages();
 		if (wsDeleted || dmDeleted)
 			console.log(`Purged ${wsDeleted} ws + ${dmDeleted} dm expired messages`);
+	
 	} catch (err) {
 		console.error('Purge expired messages failed:', err.message);
 	}
 }, PURGE_INTERVAL);
 
 const PORT = 2000;
+
 server.listen(PORT, '0.0.0.0', () => {
 	console.log(`CHAT-SERVICE running on ${PORT}`);
 });

@@ -10,6 +10,11 @@ import {
 	DMConversationNotFoundError,
 	NotConversationMemberError } from '../utils/errors.js';
 
+// Self-signed certs are used between services on the private docker network
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+const PLAYER_URL = process.env.PLAYER_URL || 'https://player:3001';
+
 const VALID_MSG_TYPES = ['user_text', 'quick_reply', 'game_invite'];
 
 class ChatService {
@@ -20,7 +25,7 @@ class ChatService {
 			throw new NotLobbyMemberError();
 	}
 
-	async #verifyDMConversationMember(conversationId, userId) {
+	async verifyDMConversationMember(conversationId, userId) {
 		const conversation = await db.oneOrNone(
 			`SELECT user1_id, user2_id
 			FROM chat.direct_conversations
@@ -153,7 +158,7 @@ class ChatService {
 		if (!content || content.trim().length === 0)
 			throw new MissingFieldError('Message content');
 
-		const conversation = await this.#verifyDMConversationMember(conversationId, senderId);
+		const conversation = await this.verifyDMConversationMember(conversationId, senderId);
 
 		const otherId = senderId === conversation.user1_id
 			? conversation.user2_id
@@ -175,6 +180,30 @@ class ChatService {
 			[conversationId, senderId, content.trim()]
 		);
 
+		// Fetch sender username via player-service for real-time payload
+		let senderUsername = 'Unknown';
+		try {
+			const res = await fetch(`${PLAYER_URL}/internal/users/batch`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ userIds: [senderId] })
+			});
+			if (res.ok) {
+				const map = await res.json();
+				senderUsername = map[senderId]?.username || 'Unknown';
+			}
+		} catch (err) {
+			console.error('Failed to fetch sender username:', err.message);
+		}
+
+		const payload = {
+			...message,
+			username: senderUsername,
+			recipientId: otherId
+		};
+
+		await redisClient.publish('dm:newMessage', JSON.stringify(payload));
+
 		return message;
 	}
 
@@ -182,7 +211,7 @@ class ChatService {
 		if (!conversationId)
 			throw new MissingFieldError('Conversation ID');
 
-		const conversation = await this.#verifyDMConversationMember(conversationId, userId);
+		const conversation = await this.verifyDMConversationMember(conversationId, userId);
 
 		const result = await db.result(
 			`UPDATE chat.direct_messages
@@ -202,7 +231,7 @@ class ChatService {
 		if (!conversationId)
 			throw new MissingFieldError('Conversation ID');
 
-		await this.#verifyDMConversationMember(conversationId, userId);
+		await this.verifyDMConversationMember(conversationId, userId);
 
 		const history = await db.manyOrNone(
 			`SELECT id, sender_id, content, created_at, read_at
@@ -280,7 +309,37 @@ class ChatService {
 			[userId]
 		);
 
-		return conversations;
+		if (conversations.length === 0)
+			return conversations;
+
+		// Resolve other-user usernames via player-service internal API
+		const otherIds = conversations.map(c =>
+			c.user1_id === userId ? c.user2_id : c.user1_id
+		);
+		const uniqueIds = [...new Set(otherIds)];
+
+		let userMap = {};
+		try {
+			const res = await fetch(`${PLAYER_URL}/internal/users/batch`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ userIds: uniqueIds })
+			});
+			if (res.ok)
+				userMap = await res.json();
+		} catch (err) {
+			console.error('Failed to fetch usernames from player-service:', err.message);
+		}
+
+		return conversations.map(c => {
+			const otherId = c.user1_id === userId ? c.user2_id : c.user1_id;
+			const player = userMap[otherId] || {};
+			return {
+				...c,
+				other_username: player.username || 'Unknown',
+				other_avatar: player.pp_path || null
+			};
+		});
 	}
 }
 

@@ -44,6 +44,7 @@ server.on('upgrade', (req, socket, head) => {
 		req.headers['x-user-id'] = user.id;
 		req.headers['x-user-username'] = user.username;
 		req.headers['x-user-email'] = user.email;
+
 	} catch (err) {
 		socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
 		socket.destroy();

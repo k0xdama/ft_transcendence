@@ -40,7 +40,7 @@ export function ChatProvider({ children }) {
 		return () => {
 			socketRef.current?.off(event, handler);
 		};
-	}, []);
+	}, [connected]);
 
 	const emit = useCallback((event, payload) => {
 		socketRef.current?.emit(event, payload);

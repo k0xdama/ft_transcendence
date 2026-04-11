@@ -8,12 +8,13 @@ import ProfileFriends from './ProfileFriends'
 import ProfileFriendRequests from './ProfileFriendRequests'
 import ProfileSettings from './ProfileSettings'
 import DeleteAccountModal from './DeleteAccountModal'
-// import './UserProfileView.css'
+import { useDM } from '../../context/DMContext'
 
 function UserProfileView() {
 	const { userId } = useParams()
 	const navigate = useNavigate()
 	const { user, isAuthenticated, authFetch, logout } = useAuth()
+	const { openDM } = useDM()
 	const playerRoute = '/api/players'
 
 	const [activeTab, setActiveTab] = useState('stats')
@@ -97,13 +98,43 @@ function UserProfileView() {
 
 	const fetchFriendStatus = async () => {
 		try {
-			// TODO: Replace with actual API call when friend-service is implemented
-			// const response = await authFetch(`http://localhost:4000/api/users/${user.id}/friends/${targetUserId}/status`)
-			// const data = await response.json()
-			// setFriendStatus(data.status)
+			// Check if blocked
+			const blockedRes = await authFetch(`${playerRoute}/me/blocked`)
+			if (blockedRes?.ok) {
+				const blockedData = await blockedRes.json()
+				const isBlocked = blockedData.blocked?.some(b => b.auth_user_id === targetUserId)
+				if (isBlocked) {
+					setFriendStatus('blocked')
+					return
+				}
+			}
+
+			// Check if already friends
+			const friendsRes = await authFetch(`${playerRoute}/me/friends`)
+			if (friendsRes?.ok) {
+				const friendsData = await friendsRes.json()
+				const isFriend = friendsData.friends?.some(f => f.auth_user_id === targetUserId)
+				if (isFriend) {
+					setFriendStatus('friend')
+					return
+				}
+			}
+
+			// Check if pending request sent
+			const sentRes = await authFetch(`${playerRoute}/me/friend-requests/sent`)
+			if (sentRes?.ok) {
+				const sentData = await sentRes.json()
+				const isPending = sentData.requests?.some(r => r.auth_user_id === targetUserId)
+				if (isPending) {
+					setFriendStatus('pending')
+					return
+				}
+			}
+
 			setFriendStatus('none')
 		} catch (err) {
 			console.error('Failed to fetch friend status:', err)
+			setFriendStatus('none')
 		}
 	}
 
@@ -277,6 +308,7 @@ function UserProfileView() {
 					onAddFriend={handleAddFriend}
 					onRemoveFriend={handleRemoveFriend}
 					onBlock={handleBlock}
+					onSendMessage={() => openDM(targetUserId, profileData.username, profileData.avatarUrl)}
 				/>
 
 				<div className={`mb-5 grid w-full ${isOwnProfile ? 'grid-cols-5' : 'grid-cols-4'} gap-1 border-b border-purple-dim pb-1`}>

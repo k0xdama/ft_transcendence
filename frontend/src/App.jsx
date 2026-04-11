@@ -14,6 +14,7 @@ import WaitingMatchmakingView from './components/matchmaking/WaitingMatchmakingV
 import PrivacyPolicyView from './components/legal/PrivacyPolicyView'
 import TermsOfServiceView from './components/legal/TermsOfServiceView'
 import CreateLobbyView from './components/lobby/CreateLobbyView'
+import DMChatOverlay from './components/chat/DMChatOverlay'
 
 const PAGE_TITLES = {
 	'/': 'Home',
@@ -60,6 +61,8 @@ function App() {
 		setCurrentView(viewName)
 	}
 
+	const isGamePage = location.pathname.startsWith('/game/')
+
 	return (
 		<>
 			<NavBar />
@@ -81,6 +84,8 @@ function App() {
 					<Route path="/terms" element={<TermsOfServiceView />} />
 				</Routes>
 			</div>
+
+			{!isGamePage && <DMChatOverlay />}
 		</>
 	)
 }

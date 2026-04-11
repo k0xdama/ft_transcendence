@@ -18,7 +18,7 @@ router.post('/users', async (req, res) => {
 	console.log(`Received : id = ${auth_user_id}, username = ${username}`);
 
 	if (!auth_user_id || !username){
-		return	res.status(400).json({error : 'Missing required field'});
+		return res.status(400).json({error : 'Missing required field'});
 	}
 
 	try {
@@ -30,6 +30,7 @@ router.post('/users', async (req, res) => {
 		);
 
 		console.log(`Player user created auth_user_id : ${newPlayerUsers.auth_user_id} username : ${newPlayerUsers.username} in player schema`);
+		
 		res.status(201).json({
 			message: 'Player profile created',
 			player: newPlayerUsers
@@ -38,6 +39,33 @@ router.post('/users', async (req, res) => {
 		console.error('Cannot create new user un player schema : ', error);
 		res.status(500).json({
 			error : 'Failed to create player user in player schema'});
+	}
+});
+
+// POST /internal/users/batch — called by chat-service to resolve usernames + avatars
+router.post('/users/batch', async (req, res) => {
+	const { userIds } = req.body;
+
+	if (!Array.isArray(userIds) || userIds.length === 0)
+		return res.status(400).json({ error: 'userIds must be a non-empty array' });
+
+	try {
+		const users = await db.manyOrNone(
+			`SELECT auth_user_id, username, pp_path
+			FROM player.users
+			WHERE auth_user_id = ANY($1::uuid[])`,
+			[userIds]
+		);
+
+		// Return as a map: { [auth_user_id]: { username, pp_path } }
+		const map = {};
+		for (const u of users)
+			map[u.auth_user_id] = { username: u.username, pp_path: u.pp_path };
+
+		res.json(map);
+	} catch (error) {
+		console.error('Batch user lookup failed:', error);
+		res.status(500).json({ error: 'Failed to fetch users' });
 	}
 });
 

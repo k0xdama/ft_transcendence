@@ -15,6 +15,7 @@ function CreateLobbyView() {
 			navigate('/login', { replace: true })
 			return
 		}
+
 		if (connected && !creating) {
 			setCreating(true)
 			createLobby('CLASSIC', 'SOLO', 3)

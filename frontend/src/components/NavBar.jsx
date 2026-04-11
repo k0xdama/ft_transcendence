@@ -12,7 +12,9 @@ function NavBar() {
 	useEffect(() => {
 		if (!user)
 			return
+
 		const playerRoute = '/api/players'
+
 		authFetch(`${playerRoute}/${user.id}`)
 			.then(res => res.ok ? res.json() : null)
 			.then(data => {

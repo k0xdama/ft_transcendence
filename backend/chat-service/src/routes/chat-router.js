@@ -11,6 +11,7 @@ router.use((req, res, next) => {
 	if (!userId) {
 		return res.status(401).json({ error: 'Missing user context' });
 	}
+
 	req.user = {
 		id: userId,
 		username: req.headers['x-user-username'],
