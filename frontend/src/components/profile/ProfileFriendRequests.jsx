@@ -69,7 +69,6 @@ function ProfileFriendRequests() {
 			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}/accept`, {
 				method: 'POST'
 			})
-
 			if (!response.ok) {
 				throw new Error('Failed to accept friend request')
 			}
@@ -102,7 +101,6 @@ function ProfileFriendRequests() {
 			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}`, {
 				method: 'DELETE'
 			})
-
 			if (!response.ok) {
 				throw new Error('Failed to cancel friend request')
 			}
@@ -222,7 +220,6 @@ function ProfileFriendRequests() {
 					)}
 				</div>
 			</div>
-
 
 			{/* Sent requests */}
 			<div className="flex flex-col gap-2.5">

@@ -1,5 +1,6 @@
 function ProfileAchievements({ stats }) {
-	if (!stats) return <p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading achievements...</p>
+	if (!stats)
+		return <p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading achievements...</p>
 
 	const achievements = [
 		{

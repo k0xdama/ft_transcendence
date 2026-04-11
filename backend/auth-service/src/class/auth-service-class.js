@@ -50,6 +50,7 @@ class AuthService {
 			console.log(`✅ User created in auth schema: ${newUser.username} (${newUser.id})`);
 
 			// Créer le profil dans player.users (email is not stored in player schema)
+			// Créer le profil dans player.users (email is not stored in player schema)
 			try {
 				const playerProfile = await createPlayerProfile({
 					auth_user_id: newUser.id,
@@ -171,9 +172,7 @@ class AuthService {
 			return;
 	}
 
-	// Called by another service (player-service) over the private network via
-	// the /internal endpoint. Removes the user from auth.users — the ON DELETE
-	// CASCADE on auth.refresh_tokens takes care of revoking any active session.
+	// Called by player-service through the /internal endpoint
 	async deleteUser(userId) {
 		const result = await db.result(
 			`DELETE FROM auth.users WHERE id = $1`,
@@ -186,9 +185,7 @@ class AuthService {
 		console.log(`✅ User ${userId} deleted from auth schema`);
 	}
 
-	// Called by another service (player-service) over the private network via
-	// the /internal endpoint. Updates mutable fields on auth.users so that
-	// login credentials stay in sync with the user's profile elsewhere.
+	// Called by player-service through the /internal endpoint
 	async updateUser(userId, { username, email, password }) {
 		const updates = [];
 		const values = [];
@@ -224,11 +221,11 @@ class AuthService {
 				RETURNING id, email, username`,
 				values
 			);
-
 			if (!updated)
 				throw new UserNotFoundError();
 
 			console.log(`✅ User ${userId} updated in auth schema (${updates.join(', ')})`);
+
 			return updated;
 		}
 		catch (error) {

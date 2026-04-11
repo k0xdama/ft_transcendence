@@ -45,6 +45,7 @@ function UserProfileView() {
 			if (!response.ok) {
 				throw new Error('Failed to fetch profile data')
 			}
+
 			const playerData = await response.json()
 
 			setProfileData({
@@ -70,7 +71,6 @@ function UserProfileView() {
 	const fetchStats = async () => {
 		try {
 			const response = await authFetch(`${playerUrl}/${targetUserId}`)
-
 			if (!response.ok) {
 				throw new Error('Failed to fetch stats')
 			}
@@ -112,7 +112,6 @@ function UserProfileView() {
 			const response = await authFetch(`${playerUrl}/me/friend-requests/${targetUserId}`, {
 				method: 'POST'
 			})
-
 			if (!response.ok) {
 				throw new Error('Failed to send friend request')
 			}
@@ -128,7 +127,6 @@ function UserProfileView() {
 			const response = await authFetch(`${playerUrl}/me/friends/${targetUserId}`, {
 				method: 'DELETE'
 			})
-
 			if (!response.ok) {
 				throw new Error('Failed to remove friend')
 			}
@@ -144,7 +142,6 @@ function UserProfileView() {
 			const response = await authFetch(`${playerUrl}/me/blocked/${targetUserId}`, {
 				method: 'POST'
 			})
-
 			if (!response.ok) {
 				throw new Error('Failed to block user')
 			}
@@ -165,7 +162,6 @@ function UserProfileView() {
 				body: formData
 				// NE PAS mettre de Content-Type, le navigateur le met automatiquement
 			})
-
 			if (!response.ok) {
 				throw new Error('Upload failed')
 			}
@@ -186,7 +182,6 @@ function UserProfileView() {
 			const response = await authFetch(`${playerUrl}/me/profile-picture`, {
 				method: 'DELETE'
 			})
-
 			if (!response.ok) {
 				throw new Error('Delete failed')
 			}
@@ -211,7 +206,6 @@ function UserProfileView() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ [field]: value })
 			})
-
 			if (!response.ok) {
 				const error = await response.json()
 				throw new Error(error.error || 'Failed to update profile')
@@ -233,11 +227,9 @@ function UserProfileView() {
 	const handleDeleteAccount = async () => {
 		try {
 			//todo: reverif que tout est dans la norme ca coute rien
-
 			const response = await authFetch(`${playerUrl}/me`, {
 				method: 'DELETE'
 			})
-
 			if (!response.ok) {
 				throw new Error('Failed to delete account')
 			}
