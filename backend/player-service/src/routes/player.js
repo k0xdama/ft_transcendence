@@ -802,7 +802,7 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
             `SELECT id, requester_id, addressee_id, status 
             FROM player.friendships 
             WHERE (requester_id = $1 AND addressee_id = $2)
-               OR (requester_id = $2 AND addressee_id = $1)z`,
+               OR (requester_id = $2 AND addressee_id = $1)`,
 			[user.id, blocked.id]
 		);
 
