@@ -68,6 +68,20 @@ module.exports = {
 
       // ── Animations ──────────────────────────────────────
       // Keyframes stay in CSS (or global.css) — see last tab
+      keyframes: {
+        'dot-bounce': {
+          '0%, 80%, 100%': { transform: 'scale(0.6)', opacity: '0.4' },
+          '40%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'crt-blink': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.3' },
+        },
+        'crt-pulse': {
+          '0%, 100%': { textShadow: '0 0 12px rgba(180, 80, 255, 0.8)' },
+          '50%': { textShadow: '0 0 20px rgba(180, 80, 255, 1), 0 0 40px rgba(180, 80, 255, 0.4)' },
+        },
+      },
       animation: {
         'pulse-name':  'pulse-name 1.5s ease-in-out infinite',
         'dot-bounce':  'dot-bounce 1.4s ease-in-out infinite',
