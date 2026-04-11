@@ -158,7 +158,7 @@ function	sortPlayerHand(hand) {
 		if (hand[i].value < hand[lowerIndex].value)
 			lowerIndex = i;
 		i++;
-	}`````````
+	}
 	return (sortedHand);
 }
 

@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const refreshPromiseRef = useRef(null);
-	const authUrl = '/api/auth';
+	const authRoute = '/api/auth';
 
 	useEffect(() => {
 		const tryRestoreSession = async () => {
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
 				return;
 			}
 			try {
-				const res = await fetch(`${authUrl}/refresh`, {
+				const res = await fetch(`${authRoute}/refresh`, {
 					method: 'POST',
 					credentials: 'include',
 					headers: { 'Content-Type': 'application/json' }
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
 
 	const logout = async () => {
 		try {
-			await fetch(`${authUrl}/logout`, {
+			await fetch(`${authRoute}/logout`, {
 				method: 'POST',
 				credentials: 'include'
 			});
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
 
 		// One refresh at a time
 		if (!refreshPromiseRef.current) {
-			refreshPromiseRef.current = fetch(`${authUrl}/refresh`, {
+			refreshPromiseRef.current = fetch(`${authRoute}/refresh`, {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' }

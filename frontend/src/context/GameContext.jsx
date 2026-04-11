@@ -18,14 +18,14 @@ export function GameProvider({ children }) {
 	const [gameResult, setGameResult] = useState(null);
 	const socketRef = useRef(null);
 	const riverSlotsRef = useRef(null);
-	const gameUrl = '/api/game';
+	const gameRoute = '/api/game';
 
 	const connect = (gameId, onConnected, onError) => {
 		if (socketRef.current)
 			return;
 
 		socketRef.current = io({
-			path: `${gameUrl}/socket.io`,
+			path: `${gameRoute}/socket.io`,
 			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false

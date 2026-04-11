@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
+import PFP_Default from '../../assets/PFP_Default.webp'
 
 const STATUS_ORDER = { 'online': 0, 'in-game': 1, 'offline': 2 }
 const STATUS_LABELS = { 'online': 'Online', 'in-game': 'In Game', 'offline': 'Offline' }
@@ -15,7 +16,8 @@ function ProfileFriends() {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
 	const [searchQuery, setSearchQuery] = useState('')
-	const playerUrl = '/api/players'
+	const playerRoute = '/api/players'
+	const chatRoute = '/api/chat'
 
 	useEffect(() => {
 		fetchFriends()
@@ -37,7 +39,7 @@ function ProfileFriends() {
 
 	const fetchFriends = async () => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/friends`)
+			const response = await authFetch(`${playerRoute}/me/friends`)
 			if (!response.ok) {
 				throw new Error('Failed to fetch friends')
 			}
@@ -47,10 +49,33 @@ function ProfileFriends() {
 				id: friend.auth_user_id,
 				username: friend.username,
 				avatarUrl: friend.pp_path && friend.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-					? `${playerUrl}/${friend.auth_user_id}/profile-picture`
+					? `${playerRoute}/${friend.auth_user_id}/profile-picture`
 					: null,
 				status: 'offline'
 			}))
+
+			// Fetch initial online statuses
+			const friendIds = transformedFriends.map(f => f.id)
+			if (friendIds.length > 0) {
+				try {
+					const statusRes = await authFetch(`${chatRoute}/status/online`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ userIds: friendIds })
+					})
+					if (statusRes.ok) {
+						const { statuses } = await statusRes.json()
+
+						transformedFriends.forEach(f => {
+							if (statuses[f.id])
+								f.status = statuses[f.id]
+						})
+					}
+				} catch (err) {
+					console.error('Failed to fetch online statuses:', err)
+				}
+			}
+
 			setFriends(transformedFriends)
 		} catch (err) {
 			setError('Failed to load friends')
@@ -62,7 +87,7 @@ function ProfileFriends() {
 
 	const fetchBlocked = async () => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/blocked`)
+			const response = await authFetch(`${playerRoute}/me/blocked`)
 			if (!response.ok) {
 				throw new Error('Failed to fetch blocked users')
 			}
@@ -71,7 +96,7 @@ function ProfileFriends() {
 				id: user.auth_user_id,
 				username: user.username,
 				avatarUrl: user.pp_path && user.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-					? `${playerUrl}/${user.auth_user_id}/profile-picture`
+					? `${playerRoute}/${user.auth_user_id}/profile-picture`
 					: null,
 				blockedAt: user.blocked_at
 			}))
@@ -83,7 +108,7 @@ function ProfileFriends() {
 
 	const handleRemoveFriend = async (friendId) => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/friends/${friendId}`, {
+			const response = await authFetch(`${playerRoute}/me/friends/${friendId}`, {
 				method: 'DELETE'
 			})
 
@@ -100,7 +125,7 @@ function ProfileFriends() {
 
 	const handleBlockUser = async (friendId) => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/blocked/${friendId}`, {
+			const response = await authFetch(`${playerRoute}/me/blocked/${friendId}`, {
 				method: 'POST'
 			})
 
@@ -117,7 +142,7 @@ function ProfileFriends() {
 
 	const handleUnblockUser = async (userId) => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/blocked/${userId}`, {
+			const response = await authFetch(`${playerRoute}/me/blocked/${userId}`, {
 				method: 'DELETE'
 			})
 
@@ -179,7 +204,7 @@ function ProfileFriends() {
 						<div className="relative flex-shrink-0">
 							<img
 								className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
-								src={friend.avatarUrl || '/src/assets/PFP_Default.webp'}
+								src={friend.avatarUrl || PFP_Default}
 								alt={friend.username}
 							/>
 							<span className={`absolute bottom-0 right-0.5 w-2.5 h-2.5 rounded-full border-2 border-opacity-90 ${
@@ -225,7 +250,7 @@ function ProfileFriends() {
 								<div className="relative flex-shrink-0">
 									<img
 										className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
-										src={user.avatarUrl || '/src/assets/PFP_Default.webp'}
+										src={user.avatarUrl || PFP_Default}
 										alt={user.username}
 									/>
 								</div>

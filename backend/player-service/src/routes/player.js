@@ -837,6 +837,18 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
         //     console.log(`✅ User blocked (new entry)`);
         // }
 
+		// Sync block to chat-service
+		try {
+			await callService(`${CHAT_URL}/internal/block`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ blockerId: userAuthId, blockedId: blockedAuthId })
+			});
+			console.log('✅ Block synced to chat-service');
+		} catch (err) {
+			console.error('⚠️ Failed to sync block to chat-service:', err.message);
+		}
+
 		res.status(200).json({ message: 'User blocked successfully' });
 
 	} catch (error) {
@@ -901,6 +913,18 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 
             console.log(`✅ (updated existing relationship)`);
         }
+
+		// Sync unblock to chat-service
+		try {
+			await callService(`${CHAT_URL}/internal/unblock`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ blockerId: userAuthId, blockedId: blockedAuthId })
+			});
+			console.log('✅ Unblock synced to chat-service');
+		} catch (err) {
+			console.error('⚠️ Failed to sync unblock to chat-service:', err.message);
+		}
 
         res.status(200).json({ message: 'User unblocked successfully' });
 

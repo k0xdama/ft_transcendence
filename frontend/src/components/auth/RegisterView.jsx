@@ -13,7 +13,7 @@ function RegisterView() {
 	const [error, setError] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState('');
-	const authUrl = '/api/auth'
+	const authRoute = '/api/auth'
 
 	const handleChange = (e) => {
 		setFormData({
@@ -35,7 +35,7 @@ function RegisterView() {
 		setLoading(true);
 
 		try {
-			const res = await fetch(`${authUrl}/register`, {
+			const res = await fetch(`${authRoute}/register`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

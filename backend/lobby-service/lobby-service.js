@@ -148,6 +148,7 @@ io.on('connection', (socket) => {
 		}
 	}
 	onlineUsers.set(socket.user.id, socket.id);
+	publishUserStatus(socket.user.id, 'online');
 	console.log(`Client connected: ${socket.id} (user: ${socket.user.username})`);
 
 	socket.on('lobby:create', (data) => {

@@ -11,14 +11,14 @@ export function useChat() {
 export function ChatProvider({ children }) {
 	const [connected, setConnected] = useState(false);
 	const socketRef = useRef(null);
-	const chatUrl = '/api/chat';
+	const chatRoute = '/api/chat';
 
 	const { user } = useAuth();
 
 	useEffect(() => {
 		if (user && !socketRef.current) {
 			const socket = io({
-				path: `${chatUrl}/socket.io`,
+				path: `${chatRoute}/socket.io`,
 				withCredentials: true,
 				transports: ['websocket']
 			});

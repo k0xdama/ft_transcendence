@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import PFP_Default from '../../assets/PFP_Default.webp'
 
 function ProfileFriendRequests() {
 	const { authFetch } = useAuth()
@@ -9,7 +10,7 @@ function ProfileFriendRequests() {
 	const [error, setError] = useState('')
 	const [sendQuery, setSendQuery] = useState('')
 	const [sending, setSending] = useState(false)
-	const playerUrl = '/api/players'
+	const playerRoute = '/api/players'
 
 	useEffect(() => {
 		fetchRequests()
@@ -19,7 +20,7 @@ function ProfileFriendRequests() {
 		id: req.auth_user_id,
 		username: req.username,
 		avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-			? `${playerUrl}/${req.auth_user_id}/profile-picture`
+			? `${playerRoute}/${req.auth_user_id}/profile-picture`
 			: null,
 		requestedAt: req.requested_at
 	})
@@ -27,8 +28,8 @@ function ProfileFriendRequests() {
 	const fetchRequests = async () => {
 		try {
 			const [pendingRes, sentRes] = await Promise.all([
-				authFetch(`${playerUrl}/me/friend-requests/pending`),
-				authFetch(`${playerUrl}/me/friend-requests/sent`)
+				authFetch(`${playerRoute}/me/friend-requests/pending`),
+				authFetch(`${playerRoute}/me/friend-requests/sent`)
 			])
 
 			if (!pendingRes.ok || !sentRes.ok) {
@@ -49,7 +50,7 @@ function ProfileFriendRequests() {
 	}
 
 	const fetchPendingRequests = async () => {
-		const pendingRes = await authFetch(`${playerUrl}/me/friend-requests/pending`)
+		const pendingRes = await authFetch(`${playerRoute}/me/friend-requests/pending`)
 		if (pendingRes.ok) {
 			const pendingData = await pendingRes.json()
 			setPendingRequests(pendingData.requests.map(transformRequest))
@@ -57,7 +58,7 @@ function ProfileFriendRequests() {
 	}
 
 	const fetchSentRequests = async () => {
-		const sentRes = await authFetch(`${playerUrl}/me/friend-requests/sent`)
+		const sentRes = await authFetch(`${playerRoute}/me/friend-requests/sent`)
 		if (sentRes.ok) {
 			const sentData = await sentRes.json()
 			setSentRequests(sentData.requests.map(transformRequest))
@@ -66,7 +67,7 @@ function ProfileFriendRequests() {
 
 	const handleAccept = async (friendId) => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}/accept`, {
+			const response = await authFetch(`${playerRoute}/me/friend-requests/${friendId}/accept`, {
 				method: 'POST'
 			})
 			if (!response.ok) {
@@ -82,7 +83,7 @@ function ProfileFriendRequests() {
 
 	const handleDecline = async (friendId) => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}`, {
+			const response = await authFetch(`${playerRoute}/me/friend-requests/${friendId}`, {
 				method: 'DELETE'
 			})
 			if (!response.ok) {
@@ -98,7 +99,7 @@ function ProfileFriendRequests() {
 
 	const handleCancel = async (friendId) => {
 		try {
-			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}`, {
+			const response = await authFetch(`${playerRoute}/me/friend-requests/${friendId}`, {
 				method: 'DELETE'
 			})
 			if (!response.ok) {
@@ -120,7 +121,7 @@ function ProfileFriendRequests() {
 		try {
 			// For now, assume sendQuery is username. In real app, might need search first
 			// This is a simplification - in practice, you'd search for users first
-			const response = await authFetch(`${playerUrl}/me/friend-requests/${sendQuery}`, {
+			const response = await authFetch(`${playerRoute}/me/friend-requests/${sendQuery}`, {
 				method: 'POST'
 			})
 			if (!response.ok) {
@@ -128,14 +129,14 @@ function ProfileFriendRequests() {
 			}
 			setSendQuery('')
 			// Refresh sent requests
-			const sentRes = await authFetch(`${playerUrl}/me/friend-requests/sent`)
+			const sentRes = await authFetch(`${playerRoute}/me/friend-requests/sent`)
 			if (sentRes.ok) {
 				const sentData = await sentRes.json()
 				setSentRequests(sentData.requests.map(req => ({
 					id: req.auth_user_id,
 					username: req.username,
 					avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png' 
-						? `${playerUrl}/${req.auth_user_id}/profile-picture` 
+						? `${playerRoute}/${req.auth_user_id}/profile-picture` 
 						: null,
 					requestedAt: req.requested_at
 				})))
@@ -189,7 +190,7 @@ function ProfileFriendRequests() {
 								<div className="relative flex-shrink-0">
 									<img
 										className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
-										src={request.avatarUrl || '/src/assets/PFP_Default.webp'}
+										src={request.avatarUrl || PFP_Default}
 										alt={request.username}
 									/>
 								</div>
@@ -233,7 +234,7 @@ function ProfileFriendRequests() {
 								<div className="relative flex-shrink-0">
 									<img
 										className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
-										src={request.avatarUrl || '/src/assets/PFP_Default.webp'}
+										src={request.avatarUrl || PFP_Default}
 										alt={request.username}
 									/>
 								</div>

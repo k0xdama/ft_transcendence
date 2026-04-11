@@ -11,6 +11,8 @@ function JoinGameView() {
 	const	{ isAuthenticated } = useAuth()
 	const	navigate = useNavigate()
 
+	const	[joining, setJoining] = useState(false)
+
 	const	handleJoin = () => {
 		setError(null)
 		setLobbyError(null)
@@ -26,13 +28,14 @@ function JoinGameView() {
 			setError('Enter a valid ID!')
 			return
 		}
+		setJoining(true)
 		joinLobby(inputLobbyId)
 	}
 
 	useEffect(() => {
-		if (lobbyId)
+		if (joining && lobbyId)
 			navigate(`/lobby/${lobbyId}`)
-	}, [lobbyId])
+	}, [lobbyId, joining])
 
 	return (
 		<div className='flex justify-center'>

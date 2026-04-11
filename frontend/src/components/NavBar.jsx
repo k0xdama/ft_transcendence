@@ -1,11 +1,28 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import PFP_Default from '../assets/PFP_Default.webp'
 // import './NavBar.css'
 
 function NavBar() {
 	const navigate = useNavigate()
-	const { user, logout, isAuthenticated } = useAuth()
+	const { user, logout, isAuthenticated, authFetch } = useAuth()
+	const [avatarUrl, setAvatarUrl] = useState(PFP_Default)
+
+	useEffect(() => {
+		if (!user)
+			return
+		const playerRoute = '/api/players'
+		authFetch(`${playerRoute}/${user.id}`)
+			.then(res => res.ok ? res.json() : null)
+			.then(data => {
+				if (data && data.pp_path && data.pp_path !== '/uploads/profilePictures/default_profile_picture.png')
+					setAvatarUrl(`${playerRoute}/${user.id}/profile-picture`)
+				else
+					setAvatarUrl(PFP_Default)
+			})
+			.catch(() => setAvatarUrl(PFP_Default))
+	}, [user])
 
 	const handleLogout = async () => {
 		await logout()
@@ -23,7 +40,7 @@ function NavBar() {
 					{isAuthenticated() ? (
 						<>
 							<div className='flex items-center gap-3'>
-								<img src={PFP_Default} alt='Profile' className='h-8 w-8 rounded-full border border-purple-mid shadow-[0_0_12px_rgba(192,96,255,0.35)]' />
+								<img src={avatarUrl} alt='Profile' className='h-8 w-8 rounded-full border border-purple-mid shadow-[0_0_12px_rgba(192,96,255,0.35)]' />
 								<span className='text-xs uppercase tracking-ui text-white/70'>
 									Welcome, <Link to="/profile" className='text-purple-pale transition-colors hover:text-purple-light'>{user.username}</Link>
 								</span>

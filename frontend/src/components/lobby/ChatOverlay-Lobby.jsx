@@ -14,12 +14,17 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	const [messages, setMessages] = useState([])
 	const [draft, setDraft] = useState("")
 	const [typingUsers, setTypingUsers] = useState([])
+	const [showInvite, setShowInvite] = useState(false)
+	const [friends, setFriends] = useState([])
+	const [friendsLoading, setFriendsLoading] = useState(false)
+	const [inviteSent, setInviteSent] = useState({})
 	const bottomRef = useRef(null)
 	const typingTimers = useRef({})
 	const { authFetch, user } = useAuth()
 	const { connected, on, emit } = useChat()
 	const navigate = useNavigate()
-	const chatUrl = '/api/chat'
+	const chatRoute = '/api/chat'
+	const playerRoute = '/api/players'
 
 	// Fetch history separately — runs once when the room/user changes.
 	useEffect(() => {
@@ -28,7 +33,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 
 		const fetchHistory = async () => {
 			try {
-				const res = await authFetch(`${chatUrl}/room/${lobbyId}/history`)
+				const res = await authFetch(`${chatRoute}/room/${lobbyId}/history`)
 				if (!res || !res.ok)
 					return
 				const data = await res.json()
@@ -93,7 +98,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 
 	const postMessage = async (content, messageType) => {
 		try {
-			await authFetch(`${chatUrl}/room/send`, {
+			await authFetch(`${chatRoute}/room/send`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ lobbyId, content, messageType })
@@ -113,7 +118,48 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 
 	const sendQuickReply = (text) => postMessage(text, 'quick_reply')
 
-	const sendInvite = () => postMessage(lobbyId, 'game_invite')
+	const openInvitePanel = async () => {
+		setShowInvite(prev => !prev)
+		if (!showInvite) {
+			setFriendsLoading(true)
+			try {
+				const res = await authFetch(`${playerRoute}/me/friends`)
+				if (res.ok) {
+					const data = await res.json()
+					setFriends(data.friends.map(f => ({
+						id: f.auth_user_id,
+						username: f.username
+					})))
+				}
+			} catch (err) {
+				console.error('Failed to fetch friends:', err)
+			} finally {
+				setFriendsLoading(false)
+			}
+		}
+	}
+
+	const sendInviteTo = async (friendId) => {
+		try {
+			const dmRes = await authFetch(`${chatRoute}/dm`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ targetId: friendId })
+			})
+			if (!dmRes.ok)
+				return
+			const conversation = await dmRes.json()
+
+			await authFetch(`${chatRoute}/dm/${conversation.id}/send`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ content: `Join my lobby! Code: ${lobbyId}` })
+			})
+			setInviteSent(prev => ({ ...prev, [friendId]: true }))
+		} catch (err) {
+			console.error('Failed to send invite:', err)
+		}
+	}
 
 	const handleTyping = () => emit('chat:typing', { lobbyId })
 
@@ -124,8 +170,33 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 
 	return (
 		<div className="absolute bottom-12 left-4 z-10 flex max-h-[380px] w-[340px] flex-col overflow-hidden rounded-lg bg-black/45 transition-colors duration-300 hover:bg-black/55">
-			<div className="flex justify-end border-b border-white/[0.08] px-2 py-[0.3rem]">
-				<button className="rounded border border-[rgba(157,78,221,0.4)] bg-[rgba(157,78,221,0.15)] px-[0.6rem] py-[0.2rem] font-sans text-[0.7rem] text-white/75 transition-colors duration-150 hover:border-[#9d4edd] hover:bg-[rgba(157,78,221,0.3)] hover:text-white" onClick={sendInvite}>Send Invite</button>
+			<div className="relative flex justify-end border-b border-white/[0.08] px-2 py-[0.3rem]">
+				<button className="rounded border border-[rgba(157,78,221,0.4)] bg-[rgba(157,78,221,0.15)] px-[0.6rem] py-[0.2rem] font-sans text-[0.7rem] text-white/75 transition-colors duration-150 hover:border-[#9d4edd] hover:bg-[rgba(157,78,221,0.3)] hover:text-white" onClick={openInvitePanel}>Send Invite</button>
+				{showInvite && (
+					<div className="absolute right-0 top-full z-20 mt-1 w-[260px] rounded-lg border border-purple-mid bg-[rgba(10,5,20,0.95)] p-2 shadow-card backdrop-blur-md">
+						<p className="m-0 mb-2 text-center text-[0.7rem] uppercase tracking-ui text-purple-pale/70">Invite a friend</p>
+						{friendsLoading ? (
+							<p className="m-0 py-2 text-center text-[0.65rem] text-white/40">Loading...</p>
+						) : friends.length === 0 ? (
+							<p className="m-0 py-2 text-center text-[0.65rem] text-white/40">No friends yet</p>
+						) : (
+							<ul className="m-0 flex max-h-[160px] list-none flex-col gap-1 overflow-y-auto p-0 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]">
+								{friends.map(f => (
+									<li key={f.id} className="flex items-center justify-between rounded px-2 py-1.5 text-[0.75rem] text-white/85 hover:bg-white/5">
+										<span className="truncate">{f.username}</span>
+										<button
+											className={`shrink-0 rounded border px-2 py-0.5 text-[0.65rem] uppercase tracking-ui transition-colors ${inviteSent[f.id] ? 'border-green-500/50 bg-green-500/15 text-green-400 cursor-default' : 'border-cyan-str bg-btn-cyan text-cyan-glow hover:bg-[rgba(0,200,255,0.18)]'}`}
+											onClick={() => !inviteSent[f.id] && sendInviteTo(f.id)}
+											disabled={inviteSent[f.id]}
+										>
+											{inviteSent[f.id] ? 'Sent ✓' : 'Invite'}
+										</button>
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+				)}
 			</div>
 
 			<div className="min-h-0 flex flex-1 flex-col items-start gap-[0.2rem] overflow-y-auto px-3 py-2 text-[0.8rem] [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-[2px] [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar]:w-1">
@@ -134,7 +205,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 			</div>
 
 			{typingUsers.length > 0 && (
-				<p className="m-0 shrink-0 px-3 py-[0.2rem] font-sans text-[0.7rem] italic text-white/40">
+				<p className="m-0 shrink-0 px-3 py-[0.2rem] text-left font-sans text-[0.7rem] italic text-white/40">
 					{typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
 				</p>
 			)}
@@ -176,7 +247,7 @@ function ChatMessage({ msg, onJoin }) {
 	if (msg.type === 'game_invite' && msg.author !== 'You')
 		return (
 			<div className="w-full shrink-0 break-words text-left leading-[1.4]">
-				<span className="font-bold text-[#9d4edd]">{msg.author}</span>
+				<span className="font-bold text-[#9d4edd] cursor-pointer hover:underline" onClick={() => onJoin(`/profile/${msg.senderId}`)}>{msg.author}</span>
 				<span className="font-sans text-white/90"> invites you to play </span>
 				<button className="rounded border border-[#9d4edd]/50 bg-[#9d4edd]/15 px-2 py-[0.1rem] text-[0.72rem] text-white/90 hover:bg-[#9d4edd]/30" onClick={() => onJoin(`/lobby/${msg.text}`)}>
 					Join
@@ -186,7 +257,12 @@ function ChatMessage({ msg, onJoin }) {
 
 	return (
 		<div className="w-full shrink-0 break-words text-left leading-[1.4]">
-			<span className={`font-bold ${msg.author === 'You' ? 'text-[#7eb8f7]' : 'text-[#9d4edd]'}`}>{msg.author}: </span>
+			<span
+				className={`font-bold ${msg.author === 'You' ? 'text-[#7eb8f7]' : 'text-[#9d4edd] cursor-pointer hover:underline'}`}
+				onClick={() => msg.author !== 'You' && onJoin(`/profile/${msg.senderId}`)}
+			>
+				{msg.author}:{' '}
+			</span>
 			<span className="font-sans text-white/90">{msg.text}</span>
 		</div>
 	)

@@ -16,7 +16,7 @@ export function LobbyProvider({ children }) {
 	const [connected, setConnected] = useState(false)
 	const [lobbyError, setLobbyError] = useState(null);
 	const socketRef = useRef(null);
-	const lobbyUrl = '/api/lobby';
+	const lobbyRoute = '/api/lobby';
 
 	const { user, logout } = useAuth();
 
@@ -40,7 +40,7 @@ export function LobbyProvider({ children }) {
 			return;
 
 		socketRef.current = io({
-			path: `${lobbyUrl}/socket.io`,
+			path: `${lobbyRoute}/socket.io`,
 			withCredentials: true,
 			transports: ['websocket'],
 			reconnection: false

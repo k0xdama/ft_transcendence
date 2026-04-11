@@ -30,7 +30,7 @@ function ChatOverlay({ lobbyId }) {
 	const { authFetch, user } = useAuth()
 	const { connected, on, emit } = useChat()
 	const navigate = useNavigate()
-	const chatUrl = '/api/chat'
+	const chatRoute = '/api/chat'
 
 	// Fetch history separately — runs once when the room/user changes.
 	useEffect(() => {
@@ -39,7 +39,7 @@ function ChatOverlay({ lobbyId }) {
 
 		const fetchHistory = async () => {
 			try {
-				const res = await authFetch(`${chatUrl}/room/${lobbyId}/history`)
+				const res = await authFetch(`${chatRoute}/room/${lobbyId}/history`)
 				if (!res || !res.ok)
 					return
 				const data = await res.json()
@@ -100,7 +100,7 @@ function ChatOverlay({ lobbyId }) {
 
 	const postMessage = async (content, messageType) => {
 		try {
-			await authFetch(`${chatUrl}/room/send`, {
+			await authFetch(`${chatRoute}/room/send`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ lobbyId, content, messageType })

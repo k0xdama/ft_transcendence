@@ -2,6 +2,7 @@ import express from 'express';
 import { blockUser, unblockUser } from '../controllers/block-controller.js';
 import { sendWsMessage, getChatWsHistory } from '../controllers/chat-ws-controller.js';
 import { createDM, sendDM, getDMHistory, getMyDMs, markAsRead } from '../controllers/dm-controller.js';
+import { getOnlineStatuses } from '../controllers/status-controller.js';
 
 const router = express.Router();
 
@@ -32,5 +33,8 @@ router.post('/dm/:conversationId/send', sendDM);
 router.get('/dm/:conversationId/history', getDMHistory);
 router.patch('/dm/:conversationId/read', markAsRead);
 router.get('/dm', getMyDMs);
+
+// ─── Online status ───────────────────────────────────────────────────────
+router.post('/status/online', getOnlineStatuses);
 
 export default router;
