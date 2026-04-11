@@ -10,36 +10,38 @@ config:
     padding: 32
 ---
 flowchart TB
-  %% === CLIENTS + GATEWAY ===
-  CLIENTS["CLIENTS<br><br>React SPA<br><br><b>Contexts:</b><br>AuthContext<br>LobbyContext<br>GameContext<br>ChatContext"]:::clientStyle
-  GATEWAY["API GATEWAY :4000<br>(Express)<br><br><b>PUBLIC ROUTES :</b><br>/api/auth/*<br>/api/players/*<br>/api/chat/*<br>/api/lobby/* (WS)<br>/api/game/* (WS)<br><br><b>Middleware :</b><br>• JWT authGuard<br>• Header injection<br>(x-user-id, x-user-username)<br>• WS upgrade auth"]:::gatewayStyle
-  CLIENTS ==>|HTTP / WS| GATEWAY
+  %% === CLIENTS + NGINX + GATEWAY ===
+  CLIENTS["<b>CLIENTS</b><br><br>React SPA<br><br><b>Contexts:</b><br>AuthContext<br>LobbyContext<br>GameContext<br>ChatContext"]:::clientStyle
+  NGINX["<b>NGINX :8443</b><br><br>• TLS (HTTPS)<br>• Serve static files<br>&nbsp;&nbsp;(React build)<br>• Reverse proxy /api<br>&nbsp;&nbsp;→ gateway:4000<br>• WSS upgrade"]:::nginxStyle
+  GATEWAY["<b>API GATEWAY :4000</b><br>(Express)<br><br><b>PUBLIC ROUTES :</b><br>/api/auth/*<br>/api/players/*<br>/api/chat/*<br>/api/lobby/* (WSS)<br>/api/game/* (WSS)<br><br><b>Middleware :</b><br>• JWT authGuard<br>• Header injection<br>(x-user-id, x-user-username,<br>x-user-email)<br>• WSS upgrade auth"]:::gatewayStyle
+  CLIENTS ==>|HTTPS / WSS| NGINX
+  NGINX ==>|HTTPS / WSS| GATEWAY
 
   %% === MICROSERVICES SECTION ===
-  subgraph SERVICES["MICROSERVICES (REST + WS)"]
+  subgraph SERVICES["Microservices (REST + WSS)"]
     direction LR
-    AUTH["AUTH :3000<br><b>• Register / Login / Logout</b><br>• JWT access + refresh<br>• Token rotation<br>• Password hashing<br>• /internal/users/:id (DELETE, PATCH)"]:::serviceStyle
-    PLAYER["PLAYER :3001<br><b>• CRUD profiles</b><br>• Avatar upload<br>• Friends system<br>• Block users<br>• Game statistics<br>• /internal/users (POST)"]:::serviceStyle
-    LOBBY["LOBBY :3003 <i>(WebSocket)</i><br><b>• Create / Join / Leave</b><br>• Matchmaking queue<br>• Room config<br>• Ready check<br>• Start game trigger"]:::serviceStyle
-    GAME["GAME :3002 <i>(WebSocket)</i><br><b>• Card game state machine</b><br>• Turn management<br>• 3–6 players<br>• Disconnect / reconnect<br>• Win conditions (trios)<br>• /internal/create (POST)"]:::serviceStyle
-    CHAT["CHAT :2000 <i>(REST + WebSocket)</i><br><b>• Lobby / game messages</b><br>• Direct messages<br>• Chat history<br>• Block users<br>• Typing indicators<br>• Sound buzzers<br>• Game invitations<br>• /internal/users/:id (DELETE)"]:::chatStyle
+    AUTH["<b>AUTH :3000</b><br>• Register / Login / Logout<br>• JWT access + refresh<br>• Token rotation<br>• Password hashing<br>• /internal/users/:id (DELETE, PATCH)"]:::serviceStyle
+    PLAYER["<b>PLAYER :3001</b><br>• CRUD profiles<br>• Avatar upload<br>• Friends system<br>• Block users<br>• Game statistics<br>• /internal/users (POST)"]:::serviceStyle
+    CHAT["<b>CHAT :2000 <i>(REST + WSS)</b></i><br>• Lobby / game messages<br>• Direct messages<br>• Chat history<br>• Block users<br>• Typing indicators<br>• Sound buzzers<br>• Game invitations<br>• /internal/users/:id (DELETE)"]:::chatStyle
+    LOBBY["<b>LOBBY :3003 <i>(WSS)</i></b><br>• Create / Join / Leave<br>• Matchmaking queue<br>• Room config<br>• Ready check<br>• Start game trigger"]:::serviceStyle
+    GAME["<b>GAME :3002 <i>(WSS)</i></b><br>• Card game state machine<br>• Turn management<br>• 3–6 players<br>• Disconnect / reconnect<br>• Win conditions (trios)<br>• /internal/create (POST)"]:::serviceStyle
   end
 
   GATEWAY ==> AUTH
   GATEWAY ==> PLAYER
   GATEWAY ==> CHAT
-  GATEWAY -. WS .-> LOBBY
-  GATEWAY -. WS .-> GAME
+  GATEWAY -. WSS .-> LOBBY
+  GATEWAY -. WSS .-> GAME
 
   %% === DATABASES ===
-  PG["PostgreSQL<br><br><b>3 schemas :</b><br>• <b>auth</b> : users, refresh_tokens<br>• <b>player</b> : users, friendships<br>• <b>chat</b> : ws_messages,<br>&nbsp;&nbsp;direct_conversations,<br>&nbsp;&nbsp;blocked_users"]:::dbStyle
-  REDIS["Redis<br><br><b>Pub/Sub channels :</b><br>• chat:messages<br>• lobby:membersChanged<br>• user:statusChanged<br><br><b>List :</b><br>• game:results (stats-worker)"]:::redisStyle
+  PG["<b>PostgreSQL</b><br><br><b>3 schemas :</b><br>• <b>auth</b> : users, refresh_tokens<br>• <b>player</b> : users, friendships, blocked<br>• <b>chat</b> : ws_messages,<br>&nbsp;&nbsp;direct_conversations,<br>&nbsp;&nbsp;direct_messages, blocked_users"]:::dbStyle
+  REDIS["<b>Redis</b><br><br><b>Pub/Sub channels :</b><br>• chat:messages<br>• lobby:membersChanged<br>• lobby:gameStarting<br>• user:statusChanged<br>• game:ended<br><br><b>List :</b><br>• game:results (stats-worker)<br><br><b>Sets :</b><br>• users:online<br>• chat:blocked:$userId"]:::redisStyle
 
   AUTH & PLAYER & CHAT -. DB .-> PG
-  PLAYER & LOBBY & GAME -. Pub/Sub .-> REDIS
+  CHAT & PLAYER & LOBBY & GAME -. Pub/Sub .-> REDIS
 
   %% === INTERNAL ROUTES ===
-  subgraph INTERNAL["Internal routes (trio_network only)"]
+  subgraph INTERNAL["Internal routes (triple_network only)"]
     direction TB
     I1["AUTH /internal/users/:id<br>DELETE &amp; PATCH"]
     I2["PLAYER /internal/users<br>POST"]
@@ -51,23 +53,24 @@ flowchart TB
 
   PLAYER -- "sync username/email<br>delete cascade" --> I1
   AUTH -- "create profile<br>on signup" --> I2
-  PLAYER -- "purge user data<br>(best-effort)" --> I3
+  PLAYER -- "purge user data<br>" --> I3
   LOBBY -- "start game<br>(players, config)" --> I4
 
   %% === WS NOTES ===
-  subgraph WS_NOTES["Socket.io (via Gateway upgrade)"]
+  subgraph WS_NOTES["Socket.io (via Gateway)"]
     direction TB
-    WS_LOBBY_NOTE@{ shape: braces, label: "/api/lobby<br>• lobby:create / join / ready<br>• lobby:rulesChanged<br>• lobby:gameStarting<br>• matchmaking:join / leave" }
-    WS_GAME_NOTE@{ shape: braces, label: "/api/game<br>• game:join / action / check<br>• game:update / turnChanged<br>• game:ended / reconnected<br>• game:playerDisconnected" }
-    WS_CHAT_NOTE@{ shape: braces, label: "/api/chat<br>• chat:join / message / typing<br>• chat:sound / notification<br>• dm:read" }
+    WS_CHAT_NOTE@{ shape: braces, label: "<b>/api/chat</b><br>• chat:join / message / typing<br>• chat:sound / notification<br>• user:statusChanged<br>• dm:read" }
+    WS_LOBBY_NOTE@{ shape: braces, label: "<b>/api/lobby</b><br>• lobby:create / join / ready<br>• lobby:start / back<br>• lobby:rulesChanged / readyChanged<br>• lobby:gameStarting / disconnected<br>• matchmaking:join / leave" }
+    WS_GAME_NOTE@{ shape: braces, label: "<b>/api/game</b><br>• game:join / action / check<br>• game:started / update / turnChanged<br>• game:ended / reconnected<br>• game:playerDisconnected<br>• game:playerReconnected<br>• game:playerEliminated" }
   end
   class WS_NOTES wsNotesStyle
   class WS_LOBBY_NOTE,WS_GAME_NOTE,WS_CHAT_NOTE noteStyle
 
-  GATEWAY -. "WebSocket upgrade" .-> WS_NOTES
+  GATEWAY -. "WSS upgrade" .-> WS_NOTES
 
   %% === CLASSES ===
   classDef clientStyle fill:#e1f5ff,stroke:#01579b,stroke-width:3px,color:#000
+  classDef nginxStyle fill:#e8eaf6,stroke:#283593,stroke-width:3px,color:#000
   classDef gatewayStyle fill:#fff3e0,stroke:#e65100,stroke-width:3px,color:#000
   classDef serviceStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2.5px,color:#000
   classDef chatStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2.5px,color:#000
@@ -80,7 +83,7 @@ flowchart TB
 
   %% === LINK STYLES ===
   linkStyle default stroke-width:2px,stroke:#444,fill:none
-  linkStyle 0,1,2,3,4 stroke:#1e88e5,stroke-width:2.5px
-  linkStyle 5,6 stroke:#43a047,stroke-width:2px,stroke-dasharray:4 2
-  linkStyle 7,8 stroke:#ef6c00,stroke-width:2px,stroke-dasharray:2 2
-  linkStyle 9,10,11,12 stroke:#6a1b9a,stroke-width:2px,stroke-dasharray:3 2
+  linkStyle 0,1,2,3,4,5,6 stroke:#1e88e5,stroke-width:2.5px
+  linkStyle 7,8,9 stroke:#43a047,stroke-width:2px,stroke-dasharray:4 2
+  linkStyle 10,11,12,13 stroke:#ef6c00,stroke-width:2px,stroke-dasharray:2 2
+  linkStyle 14,15,16,17 stroke:#6a1b9a,stroke-width:2px,stroke-dasharray:3 2

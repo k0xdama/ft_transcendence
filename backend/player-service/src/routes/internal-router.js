@@ -6,7 +6,7 @@ import { DEFAULT_PROFILE_PICTURE } from '../middleware/upload.js';
 	These routes are mounted at '/internal' (NOT under '/players')
 	The API gateway only proxies '/api/players/*' -> 'https://player:3001/players/*'
 	so anything under '/internal' is unreachable from the public internet and
-	can only be called by other services on the private 'trio_network'
+	can only be called by other services on the private 'triple_network'
 */
 const router = express.Router();
 

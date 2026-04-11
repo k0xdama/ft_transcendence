@@ -15,10 +15,12 @@ async function callService(url, options = {}) {
 	const res = await fetch(url, options);
 	if (!res.ok && res.status !== 204) {
 		let message = `Upstream ${res.status}`;
+
 		try {
 			const body = await res.json();
 			if (body?.error)
 				message = body.error;
+
 		} catch {
 			/* default */
 		}
@@ -37,6 +39,7 @@ router.use((req, res, next) => {
 	if (!userId) {
 		return res.status(401).json({ error: 'Missing user context' });
 	}
+
 	req.user = {
 		id: userId,
 		username: req.headers['x-user-username'],

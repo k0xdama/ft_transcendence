@@ -5,7 +5,7 @@ import { purgeUserData } from '../controllers/purge-controller.js';
 	These routes are mounted at '/internal' (NOT under '/chat')
 	The API gateway only proxies '/api/chat/*' -> 'https://chat:2000/chat/*'
 	so anything under '/internal' is unreachable from the public internet and
-	can only be called by other services on the private 'trio_network'
+	can only be called by other services on the private 'triple_network'
 */
 const router = express.Router();
 

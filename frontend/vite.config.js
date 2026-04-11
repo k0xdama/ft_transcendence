@@ -19,8 +19,8 @@ const httpsConfig = fs.existsSync(dockerKeyPath) && fs.existsSync(dockerCertPath
       }
     : undefined
 
-  const isDockerRuntime = fs.existsSync('/.dockerenv')
-  const apiProxyTarget = isDockerRuntime ? 'https://gateway:4000' : 'https://localhost:4000'
+//   const isDockerRuntime = fs.existsSync('/.dockerenv')
+//   const apiProxyTarget = isDockerRuntime ? 'https://gateway:4000' : 'https://localhost:4000'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -31,7 +31,7 @@ export default defineConfig({
     https: httpsConfig,
     proxy: {
       '/api': {
-        target: apiProxyTarget,
+        target: 'https://gateway:4000',
 	    	ws: true,
         changeOrigin: true,
         secure: false

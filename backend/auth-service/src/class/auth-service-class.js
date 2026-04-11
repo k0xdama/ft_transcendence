@@ -20,7 +20,9 @@ async function createPlayerProfile(userData) {
 		const response = await axios.post(`${PLAYER_URL}/internal/users`, userData, {
 			timeout: 5000
 		});
+
 		return response.data;
+
 	} catch (error) {
 		console.error('❌ No answer from player service:', error.message);
 		throw error;
