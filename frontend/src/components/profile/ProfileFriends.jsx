@@ -1,25 +1,43 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useChat } from '../../context/ChatContext'
 
 const STATUS_ORDER = { 'online': 0, 'in-game': 1, 'offline': 2 }
 const STATUS_LABELS = { 'online': 'Online', 'in-game': 'In Game', 'offline': 'Offline' }
 
 function ProfileFriends() {
 	const { authFetch } = useAuth()
+	const { on } = useChat()
+	const navigate = useNavigate()
 	const [friends, setFriends] = useState([])
 	const [blocked, setBlocked] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
 	const [searchQuery, setSearchQuery] = useState('')
+	const playerUrl = '/api/players'
 
 	useEffect(() => {
 		fetchFriends()
 		fetchBlocked()
 	}, [])
 
+	// Listen for online status changes broadcast by chat-service
+	useEffect(() => {
+		if (!on)
+			return
+		return on('user:statusChanged', ({ userId, status }) => {
+			setFriends(prev => prev.map(f =>
+				f.id === userId
+				? { ...f, status }
+				: f
+			))
+		})
+	}, [on])
+
 	const fetchFriends = async () => {
 		try {
-			const response = await authFetch('/api/players/me/friends')
+			const response = await authFetch(`${playerUrl}/me/friends`)
 			if (!response.ok) {
 				throw new Error('Failed to fetch friends')
 			}
@@ -29,9 +47,9 @@ function ProfileFriends() {
 				id: friend.auth_user_id,
 				username: friend.username,
 				avatarUrl: friend.pp_path && friend.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-					? `/api/players/${friend.auth_user_id}/profile-picture`
+					? `${playerUrl}/${friend.auth_user_id}/profile-picture`
 					: null,
-				status: 'online' // TODO: Add real status from API if available
+				status: 'offline'
 			}))
 			setFriends(transformedFriends)
 		} catch (err) {
@@ -44,7 +62,7 @@ function ProfileFriends() {
 
 	const fetchBlocked = async () => {
 		try {
-			const response = await authFetch('/api/players/me/blocked')
+			const response = await authFetch(`${playerUrl}/me/blocked`)
 			if (!response.ok) {
 				throw new Error('Failed to fetch blocked users')
 			}
@@ -53,7 +71,7 @@ function ProfileFriends() {
 				id: user.auth_user_id,
 				username: user.username,
 				avatarUrl: user.pp_path && user.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-					? `/api/players/${user.auth_user_id}/profile-picture`
+					? `${playerUrl}/${user.auth_user_id}/profile-picture`
 					: null,
 				blockedAt: user.blocked_at
 			}))
@@ -65,7 +83,7 @@ function ProfileFriends() {
 
 	const handleRemoveFriend = async (friendId) => {
 		try {
-			const response = await authFetch(`/api/players/me/friends/${friendId}`, {
+			const response = await authFetch(`${playerUrl}/me/friends/${friendId}`, {
 				method: 'DELETE'
 			})
 
@@ -82,7 +100,7 @@ function ProfileFriends() {
 
 	const handleBlockUser = async (friendId) => {
 		try {
-			const response = await authFetch(`/api/players/me/blocked/${friendId}`, {
+			const response = await authFetch(`${playerUrl}/me/blocked/${friendId}`, {
 				method: 'POST'
 			})
 
@@ -99,7 +117,7 @@ function ProfileFriends() {
 
 	const handleUnblockUser = async (userId) => {
 		try {
-			const response = await authFetch(`/api/players/me/blocked/${userId}`, {
+			const response = await authFetch(`${playerUrl}/me/blocked/${userId}`, {
 				method: 'DELETE'
 			})
 
@@ -181,7 +199,7 @@ function ProfileFriends() {
 							</span>
 						</div>
 						<div className="flex gap-1.5 flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity">
-							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-cyan-glow/50 hover:bg-cyan-glow/10 hover:text-cyan-glow transition-all" title="View Profile">
+							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-cyan-glow/50 hover:bg-cyan-glow/10 hover:text-cyan-glow transition-all" title="View Profile" onClick={() => navigate(`/profile/${friend.id}`)}>
 								&#9782;
 							</button>
 							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all" title="Remove Friend" onClick={() => handleRemoveFriend(friend.id)}>

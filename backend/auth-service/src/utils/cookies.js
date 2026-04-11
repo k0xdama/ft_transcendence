@@ -1,6 +1,6 @@
 export const ACCESS_COOKIE_OPTIONS = {
 	httpOnly: true,
-	secure: false,
+	secure: true,
 	sameSite: 'strict',					// cookie sent only to our domain
 	path: '/',							// sent on all routes (needed by API Gateway authGuard)
 	maxAge: 15 * 60 * 1000				// 15 minutes
@@ -8,7 +8,7 @@ export const ACCESS_COOKIE_OPTIONS = {
 
 export const REFRESH_COOKIE_OPTIONS = {
 	httpOnly: true,
-	secure: false,
+	secure: true,
 	sameSite: 'strict',
 	path: '/api/auth',					// cookie sent only on /api/auth/* routes
 	maxAge: 7 * 24 * 60 * 60 * 1000		// 7 days

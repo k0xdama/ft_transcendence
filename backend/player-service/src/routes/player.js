@@ -8,8 +8,8 @@ import upload, { UPLOAD_DIR, DEFAULT_PROFILE_PICTURE } from '../middleware/uploa
 // Self-signed certs are used between services on the private docker network
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'https://auth:3000';
-const CHAT_SERVICE_URL = process.env.CHAT_SERVICE_URL || 'https://chat:2000';
+const AUTH_URL = process.env.AUTH_URL || 'https://auth:3000';
+const CHAT_URL = process.env.CHAT_URL || 'https://chat:2000';
 
 async function callService(url, options = {}) {
 	const res = await fetch(url, options);
@@ -249,7 +249,7 @@ router.delete('/me', async (req, res) => {
 			revoking any active session.
 		*/
 		try {
-			await callService(`${AUTH_SERVICE_URL}/internal/users/${player.auth_user_id}`, {
+			await callService(`${AUTH_URL}/internal/users/${player.auth_user_id}`, {
 				method: 'DELETE'
 			});
 		} catch (err) {
@@ -265,7 +265,7 @@ router.delete('/me', async (req, res) => {
 
 		// Step 3: purge chat data (messages, DMs, blocks)
 		try {
-			await callService(`${CHAT_SERVICE_URL}/internal/users/${player.auth_user_id}`, {
+			await callService(`${CHAT_URL}/internal/users/${player.auth_user_id}`, {
 				method: 'DELETE'
 			});
 		} catch (err) {
@@ -340,7 +340,7 @@ router.patch('/me', async (req, res) => {
 		*/
 		if (username !== undefined) {
 			try {
-				await callService(`${AUTH_SERVICE_URL}/internal/users/${req.user.id}`, {
+				await callService(`${AUTH_URL}/internal/users/${req.user.id}`, {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ username })

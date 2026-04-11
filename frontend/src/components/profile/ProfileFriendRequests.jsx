@@ -9,6 +9,7 @@ function ProfileFriendRequests() {
 	const [error, setError] = useState('')
 	const [sendQuery, setSendQuery] = useState('')
 	const [sending, setSending] = useState(false)
+	const playerUrl = '/api/players'
 
 	useEffect(() => {
 		fetchRequests()
@@ -18,7 +19,7 @@ function ProfileFriendRequests() {
 		id: req.auth_user_id,
 		username: req.username,
 		avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-			? `/api/players/${req.auth_user_id}/profile-picture`
+			? `${playerUrl}/${req.auth_user_id}/profile-picture`
 			: null,
 		requestedAt: req.requested_at
 	})
@@ -26,8 +27,8 @@ function ProfileFriendRequests() {
 	const fetchRequests = async () => {
 		try {
 			const [pendingRes, sentRes] = await Promise.all([
-				authFetch('/api/players/me/friend-requests/pending'),
-				authFetch('/api/players/me/friend-requests/sent')
+				authFetch(`${playerUrl}/me/friend-requests/pending`),
+				authFetch(`${playerUrl}/me/friend-requests/sent`)
 			])
 
 			if (!pendingRes.ok || !sentRes.ok) {
@@ -48,7 +49,7 @@ function ProfileFriendRequests() {
 	}
 
 	const fetchPendingRequests = async () => {
-		const pendingRes = await authFetch('/api/players/me/friend-requests/pending')
+		const pendingRes = await authFetch(`${playerUrl}/me/friend-requests/pending`)
 		if (pendingRes.ok) {
 			const pendingData = await pendingRes.json()
 			setPendingRequests(pendingData.requests.map(transformRequest))
@@ -56,7 +57,7 @@ function ProfileFriendRequests() {
 	}
 
 	const fetchSentRequests = async () => {
-		const sentRes = await authFetch('/api/players/me/friend-requests/sent')
+		const sentRes = await authFetch(`${playerUrl}/me/friend-requests/sent`)
 		if (sentRes.ok) {
 			const sentData = await sentRes.json()
 			setSentRequests(sentData.requests.map(transformRequest))
@@ -65,7 +66,7 @@ function ProfileFriendRequests() {
 
 	const handleAccept = async (friendId) => {
 		try {
-			const response = await authFetch(`/api/players/me/friend-requests/${friendId}/accept`, {
+			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}/accept`, {
 				method: 'POST'
 			})
 
@@ -82,7 +83,7 @@ function ProfileFriendRequests() {
 
 	const handleDecline = async (friendId) => {
 		try {
-			const response = await authFetch(`/api/players/me/friend-requests/${friendId}`, {
+			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}`, {
 				method: 'DELETE'
 			})
 			if (!response.ok) {
@@ -98,7 +99,7 @@ function ProfileFriendRequests() {
 
 	const handleCancel = async (friendId) => {
 		try {
-			const response = await authFetch(`/api/players/me/friend-requests/${friendId}`, {
+			const response = await authFetch(`${playerUrl}/me/friend-requests/${friendId}`, {
 				method: 'DELETE'
 			})
 
@@ -121,7 +122,7 @@ function ProfileFriendRequests() {
 		try {
 			// For now, assume sendQuery is username. In real app, might need search first
 			// This is a simplification - in practice, you'd search for users first
-			const response = await authFetch(`/api/players/me/friend-requests/${sendQuery}`, {
+			const response = await authFetch(`${playerUrl}/me/friend-requests/${sendQuery}`, {
 				method: 'POST'
 			})
 			if (!response.ok) {
@@ -129,14 +130,14 @@ function ProfileFriendRequests() {
 			}
 			setSendQuery('')
 			// Refresh sent requests
-			const sentRes = await authFetch('/api/players/me/friend-requests/sent')
+			const sentRes = await authFetch(`${playerUrl}/me/friend-requests/sent`)
 			if (sentRes.ok) {
 				const sentData = await sentRes.json()
 				setSentRequests(sentData.requests.map(req => ({
 					id: req.auth_user_id,
 					username: req.username,
 					avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png' 
-						? `/api/players/${req.auth_user_id}/profile-picture` 
+						? `${playerUrl}/${req.auth_user_id}/profile-picture` 
 						: null,
 					requestedAt: req.requested_at
 				})))

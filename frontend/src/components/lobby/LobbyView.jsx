@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import ChatOverlay from './ChatOverlay-Lobby'
 // import './LobbyView.css'
 // import './LobbyView.module.css'
@@ -13,7 +13,6 @@ function LobbyView() {
 	const	[error, setError] = useState(null)
 	const	[copied, setCopied] = useState(false)
 	const	navigate = useNavigate()
-	const	chatSocketRef = useRef(null)
 
 	useEffect(() => {
 		console.log('LobbyView useEffect - gameId:', gameId);
@@ -33,6 +32,7 @@ function LobbyView() {
 
 	const	isHost = user?.id === lobbyStruct.creatorId
 	const	me = lobbyStruct.users.find(u => u.id === user?.id)
+	const	creator = lobbyStruct.users.find(u => u.id === lobbyStruct.creatorId)
 	const	allReady = lobbyStruct.users.every(u => u.ready)
 	const	isFull = lobbyStruct.users.length === lobbyStruct.rules.maxUsers
  
@@ -63,7 +63,7 @@ function LobbyView() {
 		<div className="flex flex-col items-center">
 			<div className="bg-card border border-purple-mid rounded-2xl py-[2vh] px-[3vh] w-[460px] backdrop-blur-md shadow-card">
 				<h2 className="text-[1.1rem] tracking-title uppercase text-purple-pale text-shadow-purple m-0 mb-6 text-center animate-crt-pulse">
-					{user.username}'s lobby
+					{creator?.username ?? lobbyStruct.creatorId}'s lobby
 				</h2>
  
 				{(error || lobbyError) && <p className="text-[#ff4466] text-[0.75rem] text-center m-0 mb-4 tracking-[0.05em]">{error || lobbyError}</p>}
@@ -167,7 +167,7 @@ function LobbyView() {
 					)}
 				</div>
 			</div>
-			<ChatOverlay socketRef={chatSocketRef} lobbyId={lobbyId} />
+			<ChatOverlay lobbyId={lobbyId} />
 		</div>
 	)
 }

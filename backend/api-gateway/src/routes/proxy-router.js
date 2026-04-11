@@ -2,12 +2,20 @@ import { Router } from "express";
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { authGuard } from "../middleware/authGuard.js";
 
-const AUTH_URL = process.env.AUTH_SERVICE_URL || 'https://auth:3000';
-const PLAYER_URL = process.env.PLAYER_SERVICE_URL || 'https://player:3001';
-const CHAT_URL = process.env.CHAT_SERVICE_URL || 'https://chat:2000';
-const LOBBY_URL = process.env.LOBBY_SERVICE_URL || 'https://lobby:3003';
-const GAME_URL = process.env.GAME_SERVICE_URL || 'https://game:3002';
+const AUTH_URL = process.env.AUTH_URL || 'https://auth:3000';
+const PLAYER_URL = process.env.PLAYER_URL || 'https://player:3001';
+const CHAT_URL = process.env.CHAT_URL || 'https://chat:2000';
+const LOBBY_URL = process.env.LOBBY_URL || 'https://lobby:3003';
+const GAME_URL = process.env.GAME_URL || 'https://game:3002';
 
+/*
+	HTTP proxies (auth, player, chat): router.use('/chat', ...) already strips the /chat prefix,
+	so the proxy only receives the remainder and pathRewrite prepends the backend service namespace.
+	────────────
+	WS proxies (chatWs, lobby, game): WebSocket upgrades don't go through the Express router the
+	same way — they receive the full path /api/lobby/..., so pathRewrite: { '^/api/lobby': '' }
+	strips the entire prefix to reach the service root.
+*/
 const authProxy = createProxyMiddleware({
 	target: AUTH_URL,
 	changeOrigin: true,
@@ -94,4 +102,4 @@ router.use('/chat', authGuard, injectUserInfos, chatProxy);
 router.use('/lobby', authGuard, injectUserInfos, lobbyProxy);
 router.use('/game', authGuard, injectUserInfos, gameProxy);
 
-export { router, lobbyProxy, gameProxy, chatWsProxy };
+export { router, chatWsProxy, lobbyProxy, gameProxy };

@@ -15,7 +15,7 @@ all: cert build up
 
 cert:
 	@if [ ! -f secrets/ssl/key.pem ]; then \
-		IP=$$(hostname -I | awk '{print $$1}'); \
+		IP=$$(ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | awk '{print $$1}' || echo "127.0.0.1"); \
 		mkdir -p secrets/ssl; \
 		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 			-keyout secrets/ssl/key.pem \

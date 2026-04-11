@@ -66,6 +66,14 @@ services:
     build:
       context: ./backend/api-gateway
       dockerfile: Dockerfile
+    environment:
+      AUTH_URL: ${AUTH_URL}
+      PLAYER_URL: ${PLAYER_URL}
+      CHAT_URL: ${CHAT_URL}
+      LOBBY_URL: ${LOBBY_URL}
+      GAME_URL: ${GAME_URL}
+      PORT: ${PORT}
+      CORS_ORIGIN: ${CORS_ORIGIN}
     secrets:
       - jwt_access
       - ssl_key
@@ -91,6 +99,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      PLAYER_URL: ${PLAYER_URL}
     secrets:
       - psql_dbname
       - psql_services_passwd
@@ -117,6 +127,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    environment:
+      AUTH_URL: ${AUTH_URL}
+      CHAT_URL: ${CHAT_URL}
+      REDIS_URL: ${REDIS_URL}
     secrets:
       - psql_dbname
       - psql_services_passwd

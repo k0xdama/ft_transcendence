@@ -15,6 +15,7 @@ function LoginView() {
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
 	const [loading, setLoading] = useState(false);
+	const authUrl = '/api/auth';
 
 	const handleChange = (e) => {
 		setFormData({
@@ -35,12 +36,10 @@ function LoginView() {
 		setLoading(true);
 
 		try {
-			const res = await fetch('/api/auth/login', {
+			const res = await fetch(`${authUrl}/login`, {
 				method: 'POST',
 				credentials: 'include',
-				headers: {
-					'Content-Type': 'application/json',
-				},
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					identifier: formData.id,
 					password: formData.password

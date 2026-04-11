@@ -148,6 +148,7 @@ io.on('connection', (socket) => {
 			const stats = buildGameStats(gameStruct, action_result.winner.winnerId);
 			//redis publish
 			await redisClient.lPush('game:results', JSON.stringify(stats));
+			await redisClient.publish('game:ended', JSON.stringify({ gameId: data.gameId, winner: action_result.winner }));
 			io.to(data.gameId).emit('game:ended', action_result.winner);
 			setTimeout(() => { games.delete(data.gameId); }, 5000);
 		}

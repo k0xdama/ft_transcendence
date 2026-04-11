@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { SOUNDS } from "./SoundBuzzers";
@@ -28,6 +29,7 @@ function ChatOverlay({ lobbyId }) {
 	const typingDebounce = useRef(null)
 	const { authFetch, user } = useAuth()
 	const { connected, on, emit } = useChat()
+	const navigate = useNavigate()
 	const chatUrl = '/api/chat'
 
 	// Fetch history separately — runs once when the room/user changes.
@@ -133,7 +135,7 @@ function ChatOverlay({ lobbyId }) {
 	return (
 		<div className="chat-overlay">
 			<div className="chat-messages">
-				{messages.map(msg => <ChatMessage key={msg.id} msg={msg} />)}
+				{messages.map(msg => <ChatMessage key={msg.id} msg={msg} onNavigate={navigate} />)}
 				<div ref={bottomRef} />
 			</div>
 
@@ -165,7 +167,7 @@ function ChatOverlay({ lobbyId }) {
 	)
 }
 
-function ChatMessage({ msg }) {
+function ChatMessage({ msg, onNavigate }) {
 	if (msg.type === 'notification')
 		return (
 			<div className="chat-message chat-notification">
@@ -175,7 +177,9 @@ function ChatMessage({ msg }) {
 
 	return (
 		<div className={`chat-message ${msg.author === 'You' ? 'chat-self' : ''}`}>
-			<span className="chat-author" style={{ color: getAuthorColor(msg.author) }}>{msg.author}: </span>
+			<span className={`chat-author ${msg.author !== 'You' ? 'chat-author-link' : ''}`}
+					style={{ color: getAuthorColor(msg.author) }}
+					onClick={() => msg.author !== 'You' && onNavigate(`/profile/${msg.senderId}`)}>{msg.author}: </span>
 			<span className="chat-text">{msg.text}</span>
 		</div>
 	)
@@ -184,6 +188,7 @@ function ChatMessage({ msg }) {
 function mapMessage(userId, msg) {
 	return {
 		id: msg.id,
+		senderId: msg.sender_id,
 		author: msg.sender_id === userId
 			? 'You'
 			: msg.username,

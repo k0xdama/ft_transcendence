@@ -53,8 +53,12 @@ SET ROLE player_user;
 CREATE TABLE player.users (
 	id 				SERIAL PRIMARY KEY,
 	auth_user_id	UUID NOT NULL,	-- logical FK to auth.users(id) (cross-schema, not enforced by PG)
-	username		VARCHAR(50) UNIQUE NOT NULL,
-	pp_path			VARCHAR(255) NOT NULL,
+	username		TEXT UNIQUE NOT NULL
+		CONSTRAINT check_player_username_length
+		CHECK (length(username) BETWEEN 3 AND 50),
+	pp_path			TEXT NOT NULL
+		CONSTRAINT check_pp_path_length
+		CHECK (length(pp_path) <= 254),
 	created_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	updated_at		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 

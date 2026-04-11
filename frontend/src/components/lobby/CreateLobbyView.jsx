@@ -6,13 +6,17 @@ import { useAuth } from '../../context/AuthContext';
 function CreateLobbyView() {
  
 	const	{ connected, createLobby, lobbyId, lobbyStruct } = useLobby()
-	const	{ user } = useAuth()
+	const	{ isAuthenticated } = useAuth()
 	const	navigate = useNavigate()
 
 	useEffect(() => {
+		if (!isAuthenticated) {
+			navigate('/login', { replace: true })
+			return
+		}
 		if (connected)
 			createLobby('CLASSIC', 'SOLO', 3)
-	}, [connected])
+	}, [connected, isAuthenticated])
 
 	useEffect(() => {
 		if (lobbyId)

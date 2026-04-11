@@ -13,6 +13,7 @@ function RegisterView() {
 	const [error, setError] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState('');
+	const authUrl = '/api/auth'
 
 	const handleChange = (e) => {
 		setFormData({
@@ -31,23 +32,10 @@ function RegisterView() {
 			return;
 		}
 
-		const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
-		if (!emailRegex.test(formData.email)) {
-			setError('Email must be valid');
-			return;
-		}
-
-		if (formData.password.length < 8) {
-			setError('Password must be 8 or more characters');
-			return;
-		}
-
-		console.log('Validation passed ! Registration Data:', {formData});
-
 		setLoading(true);
 
 		try {
-			const res = await fetch('/api/auth/register', {
+			const res = await fetch(`${authUrl}/register`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

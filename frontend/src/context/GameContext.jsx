@@ -17,8 +17,8 @@ export function GameProvider({ children }) {
 	const [revealedHandCards, setRevealedHandCards] = useState([]);
 	const [gameResult, setGameResult] = useState(null);
 	const socketRef = useRef(null);
-	const gameUrl = '/api/game';
 	const riverSlotsRef = useRef(null);
+	const gameUrl = '/api/game';
 
 	const connect = (gameId, onConnected, onError) => {
 		if (socketRef.current)

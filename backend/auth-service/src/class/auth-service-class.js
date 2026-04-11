@@ -12,12 +12,12 @@ import axios from 'axios';
 
 // Configuration
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const PLAYER_SERVICE_URL = process.env.PLAYER_SERVICE_URL || 'https://player:3001';
+const PLAYER_URL = process.env.PLAYER_URL || 'https://player:3001';
 
 async function createPlayerProfile(userData) {
 	try {
 		console.log("createPlayerProfil : [username] -> ", userData.username);
-		const response = await axios.post(`${PLAYER_SERVICE_URL}/internal/users`, userData, {
+		const response = await axios.post(`${PLAYER_URL}/internal/users`, userData, {
 			timeout: 5000
 		});
 		return response.data;
@@ -189,7 +189,7 @@ class AuthService {
 	// Called by another service (player-service) over the private network via
 	// the /internal endpoint. Updates mutable fields on auth.users so that
 	// login credentials stay in sync with the user's profile elsewhere.
-	async updateUser(userId, { username, email }) {
+	async updateUser(userId, { username, email, password }) {
 		const updates = [];
 		const values = [];
 		let paramIndex = 1;
@@ -203,6 +203,12 @@ class AuthService {
 			validateEmail(email);
 			updates.push(`email = $${paramIndex++}`);
 			values.push(email);
+		}
+		if (password !== undefined) {
+			validatePassword(password);
+			const passwordHash = await bcrypt.hash(password, 10);
+			updates.push(`password_hash = $${paramIndex++}`);
+			values.push(passwordHash);
 		}
 
 		if (updates.length === 0)

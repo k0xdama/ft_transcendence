@@ -31,7 +31,9 @@ app.use(cors({
 	credentials: true
 }));
 app.use(cookieParser());
+
 app.get('/health', (req, res) => res.status(200).send('OK'));
+
 app.use('/api', router);
 
 const server = createServer(sslOptions, app);

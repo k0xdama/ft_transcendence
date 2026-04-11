@@ -125,7 +125,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	return (
 		<div className="chat-overlay chat-lobby">
 			<div className="chat-header">
-				<button className="chat-invite-btn" disabled title="Requires friend list (user-service)">Invite friend</button>
+				<button className="chat-invite-btn" onClick={sendInvite}>Send Invite</button>
 			</div>
 
 			<div className="chat-messages">
@@ -182,7 +182,8 @@ function ChatMessage({ msg, onJoin }) {
 
 	return (
 		<div className={`chat-message ${msg.author === 'You' ? 'chat-self' : ''}`}>
-			<span className="chat-author">{msg.author}: </span>
+			<span className={`chat-author ${msg.author !== 'You' ? 'chat-author-link' : ''}`}
+					onClick={() => msg.author !== 'You' && onJoin(`/profile/${msg.senderId}`)}>{msg.author}: </span>
 			<span className="chat-text">{msg.text}</span>
 		</div>
 	)
@@ -191,6 +192,7 @@ function ChatMessage({ msg, onJoin }) {
 function mapMessage(userId, msg) {
 	return {
 		id: msg.id,
+		senderId: msg.sender_id,
 		author: msg.sender_id === userId
 			? 'You'
 			: msg.username,

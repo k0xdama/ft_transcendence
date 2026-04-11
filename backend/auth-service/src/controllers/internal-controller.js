@@ -18,8 +18,8 @@ export async function deleteUserInternal(req, res) {
 // PATCH /internal/users/:id — called by player-service when the profile is updated
 export async function updateUserInternal(req, res) {
 	try {
-		const { username, email } = req.body;
-		const updated = await authService.updateUser(req.params.id, { username, email });
+		const { username, email, password } = req.body;
+		const updated = await authService.updateUser(req.params.id, { username, email, password });
 		return res.status(200).json({ user: updated });
 	}
 	catch (error) {

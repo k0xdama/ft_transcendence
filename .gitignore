@@ -2,6 +2,7 @@ node_modules/
 dist/
 build/
 secrets/
+commit-msg.txt
 .env
 .vscode/
 *.log

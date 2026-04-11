@@ -39,6 +39,8 @@
 }
 
 .chat-author { color: #9d4edd; font-weight: bold; }
+.chat-author-link { cursor: pointer; }
+.chat-author-link:hover { text-decoration: underline; }
 .chat-self .chat-author { color: #7eb8f7; }
 .chat-text {
 	color: rgba(255, 255, 255, 0.9);

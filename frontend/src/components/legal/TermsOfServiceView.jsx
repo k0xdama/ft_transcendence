@@ -12,7 +12,7 @@ function TermsOfServiceView() {
 					<h3 className='m-0 mb-3 text-[0.8rem] uppercase tracking-[0.1em] text-purple-pale'>1. Eligibility</h3>
 					<p className='m-0 mb-2.5 font-sans text-[0.78rem] leading-[1.7] text-[#dcbeffbf]'>To use Triple, you must:</p>
 					<ul className='m-0 mb-2.5 flex list-none flex-col gap-2 p-0 [&>li]:rounded-lg [&>li]:border [&>li]:border-purple-dim [&>li]:bg-white/5 [&>li]:px-3.5 [&>li]:py-2 [&>li]:font-sans [&>li]:text-[0.75rem] [&>li]:leading-[1.6] [&>li]:text-[#dcbeffb3] [&>li_strong]:text-white/90'>
-						<li>Be at least <strong>16 years of age</strong>.</li>
+						<li>Be at least <strong>16 years old</strong>.</li>
 						<li>Use the Service as a natural person (individual). Corporations, limited liability companies, partnerships, and other legal entities or commercial organizations are not permitted to create accounts.</li>
 						<li>Not have been previously banned from using the Service by Triple.</li>
 					</ul>

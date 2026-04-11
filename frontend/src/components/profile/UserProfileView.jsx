@@ -14,6 +14,7 @@ function UserProfileView() {
 	const { userId } = useParams()
 	const navigate = useNavigate()
 	const { user, isAuthenticated, authFetch, logout } = useAuth()
+	const playerUrl = '/api/players'
 
 	const [activeTab, setActiveTab] = useState('stats')
 	const [profileData, setProfileData] = useState(null)
@@ -40,7 +41,7 @@ function UserProfileView() {
 		setLoading(true)
 		try {
 			// todo: Peut etre Mettre des donnees par defaut en cas de fail de fetch pour eviter les trous
-			const response = await authFetch(`/api/players/${targetUserId}`)
+			const response = await authFetch(`${playerUrl}/${targetUserId}`)
 			if (!response.ok) {
 				throw new Error('Failed to fetch profile data')
 			}
@@ -53,7 +54,9 @@ function UserProfileView() {
 				email: isOwnProfile
 					? (user && user.email)
 					: null,
-				avatarUrl: (playerData.pp_path && playerData.pp_path !== '/uploads/profilePictures/default_profile_picture.png') ? `/api/players/${targetUserId}/profile-picture` : null,
+				avatarUrl: (playerData.pp_path && playerData.pp_path !== '/uploads/profilePictures/default_profile_picture.png')
+					? `${playerUrl}/${targetUserId}/profile-picture`
+					: null,
 				createdAt: playerData.created_at
 			})
 		} catch (err) {
@@ -66,7 +69,7 @@ function UserProfileView() {
 
 	const fetchStats = async () => {
 		try {
-			const response = await authFetch(`/api/players/${targetUserId}`)
+			const response = await authFetch(`${playerUrl}/${targetUserId}`)
 
 			if (!response.ok) {
 				throw new Error('Failed to fetch stats')
@@ -106,7 +109,7 @@ function UserProfileView() {
 
 	const handleAddFriend = async () => {
 		try {
-			const response = await authFetch(`/api/players/me/friend-requests/${targetUserId}`, {
+			const response = await authFetch(`${playerUrl}/me/friend-requests/${targetUserId}`, {
 				method: 'POST'
 			})
 
@@ -122,7 +125,7 @@ function UserProfileView() {
 
 	const handleRemoveFriend = async () => {
 		try {
-			const response = await authFetch(`/api/players/me/friends/${targetUserId}`, {
+			const response = await authFetch(`${playerUrl}/me/friends/${targetUserId}`, {
 				method: 'DELETE'
 			})
 
@@ -138,7 +141,7 @@ function UserProfileView() {
 
 	const handleBlock = async () => {
 		try {
-			const response = await authFetch(`/api/players/me/blocked/${targetUserId}`, {
+			const response = await authFetch(`${playerUrl}/me/blocked/${targetUserId}`, {
 				method: 'POST'
 			})
 
@@ -157,7 +160,7 @@ function UserProfileView() {
 			const formData = new FormData()
 			formData.append('profilePicture', file)  // Clé attendue par upload.single('profilePicture')
 
-			const response = await authFetch(`/api/players/me/profile-picture`, {
+			const response = await authFetch(`${playerUrl}/me/profile-picture`, {
 				method: 'POST',
 				body: formData
 				// NE PAS mettre de Content-Type, le navigateur le met automatiquement
@@ -170,7 +173,7 @@ function UserProfileView() {
 			await response.json()
 			setProfileData(prev => ({
 				...prev,
-				avatarUrl: `/api/players/${user.id}/profile-picture`
+				avatarUrl: `${playerUrl}/${user.id}/profile-picture`
 			}))
 		} catch (err) {
 			console.error('Avatar upload error:', err)
@@ -180,7 +183,7 @@ function UserProfileView() {
 
 	const handleAvatarDelete = async () => {
 		try {
-			const response = await authFetch(`/api/players/me/profile-picture`, {
+			const response = await authFetch(`${playerUrl}/me/profile-picture`, {
 				method: 'DELETE'
 			})
 
@@ -203,7 +206,7 @@ function UserProfileView() {
 		try {
 			//todo: ajouter une verif du format et de la disponibilite du username et de l'email avant d'envoyer la requete
 			//todo: aussi permettre la modif du mot de passe
-			const response = await authFetch(`/api/players/me`, {
+			const response = await authFetch(`${playerUrl}/me`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ [field]: value })
@@ -231,7 +234,7 @@ function UserProfileView() {
 		try {
 			//todo: reverif que tout est dans la norme ca coute rien
 
-			const response = await authFetch(`/api/players/me`, {
+			const response = await authFetch(`${playerUrl}/me`, {
 				method: 'DELETE'
 			})
 

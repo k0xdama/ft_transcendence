@@ -92,25 +92,24 @@ await redisSubscriber.subscribe('user:statusChanged', (raw) => {
 });
 
 // Game notifications → broadcast to the relevant chat room
-// TODO: uncomment when game-service publishes these Redis events
-// await redisSubscriber.subscribe('lobby:gameStarting', (raw) => {
-// 	const { lobbyId, gameId } = JSON.parse(raw);
-// 	io.to(lobbyId).emit('chat:notification', {
-// 		type: 'game_starting',
-// 		lobbyId,
-// 		gameId,
-// 		message: 'The game is starting!'
-// 	});
-// });
+await redisSubscriber.subscribe('lobby:gameStarting', (raw) => {
+	const { lobbyId, gameId } = JSON.parse(raw);
+	io.to(lobbyId).emit('chat:notification', {
+		type: 'game_starting',
+		lobbyId,
+		gameId,
+		message: 'The game is starting!'
+	});
+});
 
-// await redisSubscriber.subscribe('game:ended', (raw) => {
-// 	const { gameId, winner } = JSON.parse(raw);
-// 	io.to(gameId).emit('chat:notification', {
-// 		type: 'game_ended',
-// 		gameId,
-// 		winner
-// 	});
-// });
+await redisSubscriber.subscribe('game:ended', (raw) => {
+	const { gameId, winner } = JSON.parse(raw);
+	io.to(gameId).emit('chat:notification', {
+		type: 'game_ended',
+		gameId,
+		winner
+	});
+});
 
 // Purge expired messages every 24h
 const PURGE_INTERVAL = 24 * 60 * 60 * 1000;
