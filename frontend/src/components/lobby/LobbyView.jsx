@@ -8,7 +8,7 @@ import ChatOverlay from './ChatOverlay-Lobby'
 
 function LobbyView() {
 	const	{ lobbyId } = useParams()
-	const	{ lobbyStruct, updateRules, toggleReady, startGame, lobbyError, gameId } = useLobby()
+	const	{ lobbyStruct, updateRules, toggleReady, startGame, lobbyError, gameId, joinLobby, leaveLobby } = useLobby()
 	const	{ user } = useAuth()
 	const	[error, setError] = useState(null)
 	const	[copied, setCopied] = useState(false)
@@ -19,6 +19,15 @@ function LobbyView() {
 		if (gameId)
 			navigate(`/game/${gameId}`, { state: { lobbyId } })
 	}, [gameId])
+
+	useEffect(() => {
+		return () => leaveLobby();
+	}, []);
+
+	// useEffect(() => {
+	// 	if (!lobbyStruct && lobbyId)
+	// 		joinLobby(lobbyId);
+	// }, [lobbyStruct, lobbyId]);
  
 	if (!lobbyStruct) {
 		return (

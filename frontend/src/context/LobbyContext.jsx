@@ -67,6 +67,13 @@ export function LobbyProvider({ children }) {
 			setLobbyStruct(struct.lobbyStruct);
 		});
 
+		socketRef.current.on('lobby:userLeft', ({ userId }) => {
+			setLobbyStruct(prev => ({
+				...prev,
+				users: prev.users.filter(u => u.id !== userId)
+			}));
+		});
+
 		socketRef.current.on('lobby:disconnected', ({ userId }) => {
 			setLobbyStruct(prev => ({
 				...prev,
@@ -112,6 +119,14 @@ export function LobbyProvider({ children }) {
 		socketRef.current.emit('lobby:join', { lobbyId });
 	};
 
+	const leaveLobby = () => {
+		if (socketRef.current)
+			socketRef.current.emit('lobby:leave');
+		setLobbyId(null);
+		setLobbyStruct(null);
+		setGameId(null);
+	};
+
 	const joinMatchmaking = (gameMode, gameType, maxUsers) => {
 		socketRef.current.emit('matchmaking:join', { gameMode, gameType, maxUsers });
 		setMatchmakingStatus('searching');
@@ -139,6 +154,7 @@ export function LobbyProvider({ children }) {
 		connect,
 		createLobby,
 		joinLobby,
+		leaveLobby,
 		updateRules,
 		joinMatchmaking,
 		leaveMatchmaking,

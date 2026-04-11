@@ -337,6 +337,34 @@ io.on('connection', (socket) => {
 		io.to(data.lobbyId).emit('lobby:joined', { lobbyStruct });
 	});
 
+	socket.on('lobby:leave', () => {
+		const lobbyId = lobbyBySocket.get(socket.id);
+		if (lobbyId === undefined)
+			return;
+		const lobbyStruct = lobbys.get(lobbyId);
+		if (lobbyStruct === undefined)
+			return;
+		const userIndex = lobbyStruct.users.findIndex(user => user.id === socket.user.id);
+		if (userIndex === -1)
+			return;
+		lobbyStruct.users.splice(userIndex, 1);
+		socket.leave(lobbyId);
+		lobbyBySocket.delete(socket.id);
+		if (lobbyStruct.users.length === 0) {
+			lobbys.delete(lobbyId);
+			redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members: [] }))
+				.catch(console.error);
+		}
+		else {
+			if (lobbyStruct.creatorId === socket.user.id)
+				lobbyStruct.creatorId = lobbyStruct.users[0].id;
+			if (lobbyStruct.state === LOBBY_STATE.FULL)
+				lobbyStruct.state = LOBBY_STATE.WAITING;
+			publishLobbyMembers(lobbyId, lobbyStruct);
+			io.to(lobbyId).emit('lobby:userLeft', { userId: socket.user.id });
+		}
+	});
+
 	socket.on('matchmaking:leave', () => {
 		const queueKey = queueBySocket.get(socket.id);
 		if (queueKey === undefined)
