@@ -2,10 +2,22 @@ import { defineConfig } from 'vite'
 import fs from 'fs';
 import react from '@vitejs/plugin-react'
 
-const httpsConfig = fs.existsSync('../secrets/key.pem') ? {
-  key: fs.readFileSync('../secrets/key.pem'),
-  cert: fs.readFileSync('../secrets/cert.pem'),
-} : undefined
+const localKeyPath = '../secrets/ssl/key.pem'
+const localCertPath = '../secrets/ssl/cert.pem'
+const dockerKeyPath = '/run/secrets/ssl_key'
+const dockerCertPath = '/run/secrets/ssl_cert'
+
+const httpsConfig = fs.existsSync(dockerKeyPath) && fs.existsSync(dockerCertPath)
+  ? {
+      key: fs.readFileSync(dockerKeyPath),
+      cert: fs.readFileSync(dockerCertPath),
+    }
+  : fs.existsSync(localKeyPath) && fs.existsSync(localCertPath)
+    ? {
+        key: fs.readFileSync(localKeyPath),
+        cert: fs.readFileSync(localCertPath),
+      }
+    : undefined
 
 // https://vite.dev/config/
 export default defineConfig({

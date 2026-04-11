@@ -35,6 +35,11 @@ up:
 	docker compose up -d
 	@echo "${GREEN}${BOLD}${BLINK}Containers are up !${RESET}"
 
+dev: cert
+	@echo "${CYAN}Building and starting with frontend Vite Dockerfile...${RESET}"
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+	@echo "${GREEN}${BOLD}${BLINK}Dev stack is up with Vite hot reload !${RESET}"
+
 down:
 	docker compose down
 	@echo "${YELLOW}${BOLD}Containers have been shutdowned !${RESET}"
@@ -97,6 +102,7 @@ help:
 	@echo "${BLUE}${ITAL}${BOLD} make${RESET}			${CYAN}${ITAL}- Create a certificate, build and start${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make build${RESET}		${CYAN}${ITAL}- Build all project images${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make up${RESET}		${CYAN}${ITAL}- Launch containers"
+	@echo "${BLUE}${ITAL}${BOLD} make dev${RESET}		${CYAN}${ITAL}- Launch containers with frontend Vite hot reload${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make down${RESET}		${CYAN}${ITAL}- Shutdown containers"
 	@echo "${BLUE}${ITAL}${BOLD} make down-v${RESET}		${CYAN}${ITAL}- Shutdown containers and erase volumes${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make logs${RESET}		${CYAN}${ITAL}- Show logs${RESET}"
@@ -117,4 +123,4 @@ help:
 	@echo "${BLUE}${ITAL}${BOLD} make shell-redis${RESET}	${CYAN}${ITAL}- Execute a shell inside redis container${RESET}"
 
 
-.PHONY: all up down build clean fclean re
+.PHONY: all up down build dev clean fclean re
