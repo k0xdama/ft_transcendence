@@ -121,7 +121,7 @@ io.on('connection', (socket) => {
 			}
 		}
 		socket.join(data.gameId);
-		addPlayer(gameStruct, socket.user.id);
+		addPlayer(gameStruct, socket.user.id, socket.user.username);
 		io.to(data.gameId).emit('game:joined', { gameId: data.gameId });
 		console.log(`${socket.user.username} (client: ${socket.id}) joined the game ${data.gameId}`);
 		gameBySocket.set(socket.id, data.gameId);

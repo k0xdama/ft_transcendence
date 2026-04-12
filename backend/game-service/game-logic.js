@@ -71,9 +71,10 @@ export function startGame(gameStruct) {
 	shuffleAndDeal(gameStruct, deck);
 }
 
-export function addPlayer(gameStruct, playerId) {
+export function addPlayer(gameStruct, playerId, playerUsername) {
 	const player = {
 		id: playerId,
+		username: playerUsername,
 		hand: [],
 		connected: true,
 		eliminated: false,

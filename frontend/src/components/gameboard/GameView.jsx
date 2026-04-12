@@ -37,6 +37,8 @@ const	getCardImage = (label) => {
 	return cardImages[key]?.default
 }
 
+const	playerActionBtn = 'cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]';
+
 function GameView() {
 	const { gameId } = useParams()
 	const { state } = useLocation()
@@ -92,6 +94,7 @@ function GameView() {
 					key={player.id}
 					player={{
 						id: player.id,
+						username: player.username,
 						cardCount: player.hand.length,
 						trios: gameStruct.trioWonArray[player.id] ?? []
 					}}
@@ -162,11 +165,11 @@ function GameView() {
 					<div className='flex flex-col items-center gap-5 rounded-2xl border border-[rgba(180,60,255,0.4)] bg-[rgba(10,5,20,0.9)] px-10 py-8 shadow-[0_0_40px_rgba(140,40,200,0.3)]' onClick={e => e.stopPropagation()}>
 						<p className='m-0 text-[0.85rem] uppercase tracking-[0.15em] text-[#e0aaff] [text-shadow:0_0_10px_rgba(180,80,255,0.6)]'>Choose an action</p>
 						<div className='flex gap-4'>
-							<button className='cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]' onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
-								Highest card
-							</button>
-							<button className='cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]' onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
+							<button className={playerActionBtn} onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
 								Lowest card
+							</button>
+							<button className={playerActionBtn} onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
+								Highest card
 							</button>
 						</div>
 						<button className='cursor-pointer border-none bg-transparent text-[0.7rem] uppercase tracking-[0.1em] text-[rgba(200,160,255,0.4)] transition-colors duration-200 hover:text-[rgba(200,160,255,0.8)]' onClick={() => setSelectedOpponent(null)}>Cancel</button>
@@ -174,7 +177,7 @@ function GameView() {
 				</div>
 			)}
 				{gameResult && (
-					<div className="absolute inset-0 z-[100] flex animate-[fade-in_0.6s_ease_forwards] items-center justify-center bg-black/75 backdrop-blur-[6px]">
+					<div className="fixed inset-0 z-[100] flex animate-[fade-in_0.6s_ease_forwards] items-center justify-center bg-black/75 backdrop-blur-[6px]">
 						<div
 							className="flex flex-col items-center gap-4"
 							style={{

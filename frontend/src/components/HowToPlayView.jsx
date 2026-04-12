@@ -29,8 +29,8 @@ function HowToPlayView() {
 								</tr>
 								<tr>
 									<td className='border-b border-purple-dim/60 px-3.5 py-2 font-bold text-purple-pale'>4</td>
-									<td className='border-b border-purple-dim/60 px-3.5 py-2 text-center'>8</td>
 									<td className='border-b border-purple-dim/60 px-3.5 py-2 text-center'>7</td>
+									<td className='border-b border-purple-dim/60 px-3.5 py-2 text-center'>8</td>
 								</tr>
 								<tr>
 									<td className='border-b border-purple-dim/60 px-3.5 py-2 font-bold text-purple-pale'>5</td>
@@ -39,8 +39,8 @@ function HowToPlayView() {
 								</tr>
 								<tr>
 									<td className='px-3.5 py-2 font-bold text-purple-pale'>6</td>
-									<td className='px-3.5 py-2 text-center'>5</td>
 									<td className='px-3.5 py-2 text-center'>6</td>
+									<td className='px-3.5 py-2 text-center'>5</td>
 								</tr>
 							</tbody>
 						</table>

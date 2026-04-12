@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 // import './HomeView.css'
 
+const menuBtn = 'w-full rounded-lg border border-purple-mid/50 bg-card px-6 py-3 text-xs uppercase tracking-ui text-white/85 transition-all hover:border-purple-mid hover:bg-purple-brand/15';
+
 function HomeView() {
   return (
     <div className='flex min-h-[calc(100vh-170px)] w-full flex-col items-center justify-center'>
@@ -14,18 +16,23 @@ function HomeView() {
 
           <div className='mx-auto flex w-full max-w-[260px] flex-col justify-center gap-4'>
             <Link to="/lobby/new">
-              <button className='w-full rounded-lg border border-purple-mid/60 bg-purple-brand/25 px-6 py-3 text-xs uppercase tracking-ui text-purple-pale transition-all hover:border-purple-str hover:bg-purple-brand/40 hover:shadow-btn-purple'>
+              <button className={menuBtn}>
                 Create game
               </button>
             </Link>
             <Link to="/join">
-              <button className='w-full rounded-lg border border-purple-mid/50 bg-card px-6 py-3 text-xs uppercase tracking-ui text-white/85 transition-all hover:border-purple-mid hover:bg-purple-brand/15'>
+              <button className={menuBtn}>
                 Join game
               </button>
             </Link>
             <Link to="/matchmaking">
               <button className='w-full rounded-lg border border-cyan-mid bg-card px-6 py-3 text-xs uppercase tracking-ui text-cyan-glow transition-all hover:border-cyan-str hover:bg-cyan-glow/15'>
                 Public match
+              </button>
+            </Link>
+            <Link to="/how_to_play">
+              <button className={menuBtn}>
+                How to play
               </button>
             </Link>
           </div>

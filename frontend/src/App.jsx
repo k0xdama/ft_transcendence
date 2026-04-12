@@ -15,6 +15,7 @@ import PrivacyPolicyView from './components/legal/PrivacyPolicyView'
 import TermsOfServiceView from './components/legal/TermsOfServiceView'
 import CreateLobbyView from './components/lobby/CreateLobbyView'
 import DMChatOverlay from './components/chat/DMChatOverlay'
+import HowToPlayView from './components/HowToPlayView'
 
 const PAGE_TITLES = {
 	'/': 'Home',
@@ -80,6 +81,7 @@ function App() {
 					<Route path="/game/:gameId" element={<GameView />} />
 					<Route path="/matchmaking" element={<PublicMatchmakingView />} />
 					<Route path="/matchmaking/waiting" element={<WaitingMatchmakingView />} />
+					<Route path="/how_to_play" element={<HowToPlayView />} />
 					<Route path="/privacy" element={<PrivacyPolicyView />} />
 					<Route path="/terms" element={<TermsOfServiceView />} />
 				</Routes>
