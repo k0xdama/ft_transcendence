@@ -17,6 +17,10 @@ printf "\n${BOLD}${P_PURPLE}------------- CERTIFICATE GENERATION -------------${
 
 # ── Certificate generation ──────
 IP=$(hostname -I | awk '{print $1}')
+KEY_FILE="secrets/ssl/key.pem"
+CERT_FILE="secrets/ssl/cert.pem"
+SAN="IP:${IP},DNS:localhost"
+
 mkdir -p secrets/ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 	-keyout "$KEY_FILE" \
