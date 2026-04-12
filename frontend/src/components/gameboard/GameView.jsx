@@ -73,6 +73,8 @@ function GameView() {
 		return <p>Waiting for all players to connect...</p>
 
 	const me = gameStruct.players.find(p => p.id === user?.id)
+	if (me === undefined)
+		return;
 	const opponents = gameStruct.players.filter(p => p.id !== user?.id)
 	const isMyTurn = gameStruct?.currentPlayer === user?.id
 	const layout = LAYOUTS[gameStruct.players.length]

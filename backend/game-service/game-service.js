@@ -145,7 +145,7 @@ io.on('connection', (socket) => {
 		}
 		const action_result = executeAction(gameStruct, data.actionType, data.target);
 		if (action_result.error) {
-			socket.emit('error, action_result.error');
+			socket.emit('error', 'action_result.error');
 			return;
 		}
 		io.to(data.gameId).emit('game:update', { action_result, gameStruct });
@@ -185,6 +185,8 @@ io.on('connection', (socket) => {
 		if (gameId === undefined)
 			return;
 		const gameStruct = games.get(gameId);
+		if (gameStruct === undefined)
+			return;
 		const playerIndex = gameStruct.players.findIndex(player => player.id === socket.user.id);
 		const player = gameStruct.players[playerIndex];
 		if (gameStruct.currentPlayerIndex === playerIndex) {

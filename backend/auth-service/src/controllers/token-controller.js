@@ -5,7 +5,7 @@ import { setRefreshCookie, setAccessCookie } from '../utils/cookies.js';
 // POST /auth/refresh
 export async function refresh(req, res) {
 	try {
-		const refreshToken = req.cookies.refreshToken;
+		const refreshToken = req.cookies?.refreshToken;
 
 		const { user, newRefreshToken } = await authService.refresh(refreshToken);
 		

@@ -52,7 +52,7 @@ export async function login(req, res) {
 // POST /auth/logout
 export async function logout(req, res) {
 	try {
-		const refreshToken = req.cookies.refreshToken;
+		const refreshToken = req.cookies?.refreshToken;
 
 		await authService.logout(refreshToken);
 		clearAccessCookie(res);

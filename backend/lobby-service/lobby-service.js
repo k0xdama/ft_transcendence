@@ -403,6 +403,8 @@ io.on('connection', (socket) => {
 
 		if (lobbyId != undefined) {
 			const lobbyStruct = lobbys.get(lobbyId);
+			if (lobbyStruct === undefined)
+				return;
 
 			if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED) {
 				lobbyBySocket.delete(socket.id);

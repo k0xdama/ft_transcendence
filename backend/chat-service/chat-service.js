@@ -91,49 +91,79 @@ io.on('connection', (socket) => {
 
 // Deliver DM messages in real-time to both participants
 await redisSubscriber.subscribe('dm:newMessage', (raw) => {
-	const { recipientId, ...message } = JSON.parse(raw);
-	io.to(`user:${message.sender_id}`).emit('dm:message', message);
-	io.to(`user:${recipientId}`).emit('dm:message', message);
+	try {
+		const { recipientId, ...message } = JSON.parse(raw);
+		io.to(`user:${message.sender_id}`).emit('dm:message', message);
+		io.to(`user:${recipientId}`).emit('dm:message', message);
+	}
+	catch (err) {
+		console.error('Failed to parse dm:newMessage:', err);
+	}
 });
 
 // Broadcast messages published to Redis to the relevant Socket.io room
 await redisSubscriber.subscribe('chat:messages', (raw) => {
-	const payload = JSON.parse(raw);
-	io.to(payload.lobby_id).emit('chat:message', payload);
+	try {
+		const payload = JSON.parse(raw);
+		io.to(payload.lobby_id).emit('chat:message', payload);
+	}
+	catch (err) {
+		console.error('Failed to parse chat:messages:', err);
+	}
 });
 
 // Keep lobby membership in sync with lobby-service via Redis pub/sub
 await redisSubscriber.subscribe('lobby:membersChanged', (raw) => {
-	const { lobbyId, members } = JSON.parse(raw);
-	if (members.length === 0)
-		lobbyMembers.delete(lobbyId);
-	else
-		lobbyMembers.set(lobbyId, new Set(members));
+	try {
+		const { lobbyId, members } = JSON.parse(raw);
+		if (members.length === 0)
+			lobbyMembers.delete(lobbyId);
+		else
+			lobbyMembers.set(lobbyId, new Set(members));
+	}
+	catch (err) {
+		console.error('Failed to parse lobby:membersChanged:', err);
+	}
 });
 
 // Broadcast online status changes to all connected chat clients
 await redisSubscriber.subscribe('user:statusChanged', (raw) => {
-	io.emit('user:statusChanged', JSON.parse(raw));
+	try {
+		io.emit('user:statusChanged', JSON.parse(raw));
+	}
+	catch (err) {
+		console.error('Failed to parse user:status:', err);
+	}
 });
 
 // Game notifications → broadcast to the relevant chat room
 await redisSubscriber.subscribe('lobby:gameStarting', (raw) => {
-	const { lobbyId, gameId } = JSON.parse(raw);
-	io.to(lobbyId).emit('chat:notification', {
-		type: 'game_starting',
-		lobbyId,
-		gameId,
-		message: 'The game is starting!'
-	});
+	try {
+		const { lobbyId, gameId } = JSON.parse(raw);
+		io.to(lobbyId).emit('chat:notification', {
+			type: 'game_starting',
+			lobbyId,
+			gameId,
+			message: 'The game is starting!'
+		});
+	}
+	catch (err) {
+		console.log('Failed to parse lobby:gameStarting:', err);
+	}
 });
 
 await redisSubscriber.subscribe('game:ended', (raw) => {
-	const { gameId, winner } = JSON.parse(raw);
-	io.to(gameId).emit('chat:notification', {
-		type: 'game_ended',
-		gameId,
-		winner
-	});
+	try {
+		const { gameId, winner } = JSON.parse(raw);
+		io.to(gameId).emit('chat:notification', {
+			type: 'game_ended',
+			gameId,
+			winner
+		});
+	}
+	catch (err) {
+		console.log('Failed to parse game:ended:', err);
+	}
 });
 
 // Purge expired messages every 24h

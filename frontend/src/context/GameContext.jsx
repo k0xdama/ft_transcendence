@@ -116,10 +116,14 @@ export function GameProvider({ children }) {
 	};
 
 	const sendAction = (gameId, actionType, target = null) => {
+		if (!socketRef.current)
+			return;
 		socketRef.current.emit('game:action', { gameId, actionType, target })
 	};
 
 	const sendCheck = (gameId) => {
+		if (!socketRef.current)
+			return;
 		socketRef.current.emit('game:check', { gameId })
 	};
 
