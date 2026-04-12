@@ -1,52 +1,61 @@
-RESET	:=	\033[0m
-BOLD	:=	\033[1m
-ITAL	:=	\033[3m
-BLINK	:=	\033[5m
+#—————————————————————
+#	ANSI
+#—————————————————————
 
-RED		:=	\033[30m
-GREEN	:=	\033[32m
-YELLOW	:=	\033[33m
-BLUE	:=	\033[34m
-CYAN	:=	\033[36m
+RESET		:=	\033[0m
+BOLD		:=	\033[1m
+ITAL		:=	\033[3m
+BLINK		:=	\033[5m
+
+RED			:=	\033[31m
+GREEN		:=	\033[32m
+P_GREEN		:=	\033[38;2;173;235;179m
+P_YELLOW	:=	\033[38;2;255;234;150m
+BLUE		:=	\033[34m
+P_BLUE		:=	\033[38;2;179;235;242m
+CYAN		:=	\033[36m
+
+#—————————————————————
+#	PROGRAM NAME
+#—————————————————————
 
 NAME	:=	ft_transcendence
 
-all: cert build up
+#—————————————————————
+#	RULES
+#—————————————————————
+
+all: cert env secrets build up
 
 cert:
-	@if [ ! -f secrets/ssl/key.pem ]; then \
-		IP=$$(ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | awk '{print $$1}' || echo "127.0.0.1"); \
-		mkdir -p secrets/ssl; \
-		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-			-keyout secrets/ssl/key.pem \
-			-out secrets/ssl/cert.pem \
-			-subj "/CN=$$IP" \
-			-addext "subjectAltName=DNS:localhost,IP:$$IP,IP:127.0.0.1"; \
-		echo "Certificate generated for IP: $$IP"; \
-	else \
-		echo "Certificate already exists, skipping..."; \
-	fi
+	bash ./scripts/setup-cert.sh
+
+env:
+	bash ./scripts/setup-env.sh
+
+secrets:
+	bash ./scripts/setup-secrets.sh
 
 build:
-	@echo "${CYAN}Building...${RESET}"
+	@echo "${CYAN}${BOLD}Building...${RESET}"
 	docker compose build
 
 up:
 	docker compose up -d
-	@echo "${GREEN}${BOLD}${BLINK}Containers are up !${RESET}"
+	@echo "${P_GREEN}${BOLD}${BLINK}Containers are up!${RESET}"
 
-dev: cert
+dev: cert env secrets
 	@echo "${CYAN}Building and starting with frontend Vite Dockerfile...${RESET}"
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-	@echo "${GREEN}${BOLD}${BLINK}Dev stack is up with Vite hot reload !${RESET}"
+	@echo "${P_GREEN}${BOLD}${BLINK}Dev stack is up with Vite hot reload!${RESET}"
 
 down:
 	docker compose down
-	@echo "${YELLOW}${BOLD}Containers have been shutdowned !${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned!${RESET}"
 
 down-v:
 	docker compose down -v
-	@echo "${YELLOW}${BOLD}Containers have been shutdowned and volumes have been erased !${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned and volumes have been erased!${RESET}"
 
 logs:
 	docker compose logs
@@ -59,23 +68,28 @@ status:
 
 restart:
 	docker compose restart
-	@echo "${GREEN}${BOLD}${BLINK}All containers have been restarted !${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been restarted!${RESET}"
 
 recreate: down up
-	@echo "${GREEN}${BOLD}${BLINK}All containers have been recreated !${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been recreated!${RESET}"
 
 clean:
 	docker compose down -v --rmi all
-	@echo "${YELLOW}${BOLD}Containers shutdowned, data and ALL images erased !${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers shutdowned, data and ALL images erased!${RESET}"
 
 fclean:
 	docker compose down -v --rmi all
-	rm -rf ./secrets/ssl/
+	rm -rf ./secrets/ssl
+# 	rm -rf ./secrets/*
+# 	rm -rf .env
 	docker builder prune -af
-	@echo "${RED}${BOLD}Full clean-up has been achieved !${RESET}"
+	@echo "${RED}${BOLD}Full clean-up has been achieved!${RESET}"
 
 re: fclean all
 
+#—————————————————————
+#	CONTAINER RULES
+#—————————————————————
 
 shell-gateway:
 		docker exec -it gateway /bin/bash
@@ -96,31 +110,37 @@ shell-db:
 shell-redis:
 		docker exec -it redis /bin/bash
 
+#—————————————————————
+#	HELP MENU
+#—————————————————————
 
 help:
 	@echo "${BLUE}${BOLD}COMMANDS:${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make${RESET}			${CYAN}${ITAL}- Create a certificate, build and start${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make build${RESET}		${CYAN}${ITAL}- Build all project images${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make up${RESET}		${CYAN}${ITAL}- Launch containers"
-	@echo "${BLUE}${ITAL}${BOLD} make dev${RESET}		${CYAN}${ITAL}- Launch containers with frontend Vite hot reload${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make down${RESET}		${CYAN}${ITAL}- Shutdown containers"
-	@echo "${BLUE}${ITAL}${BOLD} make down-v${RESET}		${CYAN}${ITAL}- Shutdown containers and erase volumes${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make logs${RESET}		${CYAN}${ITAL}- Show logs${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make logs-rt${RESET}		${CYAN}${ITAL}- Show logs in real-time${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make status${RESET}		${CYAN}${ITAL}- Show containers status${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make restart${RESET}		${CYAN}${ITAL}- Restart containers${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make clean${RESET}		${CYAN}${ITAL}- Shutdown containers and erase volumes and all images${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make fclean${RESET}		${CYAN}${ITAL}- Make a full clean-up, with a builder docker prune${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make re${RESET}		${CYAN}${ITAL}- Make a full clean-up, and execute 'ALL' rule${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-gateway${RESET}	${CYAN}${ITAL}- Execute a shell inside gateway container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-frontend${RESET}	${CYAN}${ITAL}- Execute a shell inside frontend container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-auth${RESET}	${CYAN}${ITAL}- Execute a shell inside auth container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-game${RESET}	${CYAN}${ITAL}- Execute a shell inside game container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-lobby${RESET}	${CYAN}${ITAL}- Execute a shell inside lobby container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-player${RESET}	${CYAN}${ITAL}- Execute a shell inside player container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-chat${RESET}	${CYAN}${ITAL}- Execute a shell inside chat container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-db${RESET}	${CYAN}${ITAL}- Execute a shell inside postgres container${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make shell-redis${RESET}	${CYAN}${ITAL}- Execute a shell inside redis container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make${RESET}			${P_BLUE}${ITAL}- Create a certificate, add env variables, setup secrets, build and start${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make cert${RESET}		${P_BLUE}${ITAL}- Generate SSL certificate${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make env${RESET}		${P_BLUE}${ITAL}- Create .env file with default values${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make secrets${RESET}		${P_BLUE}${ITAL}- Configure secrets (DB, Redis, JWT)${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make build${RESET}		${P_BLUE}${ITAL}- Build all project images${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make up${RESET}		${P_BLUE}${ITAL}- Launch containers${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make dev${RESET}		${P_BLUE}${ITAL}- Launch containers with frontend Vite hot reload${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make down${RESET}		${P_BLUE}${ITAL}- Shutdown containers${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make down-v${RESET}		${P_BLUE}${ITAL}- Shutdown containers and erase volumes${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make logs${RESET}		${P_BLUE}${ITAL}- Show logs${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make logs-rt${RESET}		${P_BLUE}${ITAL}- Show logs in real-time${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make status${RESET}		${P_BLUE}${ITAL}- Show containers status${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make restart${RESET}		${P_BLUE}${ITAL}- Restart containers${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make clean${RESET}		${P_BLUE}${ITAL}- Shutdown containers and erase volumes and all images${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make fclean${RESET}		${P_BLUE}${ITAL}- Make a full clean-up, with a builder docker prune${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make re${RESET}		${P_BLUE}${ITAL}- Make a full clean-up, and execute 'ALL' rule${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-gateway${RESET}	${P_BLUE}${ITAL}- Execute a shell inside gateway container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-frontend${RESET}	${P_BLUE}${ITAL}- Execute a shell inside frontend container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-auth${RESET}	${P_BLUE}${ITAL}- Execute a shell inside auth container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-game${RESET}	${P_BLUE}${ITAL}- Execute a shell inside game container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-lobby${RESET}	${P_BLUE}${ITAL}- Execute a shell inside lobby container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-player${RESET}	${P_BLUE}${ITAL}- Execute a shell inside player container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-chat${RESET}	${P_BLUE}${ITAL}- Execute a shell inside chat container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-db${RESET}	${P_BLUE}${ITAL}- Execute a shell inside postgres container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make shell-redis${RESET}	${P_BLUE}${ITAL}- Execute a shell inside redis container${RESET}"
 
 
-.PHONY: all up down build dev clean fclean re
+.PHONY: all cert env secrets build up dev down clean fclean re

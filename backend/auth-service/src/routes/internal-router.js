@@ -10,6 +10,7 @@ import { deleteUserInternal, updateUserInternal } from '../controllers/internal-
 const router = express.Router();
 
 router.delete('/users/:id', deleteUserInternal);
+
 router.patch('/users/:id', updateUserInternal);
 
 export default router;

@@ -245,10 +245,10 @@ router.delete('/me', async (req, res) => {
 		}
 
 		/*
-			Step 1: delete from auth.users FIRST, so that the user can no
-			longer log in even if a later step (player/chat/file) fails
-			The ON DELETE CASCADE on auth.refresh_tokens takes care of
-			revoking any active session.
+			1. Delete from auth.users FIRST, so that the user can no longer
+			log in even if a later step (player/chat/file) fails. The 'ON DELETE
+			CASCADE' on auth.refresh_tokens takes care of revoking any active
+			session.
 		*/
 		try {
 			await callService(`${AUTH_URL}/internal/users/${player.auth_user_id}`, {
@@ -262,10 +262,10 @@ router.delete('/me', async (req, res) => {
 			console.warn(`Auth user ${player.auth_user_id} was already missing, continuing`);
         }
 
-		// Step 2: remove the row from player.users
+		// 2. Remove the row from player.users
 		await db.none('DELETE FROM player.users WHERE auth_user_id = $1', [req.user.id]);
 
-		// Step 3: purge chat data (messages, DMs, blocks)
+		// 3. Purge chat data (messages, DMs, blocks)
 		try {
 			await callService(`${CHAT_URL}/internal/users/${player.auth_user_id}`, {
 				method: 'DELETE'
@@ -274,7 +274,7 @@ router.delete('/me', async (req, res) => {
 			console.error('Failed to purge chat data:', err.message);
 		}
 
-		// Step 4: delete the profile picture file from disk
+		// 4. Delete the profile picture file from disk
 		if (player.pp_path && !isDefaultProfilePicture(player.pp_path)) {
 			const filePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
 			deleteFile(filePath);
@@ -293,13 +293,6 @@ router.delete('/me', async (req, res) => {
 
 router.patch('/me', async (req, res) => {
 	const { username } = req.body;
-	/*
-		NOTE: email is owned by auth-service (not stored in player.users).
-		Username is duplicated in auth.users and player.users, so it must
-		be mirrored on auth-service via /internal on every change, otherwise
-		login still works with the old value and the JWT snapshot ends up
-		referring to a stale identity.
-	*/
 
 	try {
 		const updates = [];
@@ -336,10 +329,8 @@ router.patch('/me', async (req, res) => {
 			values
 		);
 
-		/*
-			Mirror the change on auth.users. If this fails, rollback
-			player.users so the two schemas stay consistent.
-		*/
+		// Sync with auth.users
+		// If this fails, rollback player.users so the two schemas stay consistent
 		if (username !== undefined) {
 			try {
 				await callService(`${AUTH_URL}/internal/users/${req.user.id}`, {
@@ -357,12 +348,13 @@ router.patch('/me', async (req, res) => {
 
 				console.error('Failed to sync username with auth-service, rolled back player.users:', err.message);
 
-				// Forward a client-side upstream error (e.g. 400 'username taken')
+				// Forward a client-side upstream error (ex: 400 'username taken')
 				// as-is; fall back to 502 for anything else (upstream down, 5xx...)
 				let	status = 502;
 				if (err.status >= 400 && err.status < 500) {
 					status = err.status;
 				}
+
 				return res.status(status).json({ error: err.message || 'Failed to sync with auth-service' });
 			}
 		}
@@ -432,11 +424,9 @@ async function getUserIds(userAuthId, friendAuthId) {
 }
 
 async function didUserBlockedThem(requester_id, addressee_id) {
-
-    const check = await db.oneOrNone(`
-        SELECT requester_id, addressee_id FROM player.blocked
-        WHERE requester_id = $1 AND addressee_id = $2`
-        , [requester_id, addressee_id]
+    const check = await db.oneOrNone(
+        `SELECT requester_id, addressee_id FROM player.blocked
+        WHERE requester_id = $1 AND addressee_id = $2`, [requester_id, addressee_id]
     );
 
     return check;//faudra check les value apres appel de cette fonction
@@ -594,9 +584,9 @@ router.delete('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 			`DELETE FROM player.friendships 
 			WHERE status = 'pending'
 			  AND ((requester_id = $1 AND addressee_id = $2)
-				OR (requester_id = $2 AND addressee_id = $1))`,
-				[user.id, friend.id]
-			);
+			  OR (requester_id = $2 AND addressee_id = $1))`,
+			[user.id, friend.id]
+		);
 
 		if (deleted.rowCount === 0) {
 			return res.status(404).json({ error: 'No pending friend request found' });
@@ -756,7 +746,7 @@ router.delete('/me/friends/:friend_auth_user_id', async (req, res) => {
 			`DELETE FROM player.friendships 
 			WHERE status = 'accepted'
 			  AND ((requester_id = $1 AND addressee_id = $2)
-				OR (requester_id = $2 AND addressee_id = $1))`,
+			  OR (requester_id = $2 AND addressee_id = $1))`,
 			[user.id, friend.id]
 		);
 
@@ -844,6 +834,7 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ blockerId: userAuthId, blockedId: blockedAuthId })
 			});
+
 			console.log('✅ Block synced to chat-service');
 		} catch (err) {
 			console.error('⚠️ Failed to sync block to chat-service:', err.message);
@@ -921,6 +912,7 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ blockerId: userAuthId, blockedId: blockedAuthId })
 			});
+
 			console.log('✅ Unblock synced to chat-service');
 		} catch (err) {
 			console.error('⚠️ Failed to sync unblock to chat-service:', err.message);

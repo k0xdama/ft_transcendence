@@ -151,7 +151,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 
 	// Listen for new messages in this conversation
 	useEffect(() => {
-		if (!on) return
+		if (!on)
+			return
 
 		return on('dm:message', (msg) => {
 			if (msg.conversation_id === chat.conversationId) {
@@ -162,7 +163,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 
 	// Listen for read receipts — mark our sent messages as read
 	useEffect(() => {
-		if (!on) return
+		if (!on)
+			return
 
 		return on('dm:read', ({ conversationId, readAt }) => {
 			if (conversationId !== chat.conversationId) return
@@ -176,7 +178,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 
 	// Listen for typing indicator
 	useEffect(() => {
-		if (!on) return
+		if (!on)
+			return
 
 		return on('dm:typing', ({ conversationId }) => {
 			if (conversationId !== chat.conversationId) return
@@ -188,7 +191,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 
 	// Mark as read when window is open and not minimized
 	useEffect(() => {
-		if (chat.minimized || !emit) return
+		if (chat.minimized || !emit)
+			return
 
 		emit('dm:read', { conversationId: chat.conversationId })
 	}, [chat.minimized, chat.conversationId, emit, messages.length])
@@ -213,7 +217,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 
 	const sendMessage = async () => {
 		const content = draft.trim()
-		if (!content) return
+		if (!content)
+			return
 
 		setDraft('')
 		try {
