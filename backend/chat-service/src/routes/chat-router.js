@@ -31,8 +31,8 @@ router.get('/room/:lobbyId/history', getChatWsHistory);
 // ─── DM ───────────────────────────────────────────────────────────────────
 router.post('/dm', createDM);
 router.post('/dm/:conversationId/send', sendDM);
-router.get('/dm/:conversationId/history', getDMHistory);
 router.patch('/dm/:conversationId/read', markAsRead);
+router.get('/dm/:conversationId/history', getDMHistory);
 router.get('/dm', getMyDMs);
 
 // ─── Online status ───────────────────────────────────────────────────────

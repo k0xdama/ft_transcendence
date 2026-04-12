@@ -136,7 +136,7 @@ await redisSubscriber.subscribe('user:statusChanged', (raw) => {
 	}
 });
 
-// Game notifications → broadcast to the relevant chat room
+// Game notifications --> broadcast to the relevant chat room
 await redisSubscriber.subscribe('lobby:gameStarting', (raw) => {
 	try {
 		const { lobbyId, gameId } = JSON.parse(raw);

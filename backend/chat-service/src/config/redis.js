@@ -23,7 +23,7 @@ await subscriber.connect();
 console.log('Redis connected!');
 
 // Lobby membership state, populated via Redis pub/sub from lobby-service
-// lobbyId → Set<userId>
+// lobbyId --> Set<userId>
 export const lobbyMembers = new Map();
 
 export { client as redisClient, subscriber as redisSubscriber };

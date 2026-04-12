@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ── ANSI ───────────────────
+# ─── ANSI codes ──────────────────
 RESET="\033[0m"
 BOLD="\033[1m"
 
@@ -9,7 +9,7 @@ P_PURPLE="\033[38;2;211;211;255m"
 P_BLUE="\033[38;2;179;235;242m"
 P_GREEN="\033[38;2;173;235;179m"
 
-# ── Check ──────────────────
+# ─── Check ───────────────────────
 if [ -f .env ]; then
 	printf "${BOLD}${P_YELLOW}.env already exists, skipping...${RESET}\n\n"
 	exit 0
@@ -19,7 +19,7 @@ printf "${BOLD}${P_PURPLE}----------------- .ENV CREATION ------------------${RE
 
 printf "\n${P_BLUE}Adding env var values...${RESET}\n"
 
-# ── Var insertion ──────────
+# ─── Var insertion ───────────────
 cat > .env <<'EOF'
 # Service URLs (used by api-gateway and inter-service calls)
 AUTH_URL=https://auth:3000

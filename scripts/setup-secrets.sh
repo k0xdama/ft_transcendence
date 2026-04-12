@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ── ANSI ────────────────────────
+# ─── ANSI codes ──────────────────
 RESET="\033[0m"
 BOLD="\033[1m"
 
@@ -9,7 +9,7 @@ P_PURPLE="\033[38;2;211;211;255m"
 P_BLUE="\033[38;2;179;235;242m"
 P_GREEN="\033[38;2;173;235;179m"
 
-# ── Check ───────────────────────
+# ─── Check ───────────────────────
 if [ -f secrets/psql_dbname.txt ]; then
 	printf "${BOLD}${P_YELLOW}Secrets already exist, skipping...${RESET}\n\n"
 	exit 0
@@ -19,7 +19,7 @@ mkdir -p secrets
 
 printf "${BOLD}${P_PURPLE}------------- SECRETS CONFIGURATION --------------${RESET}\n\n"
 
-# ── User input ──────────────────
+# ─── User input ──────────────────
 read -p "PSQL_DBNAME: " psql_dbname
 read -p "PSQL_ADMIN_USER: " psql_admin_user
 read -s -p "PSQL_ADMIN_PASSWD: " psql_admin_passwd
@@ -31,7 +31,7 @@ echo ""
 read -s -p "JWT_ACCESS (leave blank to generate automatically - press ENTER): " jwt_access
 echo ""
 
-# ── JWT generation ──────────────
+# ─── JWT generation ──────────────
 if [ -z "$jwt_access" ]; then
 	printf "\n${P_BLUE}Generating JsonWebToken...${RESET}\n"
 	jwt_access=$(openssl rand -hex 32)
@@ -39,7 +39,7 @@ if [ -z "$jwt_access" ]; then
 	echo ""
 fi
 
-# ── Writing files ───────────────
+# ─── Writing files ───────────────
 echo "$psql_dbname" > secrets/psql_dbname.txt
 echo "$psql_admin_user" > secrets/psql_admin_user.txt
 echo "$psql_admin_passwd" > secrets/psql_admin_passwd.txt

@@ -10,13 +10,11 @@ import { internalBlockUser, internalUnblockUser } from '../controllers/internal-
 */
 const router = express.Router();
 
-// DELETE /internal/users/:userId — called by player-service on account deletion
-router.delete('/users/:userId', purgeUserData);
+// ─── User Data Purge ──────────────────────────────────────────────────────
+router.delete('/users/:userId', purgeUserData);		// called by player-service on account deletion
 
-// POST /internal/block — called by player-service when a user blocks another
-router.post('/block', internalBlockUser);
-
-// DELETE /internal/unblock — called by player-service when a user unblocks another
-router.delete('/unblock', internalUnblockUser);
+// ─── Block-Unblock Sync ──────────────────────────────────────────────────
+router.post('/block', internalBlockUser);			// called by player-service when a user blocks another
+router.delete('/unblock', internalUnblockUser);		// called by player-service when a user unblocks another
 
 export default router;

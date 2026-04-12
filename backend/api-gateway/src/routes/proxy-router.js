@@ -9,12 +9,11 @@ const LOBBY_URL = process.env.LOBBY_URL || 'https://lobby:3003';
 const GAME_URL = process.env.GAME_URL || 'https://game:3002';
 
 /*
-	HTTP proxies (auth, player, chat): router.use('/chat', ...) already strips the /chat prefix,
-	so the proxy only receives the remainder and pathRewrite prepends the backend service namespace.
-	────────────
-	WS proxies (chatWs, lobby, game): WebSocket upgrades don't go through the Express router the
-	same way — they receive the full path /api/lobby/..., so pathRewrite: { '^/api/lobby': '' }
-	strips the entire prefix to reach the service root.
+	─── HTTP Proxies ─────────────────────────────────────────────────────────
+
+	HTTP proxies (auth, player, chat): router.use('/chat', ...) already strips
+	the /chat prefix, so the proxy only receives the remainder and pathRewrite
+	prepends the backend service namespace.
 */
 const authProxy = createProxyMiddleware({
 	target: AUTH_URL,
@@ -50,7 +49,14 @@ const chatProxy = createProxyMiddleware({
     }
 });
 
-// Separate WS proxy for chat Socket.io upgrades
+/*
+	─── WebSocket Proxies ────────────────────────────────────────────────────
+
+	WS proxies (chatWs, lobby, game): WebSocket upgrades don't go through the
+	Express router the same way — they receive the full path /api/lobby/...,
+	so pathRewrite: { '^/api/lobby': '' } strips the entire prefix to reach the
+	service root.
+*/
 const chatWsProxy = createProxyMiddleware({
 	target: CHAT_URL,
 	ws: true,
@@ -87,6 +93,7 @@ const gameProxy = createProxyMiddleware({
 	}
 });
 
+// ─── Middleware ────────────────────────────────────────────────────────────
 function injectUserInfos(req, res, next) {
 	req.headers['x-user-id'] = req.user.id;
 	req.headers['x-user-username'] = req.user.username;
@@ -94,6 +101,7 @@ function injectUserInfos(req, res, next) {
 	next();
 }
 
+// ─── Route Mounting ───────────────────────────────────────────────────────
 const router = Router();
 
 router.use('/auth', authProxy);

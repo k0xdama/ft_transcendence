@@ -15,7 +15,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use('/auth', authRoutes);
-// Private, service-to-service endpoints (not exposed via the API gateway).
+// Private, service-to-service endpoints (not exposed via the API gateway)
 app.use('/internal', internalRoutes);
 
 const server = createServer(sslOptions, app);

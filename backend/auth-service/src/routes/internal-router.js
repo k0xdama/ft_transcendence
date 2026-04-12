@@ -9,8 +9,8 @@ import { deleteUserInternal, updateUserInternal } from '../controllers/internal-
 */
 const router = express.Router();
 
-router.delete('/users/:id', deleteUserInternal);
-
-router.patch('/users/:id', updateUserInternal);
+// ─── Internal User Management ─────────────────────────────────────────────
+router.delete('/users/:id', deleteUserInternal);	// called by player-service on account deletion
+router.patch('/users/:id', updateUserInternal);		// called by player-service on username update
 
 export default router;

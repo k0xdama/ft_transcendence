@@ -86,29 +86,6 @@ if (process.env.NODE_ENV !== 'test') {
 
 export default app;
 
-//SON TRUC ANCIEN
-// import express from 'express';
-// import playerRoutes from './src/routes/player.js';
-
-// const app = express();
-
-// app.use(express.json());
-
-// app.use('/players', playerRoutes);
-
-// const port = 3001;
-
-// if (process.env.NODE_ENV !== 'test') {
-// 	app.listen(port, '0.0.0.0', () => {
-// 		console.log(`Player service running on ${port}`);
-// 	});
-// }
-
-// export default app;
-//SON TRUC ANCIEN
-
-
-
 
 // MON TRUC
 // import	express			from	'express';

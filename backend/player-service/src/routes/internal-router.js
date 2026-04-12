@@ -10,7 +10,7 @@ import { DEFAULT_PROFILE_PICTURE } from '../middleware/upload.js';
 */
 const router = express.Router();
 
-// POST /internal/users — called by auth-service on signup
+// ─── Create Player Profile — called by auth-service on signup ────────────
 router.post('/users', async (req, res) => {
 	const { auth_user_id, username } = req.body;
 
@@ -30,7 +30,7 @@ router.post('/users', async (req, res) => {
 		);
 
 		console.log(`Player user created auth_user_id : ${newPlayerUsers.auth_user_id} username : ${newPlayerUsers.username} in player schema`);
-		
+
 		res.status(201).json({
 			message: 'Player profile created',
 			player: newPlayerUsers
@@ -42,7 +42,7 @@ router.post('/users', async (req, res) => {
 	}
 });
 
-// POST /internal/users/batch — called by chat-service to resolve usernames + avatars
+// ─── Batch User Lookup — called by chat-service to resolve usernames ─────
 router.post('/users/batch', async (req, res) => {
 	const { userIds } = req.body;
 

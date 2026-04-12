@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# ── ANSI ────────────────────────
+# ─── ANSI codes ──────────────────
 RESET="\033[0m"
 BOLD="\033[1m"
 P_YELLOW="\033[38;2;255;234;150m"
 P_PURPLE="\033[38;2;211;211;255m"
 P_GREEN="\033[38;2;173;235;179m"
 
-# ── Check ───────────────────────
+# ─── Check ───────────────────────
 if [ -f secrets/ssl/key.pem ]; then
 	printf "${BOLD}${P_YELLOW}Certificate already exists, skipping...${RESET}\n\n"
 	exit 0
@@ -15,7 +15,7 @@ fi
 
 printf "\n${BOLD}${P_PURPLE}------------- CERTIFICATE GENERATION -------------${RESET}\n\n"
 
-# ── Certificate generation ──────
+# ─── Certificate generation ──────
 IP=$(hostname -I | awk '{print $1}')
 KEY_FILE="secrets/ssl/key.pem"
 CERT_FILE="secrets/ssl/cert.pem"

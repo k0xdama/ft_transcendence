@@ -18,7 +18,7 @@ const PLAYER_URL = process.env.PLAYER_URL || 'https://player:3001';
 const VALID_MSG_TYPES = ['user_text', 'quick_reply', 'game_invite'];
 
 class ChatService {
-	// Private methods
+	// Private method
 	#verifyLobbyMember(lobbyId, userId) {
 		const members = lobbyMembers.get(lobbyId);
 		if (!members || !members.has(userId))
