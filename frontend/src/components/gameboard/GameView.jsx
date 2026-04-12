@@ -104,7 +104,11 @@ function GameView() {
 					isCurrentPlayer={gameStruct.currentPlayer === player.id}
 					isMyTurn={canAct}
 					revealedHandCards={revealedHandCards.filter(c => c.ownerId === player.id)}
-					onSelect={(opponentId) => setSelectedOpponent(opponentId)}
+					onSelect={(opponentId) => {
+						const target = gameStruct.players.find(player => player.id === opponentId);
+						if (target && target.hand.length > 0)
+							setSelectedOpponent(opponentId);
+					}}
 					lastAction={lastAction}
 				/>
 			))}

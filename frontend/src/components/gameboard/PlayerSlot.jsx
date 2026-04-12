@@ -38,7 +38,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 
 	return (
 		<div
-			className={`absolute flex flex-col items-center gap-[0.4rem] ${seatClass} ${isMyTurn ? 'cursor-pointer' : ''}`}
+			className={`absolute flex flex-col items-center gap-[0.4rem] ${seatClass} ${isMyTurn && player.cardCount > 0 ? 'cursor-pointer' : ''} ${player.cardCount === 0 ? 'opacity-40 pointer-events-none' : ''}`}
 			onClick={() => isMyTurn && onSelect(player.id)}
 		>
 			<span
