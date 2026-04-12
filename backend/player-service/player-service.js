@@ -26,6 +26,7 @@ import { createServer } from 'https';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { statsWorker } from './src/workers/stats-worker.js';
+import { logError } from './src/utils/logger.js';
 
 // Recréer __dirname pour ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -67,7 +68,7 @@ if (process.env.NODE_ENV !== 'test') {
     try {
             await statsWorker.start();
         } catch (error) {
-            console.error('❌ Failed to start stats worker:', error);
+            logError('failed to start stats worker', error);
         }
 }
 

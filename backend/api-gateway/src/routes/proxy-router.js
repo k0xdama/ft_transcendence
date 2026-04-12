@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { authGuard } from "../middleware/authGuard.js";
+import { logError } from "../utils/logger.js";
 
 const AUTH_URL = process.env.AUTH_URL || 'https://auth:3000';
 const PLAYER_URL = process.env.PLAYER_URL || 'https://player:3001';
@@ -22,7 +23,7 @@ const authProxy = createProxyMiddleware({
 	secure: false,
 	pathRewrite: { '^/': '/auth/' },
 	onError: (err, req, res) => {
-        console.error('Auth proxy error:', err.message);
+        logError('Auth proxy', err.message);
         res.status(502).json({ error: 'Service unavailable' });
     }
 });
@@ -34,7 +35,7 @@ const playerProxy = createProxyMiddleware({
 	secure: false,
 	pathRewrite: { '^/': '/players/' },
 	onError: (err, req, res) => {
-        console.error('Player proxy error:', err.message);
+        logError('Player proxy', err.message);
         res.status(502).json({ error: 'Service unavailable' });
     }
 });
@@ -45,7 +46,7 @@ const chatProxy = createProxyMiddleware({
 	secure: false,
 	pathRewrite: { '^/': '/chat/' },
 	onError: (err, req, res) => {
-        console.error('Chat proxy error:', err.message);
+        logError('Chat proxy', err.message);
         res.status(502).json({ error: 'Service unavailable' });
     }
 });
@@ -58,7 +59,7 @@ const chatWsProxy = createProxyMiddleware({
 	secure: false,
 	pathRewrite: { '^/api/chat': '' },
 	onError: (err, req, res) => {
-        console.error('ChatWs proxy error:', err.message);
+        logError('ChatWs proxy', err.message);
         res.status(502).json({ error: 'Service unavailable' });
     }
 });
@@ -70,7 +71,7 @@ const lobbyProxy = createProxyMiddleware({
 	secure: false,
 	pathRewrite: { '^/api/lobby': '' },
 	onError: (err, req, res) => {
-        console.error('Lobby proxy error:', err.message);
+        logError('Lobby proxy', err.message);
         res.status(502).json({ error: 'Service unavailable' });
     }
 });
@@ -82,7 +83,7 @@ const gameProxy = createProxyMiddleware({
 	secure: false,
 	pathRewrite: { '^/api/game': '' },
 	onError: (err, req, res) => {
-        console.error('Game proxy error:', err.message);
+        logError('Game proxy', err.message);
         res.status(502).json({ error: 'Service unavailable' });
 	}
 });

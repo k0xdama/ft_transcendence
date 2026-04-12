@@ -1,4 +1,5 @@
 import { chatService } from '../class/chat-service-class.js';
+import { logError } from '../utils/logger.js';
 
 // DELETE /chat/users/:userId — called internally by player-service on account deletion
 export async function purgeUserData(req, res) {
@@ -10,7 +11,7 @@ export async function purgeUserData(req, res) {
 		return res.status(204).send();
 	}
 	catch (error) {
-		console.error('Purge user data:', error);
+		logError('purge user data', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

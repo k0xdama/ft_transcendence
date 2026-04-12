@@ -1,4 +1,5 @@
 import { redisClient } from '../config/redis.js';
+import { logError } from '../utils/logger.js';
 
 export async function getOnlineStatuses(req, res) {
 	const { userIds } = req.body;
@@ -21,7 +22,7 @@ export async function getOnlineStatuses(req, res) {
 
 		res.json({ statuses });
 	} catch (err) {
-		console.error('getOnlineStatuses error:', err);
+		logError('getOnlineStatuses', err);
 		res.status(500).json({ error: 'Failed to fetch online statuses' });
 	}
 }

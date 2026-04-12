@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { logError } from '../../utils/logger.js';
 // import './LoginView.css'
 
 function LoginView() {
@@ -26,6 +27,8 @@ function LoginView() {
 
 	const handleLogin = async (e) => {
 		e.preventDefault();
+		setError('');
+		setSuccess('');
 
 		if (!formData.password || !formData.id)
 		{
@@ -58,16 +61,21 @@ function LoginView() {
 			}
 
 			if (!res.ok) {
-				if (res.status === 401)
+				if (res.status === 401) {
+					logError('Login', '401 Unauthorized', { status: res.status, body: data });
 					setError(data.error || 'Invalid credentials');
-				else if (res.status >= 500)
+				} else if (res.status >= 500) {
+					logError('Login', 'server error', { status: res.status, body: data });
 					setError(data.error || 'Server error. Please try again.');
-				else
+				} else {
+					logError('Login', 'unexpected error', { status: res.status, body: data });
 					setError(data.error || 'Log in failed');
+				}
 				return;
 			}
 
 			if (!data.user) {
+				logError('Login', 'missing user in response', data);
 				setError('Unexpected server response. Please try again.');
 				return;
 			}
@@ -83,7 +91,7 @@ function LoginView() {
 			
 			setTimeout(() => {navigate('/')}, 1000);
 		} catch (error) {
-			console.error('Log in error:', error);
+			logError('Login', 'network/unexpected error', error);
 			setError('Log in failed. Please try again.');
 		} finally {
 			setLoading(false);

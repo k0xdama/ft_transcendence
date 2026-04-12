@@ -1,6 +1,7 @@
 import { authService } from '../class/auth-service-class.js';
 import { generateAccessToken } from '../utils/jwt.js';
 import { setRefreshCookie, setAccessCookie } from '../utils/cookies.js';
+import { logError } from '../utils/logger.js';
 
 // POST /auth/refresh
 export async function refresh(req, res) {
@@ -20,7 +21,7 @@ export async function refresh(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Refresh:', error);
+		logError('refresh', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

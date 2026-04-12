@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { logError } from "../../utils/logger.js";
 import { useChat } from "../../context/ChatContext";
 import { SOUNDS } from "./SoundBuzzers";
 import "./ChatOverlay.css"
@@ -46,7 +47,7 @@ function ChatOverlay({ lobbyId }) {
 				const data = await res.json()
 				setMessages(data.reverse().map(msg => mapMessage(user.id, msg)))
 			} catch (err) {
-				console.error('Failed to fetch chat history:', err)
+				logError('GameChat', 'fetch history failed', err)
 			}
 		}
 		fetchHistory()
@@ -107,7 +108,7 @@ function ChatOverlay({ lobbyId }) {
 				body: JSON.stringify({ lobbyId, content, messageType })
 			})
 		} catch (err) {
-			console.error('Failed to send message:', err)
+			logError('GameChat', 'send message failed', err)
 		}
 	}
 

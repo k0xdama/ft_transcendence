@@ -1,4 +1,5 @@
 import { chatService } from '../class/chat-service-class.js';
+import { logError } from '../utils/logger.js';
 
 // POST /internal/block — called by player-service
 export async function internalBlockUser(req, res) {
@@ -16,7 +17,7 @@ export async function internalBlockUser(req, res) {
 		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
 
-		console.error('Internal block user:', error);
+		logError('internal block user', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -34,7 +35,7 @@ export async function internalUnblockUser(req, res) {
 		return res.status(200).json({ message: 'User unblocked in chat' });
 	}
 	catch (error) {
-		console.error('Internal unblock user:', error);
+		logError('internal unblock user', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

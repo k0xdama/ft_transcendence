@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { logError } from '../../utils/logger.js'
 import PFP_Default from '../../assets/PFP_Default.webp'
 
 function ProfileFriendRequests() {
@@ -43,7 +44,7 @@ function ProfileFriendRequests() {
 			setSentRequests(sentData.requests.map(transformRequest))
 		} catch (err) {
 			setError('Failed to load friend requests')
-			console.error('Error fetching requests:', err)
+			logError('FriendRequests', 'fetch requests', err)
 		} finally {
 			setLoading(false)
 		}
@@ -54,6 +55,8 @@ function ProfileFriendRequests() {
 		if (pendingRes.ok) {
 			const pendingData = await pendingRes.json()
 			setPendingRequests(pendingData.requests.map(transformRequest))
+		} else {
+			logError('FriendRequests', 'fetchPendingRequests failed', { status: pendingRes.status })
 		}
 	}
 
@@ -62,6 +65,8 @@ function ProfileFriendRequests() {
 		if (sentRes.ok) {
 			const sentData = await sentRes.json()
 			setSentRequests(sentData.requests.map(transformRequest))
+		} else {
+			logError('FriendRequests', 'fetchSentRequests failed', { status: sentRes.status })
 		}
 	}
 
@@ -77,7 +82,7 @@ function ProfileFriendRequests() {
 			await fetchPendingRequests()
 		} catch (err) {
 			setError('Failed to accept friend request')
-			console.error('Error accepting request:', err)
+			logError('FriendRequests', 'accept request', err)
 		}
 	}
 
@@ -93,7 +98,7 @@ function ProfileFriendRequests() {
 			await fetchPendingRequests()
 		} catch (err) {
 			setError('Failed to decline friend request')
-			console.error('Error declining request:', err)
+			logError('FriendRequests', 'decline request', err)
 		}
 	}
 
@@ -109,7 +114,7 @@ function ProfileFriendRequests() {
 			await fetchSentRequests()
 		} catch (err) {
 			setError('Failed to cancel friend request')
-			console.error('Error canceling request:', err)
+			logError('FriendRequests', 'cancel request', err)
 		}
 	}
 
@@ -128,22 +133,10 @@ function ProfileFriendRequests() {
 				throw new Error('Failed to send friend request')
 			}
 			setSendQuery('')
-			// Refresh sent requests
-			const sentRes = await authFetch(`${playerRoute}/me/friend-requests/sent`)
-			if (sentRes.ok) {
-				const sentData = await sentRes.json()
-				setSentRequests(sentData.requests.map(req => ({
-					id: req.auth_user_id,
-					username: req.username,
-					avatarUrl: req.pp_path && req.pp_path !== '/uploads/profilePictures/default_profile_picture.png' 
-						? `${playerRoute}/${req.auth_user_id}/profile-picture` 
-						: null,
-					requestedAt: req.requested_at
-				})))
-			}
+			await fetchSentRequests()
 		} catch (err) {
 			setError('Failed to send friend request')
-			console.error('Error sending request:', err)
+			logError('FriendRequests', 'send request', err)
 		} finally {
 			setSending(false)
 		}

@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import { createClient } from 'redis';
 import fs from 'fs';
 import { joinQueue } from './src/matchmaking.js';
+import { logError } from './src/utils/logger.js';
 import { queueBySocket } from './src/matchmaking.js';
 import { queues } from './src/matchmaking.js';
 
@@ -37,7 +38,7 @@ const sslOptions = {
 	cert: fs.readFileSync('/run/secrets/ssl_cert')
 };
 
-//bypass auto sign certificate
+// Bypass auto sign certificate
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const app = express();
@@ -52,7 +53,7 @@ const redisClient = createClient({
 	socket: { host: 'redis', port: 6379 },
 	password: redisPassword
 });
-redisClient.on('error', (err) => console.error('Redis Client:', err));
+redisClient.on('error', (err) => logError('Redis client', err));
 redisClient.connect();
 
 io.use((socket, next) => {
@@ -126,16 +127,16 @@ function checkIfUsersReady(users) {
 function publishLobbyMembers(lobbyId, lobbyStruct) {
 	const members = lobbyStruct.users.map(u => u.id);
 	redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members }))
-		.catch(err => console.error('Redis publish lobby:membersChanged:', err));
+		.catch(err => logError('Redis publish lobby:membersChanged', err));
 }
 
 function publishUserStatus(userId, status) {
 	if (status === 'online')
-		redisClient.sAdd('users:online', userId).catch(console.error);
+		redisClient.sAdd('users:online', userId).catch(err => logError('Redis sAdd users:online', err));
 	else
-		redisClient.sRem('users:online', userId).catch(console.error);
+		redisClient.sRem('users:online', userId).catch(err => logError('Redis sRem users:online', err));
 	redisClient.publish('user:statusChanged', JSON.stringify({ userId, status }))
-		.catch(err => console.error('Redis publish user:statusChanged:', err));
+		.catch(err => logError('Redis publish user:statusChanged', err));
 }
 
 io.on('connection', (socket) => {
@@ -197,7 +198,7 @@ io.on('connection', (socket) => {
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
 			publishLobbyMembers(gameData.gameId, lobbyStruct);
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId, gameId: gameData.gameId }))
-				.catch(console.error);
+				.catch(err => logError('Redis publish lobby:gameStarting', err));
 			io.to(lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId });
 			lobbys.delete(lobbyId);
 			for (const player of matchedPlayers)
@@ -332,7 +333,7 @@ io.on('connection', (socket) => {
 			lobbyStruct.state = LOBBY_STATE.GAME_STARTED;
 			publishLobbyMembers(gameData.gameId, lobbyStruct);
 			redisClient.publish('lobby:gameStarting', JSON.stringify({ lobbyId: data.lobbyId, gameId: gameData.gameId }))
-				.catch(console.error);
+				.catch(err => logError('Redis publish lobby:gameStarting', err));
 			io.to(data.lobbyId).emit('lobby:gameStarting', { gameId: gameData.gameId, lobbyId: lobbyStruct.lobbyId });
 		}
 		catch {
@@ -370,7 +371,7 @@ io.on('connection', (socket) => {
 		if (lobbyStruct.users.length === 0) {
 			lobbys.delete(lobbyId);
 			redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members: [] }))
-				.catch(console.error);
+				.catch(err => logError('Redis publish lobby:membersChanged', err));
 		}
 		else {
 			if (lobbyStruct.creatorId === socket.user.id)
@@ -424,7 +425,7 @@ io.on('connection', (socket) => {
        			if (lobbyStruct.users.length === 0) {
             		lobbys.delete(lobbyId);
             		redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members: [] }))
-                		.catch(console.error);
+                		.catch(err => logError('Redis publish lobby:membersChanged', err));
        			} 
 				else {
             		if (lobbyStruct.creatorId === socket.user.id)

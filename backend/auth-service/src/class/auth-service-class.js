@@ -9,9 +9,11 @@ import {
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import axios from 'axios';
+import { logError } from '../utils/logger.js';
 
-// Configuration
+// Bypass auto sign certificate
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const PLAYER_URL = process.env.PLAYER_URL || 'https://player:3001';
 
 async function createPlayerProfile(userData) {
@@ -24,7 +26,7 @@ async function createPlayerProfile(userData) {
 		return response.data;
 
 	} catch (error) {
-		console.error('❌ No answer from player service:', error.message);
+		logError('no answer from player service', error.message);
 		throw error;
 	}
 }
@@ -62,7 +64,7 @@ class AuthService {
 				console.log(`✅ Player profile created: id=${playerProfile.auth_user_id}, username=${playerProfile.username}`);
 
 			} catch (playerError) {
-				console.error('❌ Failed to create player profile:', playerError.message);
+				logError('failed to create player profile', playerError.message);
 				
 				// Rollback : supprimer l'utilisateur auth si le profil player échoue
 				await db.none('DELETE FROM auth.users WHERE id = $1', [newUser.id]);

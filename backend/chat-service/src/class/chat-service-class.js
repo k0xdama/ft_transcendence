@@ -1,4 +1,5 @@
 import { db } from '../config/db.js';
+import { logError } from '../utils/logger.js';
 import { redisClient, lobbyMembers } from '../config/redis.js';
 import {
 	MissingFieldError,
@@ -10,7 +11,7 @@ import {
 	DMConversationNotFoundError,
 	NotConversationMemberError } from '../utils/errors.js';
 
-// Self-signed certs are used between services on the private docker network
+// Bypass auto sign certificate
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const PLAYER_URL = process.env.PLAYER_URL || 'https://player:3001';
@@ -193,7 +194,7 @@ class ChatService {
 				senderUsername = map[senderId]?.username || 'Unknown';
 			}
 		} catch (err) {
-			console.error('Failed to fetch sender username:', err.message);
+			logError('fetch sender username', err.message);
 		}
 
 		const payload = {
@@ -328,7 +329,7 @@ class ChatService {
 			if (res.ok)
 				userMap = await res.json();
 		} catch (err) {
-			console.error('Failed to fetch usernames from player-service:', err.message);
+			logError('fetch usernames from player-service', err.message);
 		}
 
 		return conversations.map(c => {

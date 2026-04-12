@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import { logError } from '../utils/logger.js';
 import { useChat } from './ChatContext';
 
 const DMContext = createContext(null);
@@ -28,9 +29,11 @@ export function DMProvider({ children }) {
 			if (res?.ok) {
 				const data = await res.json();
 				setConversations(data);
+			} else {
+				logError('DM', 'fetchConversations failed', { status: res?.status });
 			}
 		} catch (err) {
-			console.error('Failed to fetch DM conversations:', err);
+			logError('DM', 'fetchConversations — network error', err);
 		}
 	}, [user, authFetch]);
 
@@ -118,8 +121,10 @@ export function DMProvider({ children }) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ targetId })
 			});
-			if (!res?.ok)
+			if (!res?.ok) {
+				logError('DM', 'openDM failed', { status: res?.status });
 				return;
+			}
 
 			const conversation = await res.json();
 
@@ -139,7 +144,7 @@ export function DMProvider({ children }) {
 			// Refresh conversation list
 			fetchConversations()
 		} catch (err) {
-			console.error('Failed to open DM:', err)
+			logError('DM', 'openDM — network error', err)
 		}
 	}, [user, openChats, authFetch, fetchConversations])
 

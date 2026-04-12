@@ -1,6 +1,7 @@
 import express from 'express';
 import { db } from '../config/db.js';
 import { DEFAULT_PROFILE_PICTURE } from '../middleware/upload.js';
+import { logError } from '../utils/logger.js';
 
 /*
 	These routes are mounted at '/internal' (NOT under '/players')
@@ -36,7 +37,7 @@ router.post('/users', async (req, res) => {
 			player: newPlayerUsers
 		});
 	} catch (error) {
-		console.error('Cannot create new user un player schema : ', error);
+		logError('failed to create player user', error);
 		res.status(500).json({
 			error : 'Failed to create player user in player schema'});
 	}
@@ -64,7 +65,7 @@ router.post('/users/batch', async (req, res) => {
 
 		res.json(map);
 	} catch (error) {
-		console.error('Batch user lookup failed:', error);
+		logError('failed to batch user lookup', error);
 		res.status(500).json({ error: 'Failed to fetch users' });
 	}
 });

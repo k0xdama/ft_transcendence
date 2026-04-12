@@ -1,6 +1,7 @@
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { logError } from '../../utils/logger.js'
 import ProfileHeader from './ProfileHeader'
 import ProfileStats from './ProfileStats'
 import ProfileAchievements from './ProfileAchievements'
@@ -62,7 +63,7 @@ function UserProfileView() {
 				createdAt: playerData.created_at
 			})
 		} catch (err) {
-			console.error('Failed to fetch profile:', err)
+			logError('UserProfile', 'fetch profile', err)
 			setError('Failed to load profile')
 		} finally {
 			setLoading(false)
@@ -92,7 +93,7 @@ function UserProfileView() {
 				perfectGames: playerData.perfect_game || 0
 			})
 		} catch (err) {
-			console.error('Failed to fetch stats:', err)
+			logError('UserProfile', 'fetch stats', err)
 		}
 	}
 
@@ -133,7 +134,7 @@ function UserProfileView() {
 
 			setFriendStatus('none')
 		} catch (err) {
-			console.error('Failed to fetch friend status:', err)
+			logError('UserProfile', 'fetch friend status', err)
 			setFriendStatus('none')
 		}
 	}
@@ -149,6 +150,7 @@ function UserProfileView() {
 
 			setFriendStatus('pending')
 		} catch (err) {
+			logError('UserProfile', 'handleAddFriend', err)
 			setError('Failed to send friend request')
 		}
 	}
@@ -164,6 +166,7 @@ function UserProfileView() {
 
 			setFriendStatus('none')
 		} catch (err) {
+			logError('UserProfile', 'handleRemoveFriend', err)
 			setError('Failed to remove friend')
 		}
 	}
@@ -179,6 +182,7 @@ function UserProfileView() {
 
 			setFriendStatus('blocked')
 		} catch (err) {
+			logError('UserProfile', 'handleBlock', err)
 			setError('Failed to block user')
 		}
 	}
@@ -203,7 +207,7 @@ function UserProfileView() {
 				avatarUrl: `${playerRoute}/${user.id}/profile-picture`
 			}))
 		} catch (err) {
-			console.error('Avatar upload error:', err)
+			logError('UserProfile', 'avatar upload', err)
 			setError('Failed to upload avatar')
 		}
 	}
@@ -223,7 +227,7 @@ function UserProfileView() {
 				avatarUrl: null
 			}))
 		} catch (err) {
-			console.error('Avatar delete error:', err)
+			logError('UserProfile', 'avatar delete', err)
 			setError('Failed to delete avatar')
 		}
 	}
@@ -250,7 +254,7 @@ function UserProfileView() {
 
 			return { success: true }
 		} catch (err) {
-			console.error('Error updating profile:', err)
+			logError('UserProfile', 'update profile', err)
 			return { success: false, error: err.message }
 		}
 	}
@@ -268,7 +272,8 @@ function UserProfileView() {
 			await logout()
 			navigate('/')
 		} catch (err) {
-			setError('Failed to delete account', err)
+			logError('UserProfile', 'handleDeleteAccount', err)
+			setError('Failed to delete account')
 		}
 	}
 

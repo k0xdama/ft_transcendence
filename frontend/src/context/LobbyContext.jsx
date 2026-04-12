@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext"
+import { logError } from "../utils/logger.js"
 
 const LobbyContext = createContext(null);
 
@@ -18,6 +19,7 @@ export function LobbyProvider({ children }) {
 	const socketRef = useRef(null);
 	const retry = useRef(0);
 	const lobbyRoute = '/api/lobby';
+	const authRoute = '/api/auth';
 
 	const { user, logout } = useAuth();
 
@@ -99,7 +101,7 @@ export function LobbyProvider({ children }) {
 		});
 
 		socketRef.current.on('connect_error', async (err) => {
-			console.error('Connection failed:', err.message);
+			logError('LobbySocket', 'connection failed', err.message);
 			socketRef.current.disconnect();
 			socketRef.current = null;
 
@@ -110,19 +112,19 @@ export function LobbyProvider({ children }) {
 			}
 			retry.current++;
 			try {
-				const res = await fetch('/api/auth/refresh', {
+				const res = await fetch(`${authRoute}/refresh`, {
           	  		method: 'POST',
            			credentials: 'include',
             		headers: { 'Content-Type': 'application/json' }
         		});
 				if (res.ok) {
 					connect();
-				}
-				else {
+				} else {
+					logError('LobbySocket', 'connect_error — refresh rejected', { status: res.status });
 					logout();
 				}
-			}
-			catch (e) {
+			} catch (e) {
+				logError('LobbySocket', 'connect_error — refresh network error', e);
 				logout();
 			}
 			// if (onConnectionError)

@@ -1,4 +1,5 @@
 import { chatService } from '../class/chat-service-class.js';
+import { logError } from '../utils/logger.js';
 
 // POST /chat/room/send
 export async function sendWsMessage(req, res) {
@@ -20,7 +21,7 @@ export async function sendWsMessage(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Send WS message:', error);
+		logError('send WS message', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -47,7 +48,7 @@ export async function getChatWsHistory(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Chat WS history:', error);
+		logError('WS history', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

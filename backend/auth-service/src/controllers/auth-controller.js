@@ -1,5 +1,6 @@
 import { authService } from '../class/auth-service-class.js';
 import { generateAccessToken } from '../utils/jwt.js';
+import { logError } from '../utils/logger.js';
 import { setAccessCookie, clearAccessCookie, setRefreshCookie, clearRefreshCookie } from '../utils/cookies.js';
 
 // POST /auth/register
@@ -19,7 +20,7 @@ export async function register(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Register:', error);
+		logError('register', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -44,7 +45,7 @@ export async function login(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Login:', error);
+		logError('login', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -61,7 +62,7 @@ export async function logout(req, res) {
 		return res.status(200).json({ message: 'Logout successful' });
 	}
 	catch (error) {
-		console.error('Logout:', error);
+		logError('logout', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

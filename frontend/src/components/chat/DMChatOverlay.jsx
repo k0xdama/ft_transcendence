@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { logError } from '../../utils/logger.js'
 import { useChat } from '../../context/ChatContext'
 import { useDM } from '../../context/DMContext'
 import PFP_Default from '../../assets/PFP_Default.webp'
@@ -138,9 +139,11 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 				if (res?.ok) {
 					const data = await res.json()
 					setMessages(data.reverse())
+				} else {
+					logError('DM', 'fetchHistory failed', { status: res?.status })
 				}
 			} catch (err) {
-				console.error('Failed to fetch DM history:', err)
+				logError('DM', 'fetchHistory — network error', err)
 			} finally {
 				setLoading(false)
 			}
@@ -221,13 +224,16 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 
 		setDraft('')
 		try {
-			await authFetch(`${chatRoute}/dm/${chat.conversationId}/send`, {
+			const res = await authFetch(`${chatRoute}/dm/${chat.conversationId}/send`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ content })
 			})
+			if (!res?.ok) {
+				logError('DM', 'sendMessage failed', { status: res?.status })
+			}
 		} catch (err) {
-			console.error('Failed to send DM:', err)
+			logError('DM', 'sendMessage — network error', err)
 		}
 	}
 

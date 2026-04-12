@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { logError } from "../../utils/logger.js";
 import { useChat } from "../../context/ChatContext";
 import "./ChatOverlay-Lobby.css"
 
@@ -40,7 +41,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 				const data = await res.json()
 				setMessages(data.reverse().map(msg => mapMessage(user.id, msg)))
 			} catch (err) {
-				console.error('Failed to fetch chat history:', err)
+				logError('LobbyChat', 'fetch history', err)
 			}
 		}
 		fetchHistory()
@@ -105,7 +106,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 				body: JSON.stringify({ lobbyId, content, messageType })
 			})
 		} catch (err) {
-			console.error('Failed to send message:', err)
+			logError('LobbyChat', 'send message', err)
 		}
 	}
 
@@ -133,7 +134,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 					})))
 				}
 			} catch (err) {
-				console.error('Failed to fetch friends:', err)
+				logError('LobbyChat', 'fetch friends', err)
 			} finally {
 				setFriendsLoading(false)
 			}
@@ -158,7 +159,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 			})
 			setInviteSent(prev => ({ ...prev, [friendId]: true }))
 		} catch (err) {
-			console.error('Failed to send invite:', err)
+			logError('LobbyChat', 'send invite', err)
 		}
 	}
 

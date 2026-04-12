@@ -1,4 +1,5 @@
 import { chatService } from '../class/chat-service-class.js';
+import { logError } from '../utils/logger.js';
 
 // POST /chat/dm
 export async function createDM(req, res) {
@@ -15,7 +16,7 @@ export async function createDM(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Create DM conversation:', error);
+		logError('create DM conversation', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -36,7 +37,7 @@ export async function sendDM(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Send DM:', error);
+		logError('send DM', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -63,7 +64,7 @@ export async function getDMHistory(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('DM history:', error);
+		logError('DM history', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -83,7 +84,7 @@ export async function markAsRead(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Mark DMs as read:', error);
+		logError('mark DMs as read', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -102,7 +103,7 @@ export async function getMyDMs(req, res) {
 			return res.status(error.statusCode).json({ error: error.reason });
 		}
 
-		console.error('Get my DMs:', error);
+		logError('get my DMs', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

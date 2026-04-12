@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { logError } from '../../utils/logger.js'
 import { useChat } from '../../context/ChatContext'
 import PFP_Default from '../../assets/PFP_Default.webp'
 
@@ -70,16 +71,18 @@ function ProfileFriends() {
 							if (statuses[f.id])
 								f.status = statuses[f.id]
 						})
+					} else {
+						logError('Friends', 'fetchFriends — status fetch failed', { status: statusRes.status })
 					}
 				} catch (err) {
-					console.error('Failed to fetch online statuses:', err)
+					logError('Friends', 'fetchFriends — status fetch error', err)
 				}
 			}
 
 			setFriends(transformedFriends)
 		} catch (err) {
 			setError('Failed to load friends')
-			console.error('Error fetching friends:', err)
+			logError('Friends', 'fetch friends', err)
 		} finally {
 			setLoading(false)
 		}
@@ -102,7 +105,7 @@ function ProfileFriends() {
 			}))
 			setBlocked(transformedBlocked)
 		} catch (err) {
-			console.error('Error fetching blocked users:', err)
+			logError('Friends', 'fetch blocked users', err)
 		}
 	}
 
@@ -119,7 +122,7 @@ function ProfileFriends() {
 			await fetchFriends()
 		} catch (err) {
 			setError('Failed to remove friend')
-			console.error('Error removing friend:', err)
+			logError('Friends', 'remove friend', err)
 		}
 	}
 
@@ -136,7 +139,7 @@ function ProfileFriends() {
 			await fetchFriends()
 		} catch (err) {
 			setError('Failed to block user')
-			console.error('Error blocking user:', err)
+			logError('Friends', 'block user', err)
 		}
 	}
 
@@ -153,7 +156,7 @@ function ProfileFriends() {
 			await fetchBlocked()
 		} catch (err) {
 			setError('Failed to unblock user')
-			console.error('Error unblocking user:', err)
+			logError('Friends', 'unblock user', err)
 		}
 	}
 

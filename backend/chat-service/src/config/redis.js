@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { createClient } from 'redis';
+import { logError } from '../utils/logger.js';
 
 const redisPassword = fs.readFileSync('/run/secrets/redis_passwd', 'utf8').trim();
 
@@ -14,8 +15,8 @@ const client = createClient(config);
 // subscriber client (pub and sub should be separed)
 const subscriber = client.duplicate();
 
-client.on('error', (err) => console.error('Redis Client:', err));
-subscriber.on('error', (err) => console.error('Redis Subscriber:', err));
+client.on('error', (err) => logError('Redis client', err));
+subscriber.on('error', (err) => logError('Redis subscriber', err));
 
 await client.connect();
 await subscriber.connect();

@@ -3,9 +3,10 @@ import { db } from '../config/db.js';
 import fs from 'fs';
 import path from 'path';
 import { deleteFile, isDefaultProfilePicture } from '../utils/fileHandler.js';
+import { logError } from '../utils/logger.js';
 import upload, { UPLOAD_DIR, DEFAULT_PROFILE_PICTURE } from '../middleware/upload.js';
 
-// Self-signed certs are used between services on the private docker network
+// Bypass auto sign certificate
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const AUTH_URL = process.env.AUTH_URL || 'https://auth:3000';
@@ -110,7 +111,7 @@ router.post('/me/profile-picture', upload.single('profilePicture'), async (req, 
 		});
 
 	} catch (error) {
-		console.error('❌ Error uploading profile picture:', error);
+		logError('upload profile picture', error);
 		
 		if (req.file) {
 			deleteFile(req.file.path);
@@ -147,7 +148,7 @@ router.get('/:auth_user_id/profile-picture', async (req, res) => {
 		res.sendFile(filePath);
 
 	} catch (error) {
-		console.error('Error fetching profile picture:', error);
+		logError('fetch profile picture', error);
 		res.status(500).json({ error: 'Failed to fetch profile picture' });
 	}
 });
@@ -199,7 +200,7 @@ router.delete('/me/profile-picture', async (req, res) => {
 		});
 
 	} catch (error) {
-		console.error('❌ Error deleting profile picture:', error);
+		logError('delete profile picture', error);
 		res.status(500).json({ error: 'Failed to delete profile picture' });
 	}
 });
@@ -226,7 +227,7 @@ router.get('/:auth_user_id', async (req, res) => { //WARN j'ai CHANGE CAR pas se
 		res.status(200).json(player);
 
 	} catch (error) {
-		console.error('Error while fetching player : ', error);
+		logError('fetch player', error);
 		res.status(500).json({
 			error : 'Failed to fetch player user in player schema'
 		});
@@ -258,7 +259,7 @@ router.delete('/me', async (req, res) => {
 			});
 		} catch (err) {
 			if (err.status !== 404) {
-				console.error('Failed to delete from auth-service:', err.message);
+				logError('delete player — auth-service sync failed', err.message);
 				return res.status(502).json({ error: 'Failed to delete auth user' });
 			}
 			console.warn(`Auth user ${player.auth_user_id} was already missing, continuing`);
@@ -273,7 +274,7 @@ router.delete('/me', async (req, res) => {
 				method: 'DELETE'
 			});
 		} catch (err) {
-			console.error('Failed to purge chat data:', err.message);
+			logError('delete player — chat purge failed', err.message);
 		}
 
 		// 4. Delete the profile picture file from disk
@@ -288,7 +289,7 @@ router.delete('/me', async (req, res) => {
 		res.status(204).send(); // 204 No Content (suppression réussie)
 
 	} catch (error) {
-		console.error('Error deleting player:', error);
+		logError('delete player', error);
 		res.status(500).json({ error: 'Failed to delete player' });
 	}
 });
@@ -348,7 +349,7 @@ router.patch('/me', async (req, res) => {
 					[oldPlayer.username, req.user.id]
 				);
 
-				console.error('Failed to sync username with auth-service, rolled back player.users:', err.message);
+				logError('update player — auth-service username sync failed, rolled back', err.message);
 
 				// Forward a client-side upstream error (ex: 400 'username taken')
 				// as-is; fall back to 502 for anything else (upstream down, 5xx...)
@@ -363,7 +364,7 @@ router.patch('/me', async (req, res) => {
 
 		res.json(updatedPlayer);
 	} catch (error) {
-		console.error('Error updating player:', error);
+		logError('update player', error);
 
 		if (error.message.includes('No data returned')) {
 			return res.status(404).json({ error: 'Player not found' });
@@ -517,7 +518,7 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 		if (error.status) {
 			return res.status(error.status).json({ error: error.message });
 		}
-		console.error('❌ Error sending friend request:', error);
+		logError('send friend request', error);
 		res.status(500).json({ error: 'Failed to send friend request' });
 	}
 });
@@ -562,7 +563,7 @@ router.post('/me/friend-requests/:friend_auth_user_id/accept', async (req, res) 
 		if (error.status) {
 			return res.status(error.status).json({ error: error.message });
 		}
-		console.error('❌ Error accepting friend request:', error);
+		logError('accept friend request', error);
 		res.status(500).json({ error: 'Failed to accept friend request' });
 	}
 });
@@ -602,7 +603,7 @@ router.delete('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 		if (error.status) {
 			return res.status(error.status).json({ error: error.message });
 		}
-		console.error('❌ Error declining friend request:', error);
+		logError('decline friend request', error);
 		res.status(500).json({ error: 'Failed to decline friend request' });
 	}
 });
@@ -650,7 +651,7 @@ router.get('/me/friends', async (req, res) => {
 		});
 
 	} catch (error) {
-		console.error('❌ Error fetching friends:', error);
+		logError('fetch friends', error);
 		res.status(500).json({ error: 'Failed to fetch friends' });
 	}
 });
@@ -687,7 +688,7 @@ router.get('/me/friend-requests/pending', async (req, res) => {
 		});
 
 	} catch (error) {
-		console.error('❌ Error fetching pending requests:', error);
+		logError('fetch pending requests', error);
 		res.status(500).json({ error: 'Failed to fetch pending requests' });
 	}
 });
@@ -724,7 +725,7 @@ router.get('/me/friend-requests/sent', async (req, res) => {
 		});
 
 	} catch (error) {
-		console.error('❌ Error fetching sent requests:', error);
+		logError('fetch sent requests', error);
 		res.status(500).json({ error: 'Failed to fetch sent requests' });
 	}
 });
@@ -764,7 +765,7 @@ router.delete('/me/friends/:friend_auth_user_id', async (req, res) => {
 		if (error.status) {
 			return res.status(error.status).json({ error: error.message });
 		}
-		console.error('❌ Error removing friend:', error);
+		logError('remove friend', error);
 		res.status(500).json({ error: 'Failed to remove friend' });
 	}
 });
@@ -856,7 +857,7 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 
 			console.log('✅ Block synced to chat-service');
 		} catch (err) {
-			console.error('⚠️ Failed to sync block to chat-service:', err.message);
+			logError('block user — chat-service sync failed', err.message);
 		}
 
 		res.status(200).json({ message: 'User blocked successfully' });
@@ -865,7 +866,7 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 		if (error.status) {
 			return res.status(error.status).json({ error: error.message });
 		}
-		console.error('❌ Error blocking user:', error);
+		logError('block user', error);
 		res.status(500).json({ error: 'Failed to block user' });
 	}
 });
@@ -934,7 +935,7 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 
 			console.log('✅ Unblock synced to chat-service');
 		} catch (err) {
-			console.error('⚠️ Failed to sync unblock to chat-service:', err.message);
+			logError('unblock user — chat-service sync failed', err.message);
 		}
 
         res.status(200).json({ message: 'User unblocked successfully' });
@@ -943,7 +944,7 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 		if (error.status) {
 			return res.status(error.status).json({ error: error.message });
 		}
-		console.error('❌ Error unblocking user:', error);
+		logError('unblock user', error);
 		res.status(500).json({ error: 'Failed to unblock user' });
 	}
 });
@@ -977,7 +978,7 @@ router.get('/me/blocked', async (req, res) => {
 		});
 
 	} catch (error) {
-		console.error('❌ Error fetching blocked users:', error);
+		logError('fetch blocked users', error);
 		res.status(500).json({ error: 'Failed to fetch blocked users' });
 	}
 });
@@ -1054,7 +1055,7 @@ router.get('/me/friends/:friend_auth_user_id/mutual', async (req, res) => {
 		if (error.status) {
 			return res.status(error.status).json({ error: error.message });
 		}
-		console.error('❌ Error fetching mutual friends:', error);
+		logError('fetch mutual friends', error);
 		res.status(500).json({ error: 'Failed to fetch mutual friends' });
 	}
 });

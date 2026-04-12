@@ -6,6 +6,7 @@ import chatRoutes from './src/routes/chat-router.js';
 import internalRoutes from './src/routes/internal-router.js';
 import { redisSubscriber, lobbyMembers } from './src/config/redis.js';
 import { chatService } from './src/class/chat-service-class.js';
+import { logError } from './src/utils/logger.js';
 
 const sslOptions = {
 	key: fs.readFileSync('/run/secrets/ssl_key'),
@@ -80,7 +81,7 @@ io.on('connection', (socket) => {
 				io.to(`user:${otherId}`).emit('dm:read', { conversationId, readBy: socket.user.id, readAt });
 			}
 		} catch (err) {
-			console.error('dm:read error:', err.message);
+			logError('dm:read', err.message);
 		}
 	});
 
@@ -97,7 +98,7 @@ await redisSubscriber.subscribe('dm:newMessage', (raw) => {
 		io.to(`user:${recipientId}`).emit('dm:message', message);
 	}
 	catch (err) {
-		console.error('Failed to parse dm:newMessage:', err);
+		logError('parse dm:newMessage', err);
 	}
 });
 
@@ -108,7 +109,7 @@ await redisSubscriber.subscribe('chat:messages', (raw) => {
 		io.to(payload.lobby_id).emit('chat:message', payload);
 	}
 	catch (err) {
-		console.error('Failed to parse chat:messages:', err);
+		logError('parse chat:messages', err);
 	}
 });
 
@@ -122,7 +123,7 @@ await redisSubscriber.subscribe('lobby:membersChanged', (raw) => {
 			lobbyMembers.set(lobbyId, new Set(members));
 	}
 	catch (err) {
-		console.error('Failed to parse lobby:membersChanged:', err);
+		logError('parse lobby:membersChanged', err);
 	}
 });
 
@@ -132,7 +133,7 @@ await redisSubscriber.subscribe('user:statusChanged', (raw) => {
 		io.emit('user:statusChanged', JSON.parse(raw));
 	}
 	catch (err) {
-		console.error('Failed to parse user:status:', err);
+		logError('parse user:status', err);
 	}
 });
 
@@ -148,7 +149,7 @@ await redisSubscriber.subscribe('lobby:gameStarting', (raw) => {
 		});
 	}
 	catch (err) {
-		console.log('Failed to parse lobby:gameStarting:', err);
+		logError('parse lobby:gameStarting', err);
 	}
 });
 
@@ -162,7 +163,7 @@ await redisSubscriber.subscribe('game:ended', (raw) => {
 		});
 	}
 	catch (err) {
-		console.log('Failed to parse game:ended:', err);
+		logError('parse game:ended', err);
 	}
 });
 
@@ -175,7 +176,7 @@ setInterval(async () => {
 			console.log(`Purged ${wsDeleted} ws + ${dmDeleted} dm expired messages`);
 	
 	} catch (err) {
-		console.error('Purge expired messages failed:', err.message);
+		logError('purge expired messages', err.message);
 	}
 }, PURGE_INTERVAL);
 

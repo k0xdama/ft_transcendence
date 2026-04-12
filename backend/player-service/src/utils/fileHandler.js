@@ -3,6 +3,7 @@
 
 import	fs		from	'fs';
 import	path	from	'path';
+import { logError } from './logger.js';
 
 
 /**
@@ -43,7 +44,7 @@ export	function	deleteFile(filePath){
 			console.log(`Deleted old file: ${filePath}`);
 		}
 	} catch (error) {
-		console.error(`Error deleting file: ${filePath}`, error.message);
+		logError(`delete file: ${filePath}`, error.message);
 	}
 };
 

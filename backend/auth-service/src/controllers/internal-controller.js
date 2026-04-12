@@ -1,4 +1,5 @@
 import { authService } from '../class/auth-service-class.js';
+import { logError } from '../utils/logger.js';
 
 // DELETE /internal/users/:id — called by player-service on account deletion
 export async function deleteUserInternal(req, res) {
@@ -10,7 +11,7 @@ export async function deleteUserInternal(req, res) {
 		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
 
-		console.error('Internal deleteUser:', error);
+		logError('internal deleteUser fail', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }
@@ -26,7 +27,7 @@ export async function updateUserInternal(req, res) {
 		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
 
-		console.error('Internal updateUser:', error);
+		logError('internal updateUser fail', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
 }

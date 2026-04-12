@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { logError } from '../../utils/logger.js';
 // import './RegisterView.css'
 
 function RegisterView() {
@@ -47,6 +48,7 @@ function RegisterView() {
 
 			const data = await res.json();
 			if (!res.ok) {
+				logError('Register', 'error', { status: res.status, body: data });
 				setError(data.error || 'Registration failed');
 				return;
 			}
@@ -62,7 +64,7 @@ function RegisterView() {
 			
 			setTimeout(() => {navigate('/login')}, 1000);
 		} catch (error) {
-			console.error('Register error:', error);
+			logError('Register', 'network/unexpected error', error);
 			setError('Registration failed. Please try again.');
 		} finally {
 			setLoading(false);

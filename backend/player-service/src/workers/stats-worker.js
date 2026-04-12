@@ -1,5 +1,6 @@
 import	{ createClient }	from 'redis';
 import	{ db }				from '../config/db.js';
+import { logError } from '../utils/logger.js';
 import	fs					from 'fs';
 
 const	REDIS_URL = process.env.REDIS_URL || 'redis://redis:6379';
@@ -17,7 +18,7 @@ class StatsWorker {
 		});
 
 		this.redisClient.on('error', (err) => {
-			console.error('❌ Redis Client Error:', err);
+			logError('Redis client', err);
 		});
 
 		this.redisClient.on('connect', () => {
@@ -53,7 +54,7 @@ class StatsWorker {
 				}
 
 			} catch (error) {
-				console.error('❌ Error processing game result:', error);
+				logError('process game result', error);
 				// Continue même en cas d'erreur
 			}
 		}
@@ -72,7 +73,7 @@ class StatsWorker {
 
 			console.log(`✅ Stats updated for game ${gameStats.gameId}`);
 		} catch (error) {
-			console.error('❌ Failed to update stats:', error);
+			logError('update stats', error);
             throw error;
 		}
 	}
@@ -88,7 +89,7 @@ class StatsWorker {
             );
 
 			if (!player) {
-				console.error(`⚠️  Player not found: ${userId}`);
+				logError(`player not found: ${userId}`);
                 return;
 			}
 
@@ -133,7 +134,7 @@ class StatsWorker {
 			console.log(`  ✅ Updated stats for player ${userId}: +${playerStats.score} score, rank ${playerStats.rank}`);
 
 		} catch (error) {
-			console.error(`  ❌ Failed to update player ${userId}:`, error);
+			logError(`update player ${userId}`, error);
             throw error;
 		}
 

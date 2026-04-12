@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { logError } from "../utils/logger.js";
 
 const AuthContext = createContext();
 
@@ -15,6 +17,7 @@ export const AuthProvider = ({ children }) => {
 	const [loading, setLoading] = useState(true);
 	const refreshPromiseRef = useRef(null);
 	const authRoute = '/api/auth';
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const tryRestoreSession = async () => {
@@ -35,10 +38,14 @@ export const AuthProvider = ({ children }) => {
 					localStorage.setItem('user', JSON.stringify(data.user));
 					setUser(data.user);
 				} else {
+					logError('Auth', 'session restore — refresh rejected', { status: res.status });
 					localStorage.removeItem('user');
+					if ([401, 500, 504].includes(res.status)) {
+						navigate('/login');
+					}
 				}
 			} catch (err) {
-				console.error('Session restore failed:', err);
+				logError('Auth', 'session restore — network error', err);
 				localStorage.removeItem('user');
 			} finally {
 				setLoading(false);
@@ -59,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 				credentials: 'include'
 			});
 		} catch (err) {
-			console.error('Logout failed:', err);
+			logError('Auth', 'logout request failed', err);
 		} finally {
 			localStorage.removeItem('user');
 			setUser(null);
@@ -90,7 +97,11 @@ export const AuthProvider = ({ children }) => {
 		refreshPromiseRef.current = null;
 
 		if (!refreshResponse.ok) {
+			logError('Auth', 'authFetch — refresh failed', { status: refreshResponse.status });
 			logout();
+			if ([401, 500, 504].includes(refreshResponse.status)) {
+				navigate('/login');
+			}
 			return res;
 		}
 
