@@ -43,15 +43,12 @@ function App() {
 
 		let title = PAGE_TITLES[path]
 		if (!title) {
-			if (path.startsWith('/lobby/')) {
+			if (path.startsWith('/lobby/'))
 				title = 'Lobby'
-			}
-			else if (path.startsWith('/game/')) {
+			else if (path.startsWith('/game/'))
 				title = 'Game'
-			}
-			else if (path.startsWith('/profile/')) {
+			else if (path.startsWith('/profile/'))
 				title = 'Profile'
-			}
 		}
 		document.title = title
 			? `Triple — ${title}`
@@ -68,7 +65,7 @@ function App() {
 		<>
 			<NavBar />
 
-			<div className='mx-auto p-8 text-center flex justify-center items-center min-h-[calc(100vh-100px)]'>
+			<div className='mx-auto px-4 py-4 text-center flex justify-center items-center min-h-[calc(100vh-100px)] md:p-8'>
 				<Routes>
 					<Route path="/" element={<HomeView />} />
 					<Route path="/join" element={<JoinGameView />} />

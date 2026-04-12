@@ -16,9 +16,8 @@ export async function refresh(req, res) {
 		return res.status(200).json({ user });
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Refresh:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });

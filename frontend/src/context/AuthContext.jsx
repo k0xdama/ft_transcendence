@@ -4,9 +4,9 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
 	const context = useContext(AuthContext)
-	if (!context) {
+	if (!context)
 		throw new Error('useAuth must be used within AuthProvider');
-	}
+
 	return context;
 }
 
@@ -103,12 +103,21 @@ export const AuthProvider = ({ children }) => {
 		});
 	}
 
+	const updateUser = (fields) => {
+		setUser(prev => {
+			const updated = { ...prev, ...fields }
+			localStorage.setItem('user', JSON.stringify(updated))
+			return updated
+		})
+	}
+
 	const isAuthenticated = () => user !== null;
 
 	const value = {
 		user,
 		login,
 		logout,
+		updateUser,
 		isAuthenticated,
 		authFetch,
 		loading

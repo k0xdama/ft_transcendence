@@ -143,9 +143,8 @@ class StatsWorker {
 		console.log('🛑 Stopping stats worker...');
 		this.isRunning = false;
 
-		if (this.redisClient) {
+		if (this.redisClient)
 			await this.redisClient.quit();
-		}
 
 		console.log('✅ Stats worker stopped');
 	}

@@ -1,3 +1,5 @@
+import { useIsMobileGame } from "../../hooks/useIsMobileGame"
+
 const cardImages = import.meta.glob('../../assets/cards/Card_*.png', { eager: true })
 
 const getCardImage = (value) => {
@@ -6,6 +8,7 @@ const getCardImage = (value) => {
 }
 
 function TableArea({ riverSlots, isMyTurn, currentAction, cardsRevealed, onFlip }) {
+	const isMobile = useIsMobileGame()
 	const	actionsUsed = cardsRevealed.length
 	const	expectedRevealed = { FIRST: 0, SECOND: 1, BONUS: 2 }
 	const	canAct = isMyTurn && actionsUsed === expectedRevealed[currentAction]
@@ -13,11 +16,15 @@ function TableArea({ riverSlots, isMyTurn, currentAction, cardsRevealed, onFlip 
 	const	cols =	riverSlots.length === 9 ? 3
 					: riverSlots.length === 8 ? 4
 					: 3
-	const cardBase = "h-[5.5vw] min-h-[90px] w-[4vw] min-w-[70px] rounded-md border border-white/20 bg-black transition-[transform,border,box-shadow] duration-200 ease-in-out"
+
+	const cardSize = isMobile
+		? "h-[4vw] w-[3vw] min-h-[44px] min-w-[32px]"
+		: "h-[5.5vw] w-[4vw] min-h-[90px] min-w-[70px]"
+	const cardBase = `${cardSize} rounded-md border border-white/20 bg-black transition-[transform,border,box-shadow] duration-200 ease-in-out`
 
 	return (
 		<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl">
-			<div className="grid gap-[50px]" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+			<div className={`grid ${isMobile ? 'gap-x-[14px] gap-y-[8px]' : 'gap-[50px]'}`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
 				{riverSlots.map((card, index) => {
 					if (!card) {
 						return <div key={`empty-${index}`} className={`${cardBase} pointer-events-none invisible`} />

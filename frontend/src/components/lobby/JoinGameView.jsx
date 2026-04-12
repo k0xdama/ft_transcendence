@@ -20,10 +20,12 @@ function JoinGameView() {
 			setError('You must be logged in to join a game!')
 			return
 		}
+
 		if (!inputLobbyId.trim()) {
 			setError('Enter lobby ID!')
 			return
 		}
+
 		if (!/^[A-Z2-9]{6}$/.test(inputLobbyId)) {
 			setError('Enter a valid ID!')
 			return
@@ -39,7 +41,7 @@ function JoinGameView() {
 
 	return (
 		<div className='flex justify-center'>
-			<div className='w-[400px] rounded-2xl border border-purple-mid bg-card p-8 shadow-card backdrop-blur-3xl'>
+			<div className='w-full max-w-[400px] rounded-2xl border border-purple-mid bg-card p-6 shadow-card backdrop-blur-3xl md:p-8'>
 				<h2 className='m-0 mb-6 text-center text-lg uppercase tracking-title text-purple-pale text-shadow-purple'>Join game</h2>
 				{(error || lobbyError) && (<p className='m-0 mb-4 text-center text-xs uppercase tracking-ui text-red-400'>{error || lobbyError}</p>)}
 				<div className='mb-5 flex flex-col items-start gap-1.5'>

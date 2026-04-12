@@ -40,9 +40,9 @@ function ProfileFriends() {
 	const fetchFriends = async () => {
 		try {
 			const response = await authFetch(`${playerRoute}/me/friends`)
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to fetch friends')
-			}
+
 			const data = await response.json()
 			// Transform API data to match component expectations
 			const transformedFriends = data.friends.map(friend => ({
@@ -88,9 +88,9 @@ function ProfileFriends() {
 	const fetchBlocked = async () => {
 		try {
 			const response = await authFetch(`${playerRoute}/me/blocked`)
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to fetch blocked users')
-			}
+
 			const data = await response.json()
 			const transformedBlocked = data.blocked.map(user => ({
 				id: user.auth_user_id,
@@ -112,9 +112,8 @@ function ProfileFriends() {
 				method: 'DELETE'
 			})
 
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to remove friend')
-			}
 
 			await fetchFriends()
 		} catch (err) {
@@ -129,9 +128,8 @@ function ProfileFriends() {
 				method: 'POST'
 			})
 
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to block user')
-			}
 
 			await fetchFriends()
 		} catch (err) {
@@ -146,9 +144,8 @@ function ProfileFriends() {
 				method: 'DELETE'
 			})
 
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to unblock user')
-			}
 
 			await fetchBlocked()
 		} catch (err) {

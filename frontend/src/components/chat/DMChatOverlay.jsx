@@ -12,58 +12,146 @@ function DMChatOverlay() {
 	const { user } = useAuth()
 	const { conversations, openChats, listOpen, setListOpen, totalUnread, openDM, closeDM, toggleMinimize } = useDM()
 
-	if (!user) return null
+	if (!user)
+		return null
 
 	return (
-		<div className="fixed bottom-10 right-0 z-50 flex items-end gap-2 p-4 pointer-events-none">
-			{/* Open chat windows */}
-			{openChats.map(chat => (
-				<DMChatWindow
-					key={chat.conversationId}
-					chat={chat}
-					onClose={() => closeDM(chat.conversationId)}
-					onMinimize={() => toggleMinimize(chat.conversationId)}
-				/>
-			))}
+		<>
+			{/* Desktop layout: bottom-right with chat windows */}
+			<div className="fixed bottom-10 right-0 z-50 hidden items-end gap-2 p-4 pointer-events-none md:flex">
+				{/* Open chat windows */}
+				{openChats.map(chat => (
+					<DMChatWindow
+						key={chat.conversationId}
+						chat={chat}
+						onClose={() => closeDM(chat.conversationId)}
+						onMinimize={() => toggleMinimize(chat.conversationId)}
+					/>
+				))}
 
-			{/* Conversations list */}
-			{listOpen && (
-				<DMConversationList
-					conversations={conversations}
-					user={user}
-					onSelect={(conv) => {
-						const otherId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
-						const avatar = conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
-							? `${playerRoute}/${otherId}/profile-picture`
-							: null
-						openDM(otherId, conv.other_username, avatar)
-					}}
-					onClose={() => setListOpen(false)}
-				/>
-			)}
+				{/* Conversations list */}
+				{listOpen && (
+					<DMConversationList
+						conversations={conversations}
+						user={user}
+						onSelect={(conv) => {
+							const otherId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+							const avatar = conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
+								? `${playerRoute}/${otherId}/profile-picture`
+								: null
+							openDM(otherId, conv.other_username, avatar)
+						}}
+						onClose={() => setListOpen(false)}
+					/>
+				)}
 
-			{/* Toggle button */}
+				{/* Toggle button */}
+				<button
+					className="pointer-events-auto relative flex h-14 w-14 items-center justify-center bg-transparent border-none cursor-pointer transition-transform hover:scale-110 mr-4"
+					onClick={() => setListOpen(prev => !prev)}
+					title="Messages"
+					style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 16px rgba(255,255,255,0.5))' }}
+				>
+					<span className="text-[2.25rem] leading-none">✉️</span>
+					{totalUnread > 0 && (
+						<span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
+							{totalUnread > 99 ? '99+' : totalUnread}
+						</span>
+					)}
+				</button>
+			</div>
+
+			{/* Mobile: toggle button — same level & size as lobby chat icon */}
 			<button
-				className="pointer-events-auto relative flex h-14 w-14 items-center justify-center bg-transparent border-none cursor-pointer transition-transform hover:scale-110 mr-4"
+				className={`md:hidden fixed bottom-4 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-purple-mid bg-[rgba(10,5,20,0.9)] text-xl text-purple-pale shadow-card transition-all hover:bg-[rgba(20,10,40,0.95)] ${listOpen ? 'hidden' : ''}`}
 				onClick={() => setListOpen(prev => !prev)}
-				title="Messages"
-				style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 16px rgba(255,255,255,0.5))' }}
+				aria-label="Messages"
 			>
-				<span className="text-[2.25rem] leading-none">✉️</span>
+				✉️
 				{totalUnread > 0 && (
 					<span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
 						{totalUnread > 99 ? '99+' : totalUnread}
 					</span>
 				)}
 			</button>
-		</div>
+
+			{/* Mobile: fullscreen conversation list */}
+			{listOpen && (
+				<div className="md:hidden fixed inset-0 z-[150] flex flex-col bg-[rgba(10,5,20,0.95)] backdrop-blur-md">
+					<div className="flex items-center justify-between border-b border-purple-dim px-4 py-3">
+						<h3 className="m-0 text-xs font-semibold uppercase tracking-ui text-purple-pale">Messages</h3>
+						<button
+							className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/50 text-xs text-white/80"
+							onClick={() => setListOpen(false)}
+							aria-label="Close messages"
+						>
+							✕
+						</button>
+					</div>
+					<div className="flex-1 overflow-y-auto">
+						{conversations.length === 0 ? (
+							<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-8 m-0">No conversations yet</p>
+						) : (
+							conversations.map(conv => (
+								<button
+									key={conv.id}
+									className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors cursor-pointer border-0 bg-transparent"
+									onClick={() => {
+										const otherId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+										const avatar = conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
+											? `${playerRoute}/${otherId}/profile-picture`
+											: null
+										openDM(otherId, conv.other_username, avatar)
+										setListOpen(false)
+									}}
+								>
+									<img
+										className="h-9 w-9 rounded-full border-2 border-purple-brand/30 object-cover flex-shrink-0"
+										src={conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
+											? `${playerRoute}/${conv.user1_id === user.id ? conv.user2_id : conv.user1_id}/profile-picture`
+											: PFP_Default}
+										alt={conv.other_username}
+										onError={e => { e.target.src = PFP_Default }}
+									/>
+									<div className="flex flex-col gap-0.5 flex-1 min-w-0">
+										<div className="flex items-center justify-between">
+											<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{conv.other_username}</span>
+											{Number(conv.unread_count) > 0 && (
+												<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-brand px-1 text-[0.6rem] font-bold text-white flex-shrink-0 ml-2">
+													{conv.unread_count}
+												</span>
+											)}
+										</div>
+										{conv.last_message && (
+											<span className="text-xs text-white/40 truncate">{conv.last_message}</span>
+										)}
+									</div>
+								</button>
+							))
+						)}
+					</div>
+				</div>
+			)}
+
+			{/* Mobile: open DM chat windows as fullscreen */}
+			{openChats.filter(c => !c.minimized).map(chat => (
+				<div key={chat.conversationId} className="md:hidden fixed inset-0 z-[160] flex flex-col bg-[rgba(10,5,20,0.95)] backdrop-blur-md">
+					<DMChatWindow
+						chat={{ ...chat, minimized: false }}
+						onClose={() => closeDM(chat.conversationId)}
+						onMinimize={() => toggleMinimize(chat.conversationId)}
+						mobile
+					/>
+				</div>
+			))}
+		</>
 	)
 }
 
 // ─── Conversation List Panel ────────────────────────────────────────────────
 function DMConversationList({ conversations, onSelect, onClose, user }) {
 	return (
-		<div className="pointer-events-auto flex w-72 flex-col rounded-xl border border-purple-mid bg-card backdrop-blur-3xl shadow-card max-h-[420px]">
+		<div className="pointer-events-auto flex w-[calc(100vw-2rem)] flex-col rounded-xl border border-purple-mid bg-card backdrop-blur-3xl shadow-card max-h-[70vh] md:w-72 md:max-h-[420px]">
 			{/* Header */}
 			<div className="flex items-center justify-between border-b border-purple-dim px-4 py-3">
 				<h3 className="m-0 text-xs font-semibold uppercase tracking-ui text-purple-pale">Messages</h3>
@@ -118,7 +206,7 @@ function DMConversationList({ conversations, onSelect, onClose, user }) {
 // ─── Individual Chat Window ─────────────────────────────────────────────────
 const TYPING_TIMEOUT_MS = 1500
 
-function DMChatWindow({ chat, onClose, onMinimize }) {
+function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 	const { user, authFetch } = useAuth()
 	const { on, emit } = useChat()
 	const [messages, setMessages] = useState([])
@@ -154,9 +242,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 			return
 
 		return on('dm:message', (msg) => {
-			if (msg.conversation_id === chat.conversationId) {
+			if (msg.conversation_id === chat.conversationId)
 				setMessages(prev => [...prev, msg])
-			}
 		})
 	}, [on, chat.conversationId])
 
@@ -166,7 +253,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 			return
 
 		return on('dm:read', ({ conversationId, readAt }) => {
-			if (conversationId !== chat.conversationId) return
+			if (conversationId !== chat.conversationId)
+				return
 			setMessages(prev => prev.map(msg =>
 				msg.sender_id === user.id && !msg.read_at
 					? { ...msg, read_at: readAt }
@@ -181,7 +269,8 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 			return
 
 		return on('dm:typing', ({ conversationId }) => {
-			if (conversationId !== chat.conversationId) return
+			if (conversationId !== chat.conversationId)
+				return
 			setIsTyping(true)
 			clearTimeout(typingTimer.current)
 			typingTimer.current = setTimeout(() => setIsTyping(false), TYPING_TIMEOUT_MS)
@@ -253,7 +342,10 @@ function DMChatWindow({ chat, onClose, onMinimize }) {
 	}
 
 	return (
-		<div className="pointer-events-auto flex w-72 flex-col rounded-xl border border-purple-mid bg-card backdrop-blur-3xl shadow-card h-[380px]">
+		<div className={mobile
+			? "flex flex-1 flex-col bg-transparent"
+			: "pointer-events-auto flex w-[calc(100vw-2rem)] flex-col rounded-xl border border-purple-mid bg-card backdrop-blur-3xl shadow-card h-[70vh] md:w-72 md:h-[380px]"
+		}>
 			{/* Header */}
 			<div className="flex items-center gap-2 border-b border-purple-dim px-3 py-2 flex-shrink-0">
 				<img className="h-7 w-7 rounded-full border border-purple-brand/30 object-cover" src={avatarSrc} alt={chat.username} onError={e => { e.target.src = PFP_Default }} />

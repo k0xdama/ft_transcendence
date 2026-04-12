@@ -11,9 +11,8 @@ export async function createDM(req, res) {
 		return res.status(created ? 201 : 200).json(conversation);
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Create DM conversation:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
@@ -32,9 +31,8 @@ export async function sendDM(req, res) {
 		return res.status(201).json(message);
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Send DM:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
@@ -59,9 +57,8 @@ export async function getDMHistory(req, res) {
 		return res.status(200).json(history);
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('DM history:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
@@ -79,9 +76,8 @@ export async function markAsRead(req, res) {
 		return res.status(200).json({ readCount });
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Mark DMs as read:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
@@ -98,9 +94,8 @@ export async function getMyDMs(req, res) {
 		return res.status(200).json(conversations);
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Get my DMs:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });

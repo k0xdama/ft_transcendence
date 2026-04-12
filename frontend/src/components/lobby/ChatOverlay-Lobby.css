@@ -23,7 +23,7 @@
 	background: rgba(0, 0, 0, 0.55);
 }
 
-/* ── Chat header (invite button) ────────────────────── */
+/* ─── Chat header (invite button) ────────────────────── */
 .chat-header {
 	display: flex;
 	justify-content: flex-end;
@@ -92,7 +92,7 @@
 
 .chat-send:hover { background: rgba(255,255,255,0.05); border-color: transparent; }
 
-/* ── Typing indicator ───────────────────────────────── */
+/* ─── Typing indicator ───────────────────────────────── */
 .chat-typing {
 	margin: 0;
 	padding: 0.2rem 0.75rem;
@@ -102,14 +102,14 @@
 	font-family: system-ui, sans-serif;
 }
 
-/* ── System notification ────────────────────────────── */
+/* ─── System notification ────────────────────────────── */
 .chat-notification .chat-text {
 	color: rgba(255, 255, 255, 0.45);
 	font-style: italic;
 	font-size: 0.75rem;
 }
 
-/* ── Quick replies chips row (above input) ──────────── */
+/* ─── Quick replies chips row (above input) ──────────── */
 .chat-quick-replies {
 	display: flex;
 	gap: 0.35rem;
@@ -141,7 +141,7 @@
 	color: white;
 }
 
-/* ── Invite button (header) ─────────────────────────── */
+/* ─── Invite button (header) ─────────────────────────── */
 .chat-invite-btn {
 	background: rgba(157, 78, 221, 0.15);
 	border: 1px solid rgba(157, 78, 221, 0.4);

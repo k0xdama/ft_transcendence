@@ -40,9 +40,8 @@ export async function login(req, res) {
 		});
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Login:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });

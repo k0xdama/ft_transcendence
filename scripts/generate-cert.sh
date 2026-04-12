@@ -13,7 +13,7 @@ if [ -f secrets/ssl/key.pem ]; then
 	exit 0
 fi
 
-printf "\n${BOLD}${P_PURPLE}------------- CERTIFICATE GENERATION -------------${RESET}\n\n"
+printf "${BOLD}${P_PURPLE}------------- CERTIFICATE GENERATION -------------${RESET}\n\n"
 
 # ─── Certificate generation ──────
 IP=$(hostname -I | awk '{print $1}')

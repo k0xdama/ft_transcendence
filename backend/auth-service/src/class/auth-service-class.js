@@ -80,9 +80,9 @@ class AuthService {
 				if (error.constraint === 'users_username_key') // <table>_<column>_key
 					throw new UsernameAlreadyExistsError();
 			}
-			if (error.code === '23514') {
+			if (error.code === '23514')
 				throw new ValidationError('Invalid data format');
-			}
+
 			throw error;
 		}
 	}
@@ -97,14 +97,12 @@ class AuthService {
 			WHERE email = $1 OR username = $1`,
 			[identifier]
 		);
-		if (!user) {
+		if (!user)
 			throw new InvalidCredentialsError();
-		}
 
 		const isValidPassword = await bcrypt.compare(password, user.password_hash);
-		if (!isValidPassword) {
+		if (!isValidPassword)
 			throw new InvalidCredentialsError();
-		}
 
 		const refreshToken = crypto.randomBytes(64).toString('hex');
 		const tokenHash = hashToken(refreshToken);
@@ -198,11 +196,13 @@ class AuthService {
 			updates.push(`username = $${paramIndex++}`);
 			values.push(username);
 		}
+
 		if (email !== undefined) {
 			validateEmail(email);
 			updates.push(`email = $${paramIndex++}`);
 			values.push(email);
 		}
+
 		if (password !== undefined) {
 			validatePassword(password);
 			const passwordHash = await bcrypt.hash(password, 10);
@@ -239,6 +239,7 @@ class AuthService {
 			}
 			if (error.code === '23514')
 				throw new ValidationError('Invalid data format');
+
 			throw error;
 		}
 	}
