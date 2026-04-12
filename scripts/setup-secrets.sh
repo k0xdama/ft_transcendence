@@ -11,7 +11,7 @@ P_GREEN="\033[38;2;173;235;179m"
 
 # ── Check ───────────────────────
 if [ -f secrets/psql_dbname.txt ]; then
-	printf "${BOLD}${P_YELLOW}Secrets already exist, skipping...${RESET}\n"
+	printf "${BOLD}${P_YELLOW}Secrets already exist, skipping...${RESET}\n\n"
 	exit 0
 fi
 

@@ -24,7 +24,8 @@ function DeleteAccountModal({ onConfirm, onCancel }) {
 					type="text"
 					value={confirmText}
 					onChange={(e) => setConfirmText(e.target.value)}
-					className="w-full px-3.5 py-2.5 rounded text-sm text-center text-white/87 bg-white/6 border border-red-500/30 placeholder-white/35 focus:outline-none focus:border-red-500/50 uppercase tracking-title mb-5 box-border"
+					className="w-full px-3.5 py-2.5 rounded text-sm text-center text-white bg-card-input border border-red-500/30 placeholder-white/35 focus:outline-none focus:border-red-500/50 uppercase tracking-title mb-5 box-border"
+					style={{ WebkitTextFillColor: '#fff' }}
 					placeholder="Type DELETE"
 				/>
 				<div className="flex gap-3 justify-center">

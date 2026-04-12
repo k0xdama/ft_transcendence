@@ -46,7 +46,8 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						disabled={editingField !== 'username'}
-						className="flex-1 px-3 py-2 rounded text-sm font-normal text-white/87 bg-white/6 border border-purple-mid/25 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+						className="flex-1 px-3 py-2 rounded text-sm font-normal text-white bg-card-input border border-purple-mid/25 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 disabled:text-purple-pale/70 disabled:cursor-not-allowed transition-all"
+						style={{ WebkitTextFillColor: editingField === 'username' ? '#fff' : 'rgba(224,170,255,0.7)' }}
 					/>
 					{editingField === 'username' ? (
 						<div className="flex gap-1.5">
@@ -83,7 +84,8 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						disabled={editingField !== 'email'}
-						className="flex-1 px-3 py-2 rounded text-sm font-normal text-white/87 bg-white/6 border border-purple-mid/25 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+						className="flex-1 px-3 py-2 rounded text-sm font-normal text-white bg-card-input border border-purple-mid/25 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 disabled:text-purple-pale/70 disabled:cursor-not-allowed transition-all"
+						style={{ WebkitTextFillColor: editingField === 'email' ? '#fff' : 'rgba(224,170,255,0.7)' }}
 					/>
 					{editingField === 'email' ? (
 						<div className="flex gap-1.5">

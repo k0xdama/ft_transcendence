@@ -18,6 +18,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	const [friends, setFriends] = useState([])
 	const [friendsLoading, setFriendsLoading] = useState(false)
 	const [inviteSent, setInviteSent] = useState({})
+	const [mobileOpen, setMobileOpen] = useState(false)
 	const bottomRef = useRef(null)
 	const typingTimers = useRef({})
 	const { authFetch, user } = useAuth()
@@ -169,7 +170,22 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	}
 
 	return (
-		<div className="absolute bottom-12 left-4 z-10 flex max-h-[380px] w-[340px] flex-col overflow-hidden rounded-lg bg-black/45 transition-colors duration-300 hover:bg-black/55">
+		<>
+			<button
+				className={`md:hidden fixed bottom-14 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-purple-mid bg-[rgba(10,5,20,0.9)] text-xl text-purple-pale shadow-card transition-all hover:bg-[rgba(20,10,40,0.95)] ${mobileOpen ? 'hidden' : ''}`}
+				onClick={() => setMobileOpen(true)}
+				aria-label="Open chat"
+			>
+				💬
+			</button>
+		<div className={`${mobileOpen ? 'flex' : 'hidden'} md:flex fixed bottom-14 left-4 z-30 max-h-[70vh] w-[calc(100vw-2rem)] max-w-[340px] md:max-h-[380px] md:w-[340px] flex-col overflow-hidden rounded-lg bg-black/80 md:bg-black/45 backdrop-blur-md transition-colors duration-300 hover:bg-black/55`}>
+			<button
+				className="md:hidden absolute right-2 top-2 z-40 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-black/50 text-xs text-white/80"
+				onClick={() => setMobileOpen(false)}
+				aria-label="Close chat"
+			>
+				✕
+			</button>
 			<div className="relative flex justify-end border-b border-white/[0.08] px-2 py-[0.3rem]">
 				<button className="rounded border border-[rgba(157,78,221,0.4)] bg-[rgba(157,78,221,0.15)] px-[0.6rem] py-[0.2rem] font-sans text-[0.7rem] text-white/75 transition-colors duration-150 hover:border-[#9d4edd] hover:bg-[rgba(157,78,221,0.3)] hover:text-white" onClick={openInvitePanel}>Send Invite</button>
 				{showInvite && (
@@ -233,6 +249,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 				<button className="cursor-pointer rounded-none border-none border-l border-white/10 bg-transparent px-[0.6rem] py-[0.4rem] text-base text-[#9d4edd] hover:border-transparent hover:bg-white/5" onClick={sendMessage}>Send</button>
 			</div>
 		</div>
+		</>
 	)
 }
 

@@ -44,13 +44,12 @@ function DMChatOverlay() {
 
 			{/* Toggle button */}
 			<button
-				className="pointer-events-auto relative flex h-11 w-11 items-center justify-center rounded-full border border-purple-brand/50 bg-card shadow-lg shadow-purple-brand/20 text-purple-pale hover:border-purple-light hover:shadow-purple-brand/40 transition-all cursor-pointer"
+				className="pointer-events-auto relative flex h-14 w-14 items-center justify-center bg-transparent border-none cursor-pointer transition-transform hover:scale-110 mr-4"
 				onClick={() => setListOpen(prev => !prev)}
 				title="Messages"
+				style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 16px rgba(255,255,255,0.5))' }}
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-				</svg>
+				<span className="text-[2.25rem] leading-none">✉️</span>
 				{totalUnread > 0 && (
 					<span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
 						{totalUnread > 99 ? '99+' : totalUnread}
