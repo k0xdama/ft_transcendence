@@ -31,6 +31,9 @@ app.use(cors({
 	credentials: true
 }));
 app.use(cookieParser());
+// ✅ Augmenter les limites pour les uploads (défaut 100kb) attention c'est de la D ca relentit tout et rend inutilisable
+// app.use(express.json({ limit: '10mb' }));
+// app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.get('/health', (req, res) => res.status(200).send('OK'));
 

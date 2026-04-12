@@ -169,11 +169,13 @@ router.delete('/me/profile-picture', async (req, res) => {
 		}
 
 		if (isDefaultProfilePicture(player.pp_path)) {
-			return res.status(400).json({ 
-				error: 'Already using default profile picture',
-				message: 'No custom picture to delete'
-			});
-		}
+		// ✅ 409 Conflict: La ressource existe mais on ne peut pas la supprimer car elle est déjà dans l'état par défaut
+		return res.status(409).json({ 
+			error: 'Conflict',
+			message: 'Already using default profile picture',
+			details: 'No custom picture to delete'
+		});
+	}
 
 		if (!player.pp_path) {
 			return res.status(404).json({ error: 'No profile picture to delete' });
