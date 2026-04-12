@@ -109,7 +109,8 @@ function addUser(lobbyStruct, userId, username) {
 	const user = {
 		id: userId,
 		username: username,
-		ready: false
+		ready: false,
+		connected: true
 	};
 	lobbyStruct.users.push(user);
 }
@@ -215,12 +216,18 @@ io.on('connection', (socket) => {
 			socket.emit('error', `No lobby with this ID exists`);
 			return;
 		}
-		for (const user of lobbyStruct.users) {
-			if (socket.user.id === user.id) {
+		const user = lobbyStruct.users.find(u => u.id === socket.user.id);
+    	if (user) {
+        	if (user.connected) {
 				socket.emit('error', 'You have already joined this lobby');
-				return;
-			}
-		}
+           		return;
+       		}
+        	user.connected = true;
+        	socket.join(data.lobbyId);
+        	lobbyBySocket.set(socket.id, data.lobbyId);
+        	io.to(data.lobbyId).emit('lobby:joined', { lobbyStruct });
+        	return;
+    	}
 		if (lobbyStruct.state === LOBBY_STATE.FULL) {
 			socket.emit('error', 'This lobby is already full');
 			return;
@@ -383,28 +390,39 @@ io.on('connection', (socket) => {
 			onlineUsers.delete(socket.user.id);
 
 		const lobbyId = lobbyBySocket.get(socket.id);
+
 		if (lobbyId != undefined) {
 			const lobbyStruct = lobbys.get(lobbyId);
-			lobbyBySocket.delete(socket.id);
 
-			if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED)
+			if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED) {
+				lobbyBySocket.delete(socket.id);
 				return;
+			}
 
-			const userIndex = lobbyStruct.users.findIndex(user => user.id === socket.user.id);
-			lobbyStruct.users.splice(userIndex, 1);
-			if (lobbyStruct.users.length === 0) {
-				lobbys.delete(lobbyId);
-				redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members: [] }))
-					.catch(console.error);
-			}
-			else {
-				if (lobbyStruct.creatorId === socket.user.id)
-					lobbyStruct.creatorId = lobbyStruct.users[0].id;
-				if (lobbyStruct.state === LOBBY_STATE.FULL)
-					lobbyStruct.state = LOBBY_STATE.WAITING;
-				publishLobbyMembers(lobbyId, lobbyStruct);
-				io.to(lobbyId).emit('lobby:disconnected', { userId: socket.user.id });
-			}
+			const user = lobbyStruct.users.find(user => user.id === socket.user.id);
+			user.connected = false;
+			lobbyBySocket.delete(socket.id);
+			io.to(lobbyId).emit('lobby:disconnected', { userId: socket.user.id });
+
+			setTimeout(() => {
+        		if (user.connected)
+            		return;
+       			 const userIndex = lobbyStruct.users.findIndex(u => u.id === socket.user.id);
+        		lobbyStruct.users.splice(userIndex, 1);
+       			if (lobbyStruct.users.length === 0) {
+            		lobbys.delete(lobbyId);
+            		redisClient.publish('lobby:membersChanged', JSON.stringify({ lobbyId, members: [] }))
+                		.catch(console.error);
+       			} 
+				else {
+            		if (lobbyStruct.creatorId === socket.user.id)
+               			lobbyStruct.creatorId = lobbyStruct.users[0].id;
+            		if (lobbyStruct.state === LOBBY_STATE.FULL)
+                		lobbyStruct.state = LOBBY_STATE.WAITING;
+            		publishLobbyMembers(lobbyId, lobbyStruct);
+            		io.to(lobbyId).emit('lobby:userLeft', { userId: socket.user.id });
+       			}
+    		}, 15000);
 		}
 		else {
 			const queueKey = queueBySocket.get(socket.id);

@@ -68,17 +68,23 @@ export function LobbyProvider({ children }) {
 		});
 
 		socketRef.current.on('lobby:userLeft', ({ userId }) => {
-			setLobbyStruct(prev => ({
-				...prev,
+			setLobbyStruct(prev => {
+				if (!prev)
+					return null;
+				return {...prev,
 				users: prev.users.filter(u => u.id !== userId)
-			}));
+				};
+			});
 		});
 
 		socketRef.current.on('lobby:disconnected', ({ userId }) => {
-			setLobbyStruct(prev => ({
-				...prev,
+			setLobbyStruct(prev => {
+				if (!prev)
+					return null;
+				return {...prev,
 				users: prev.users.filter(u => u.id !== userId)
-			}));
+				};
+			});
 		});
 
 		socketRef.current.on('lobby:gameStarting', ({ gameId }) => {

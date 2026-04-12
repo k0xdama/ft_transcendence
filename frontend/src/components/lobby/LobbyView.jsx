@@ -1,18 +1,19 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ChatOverlay from './ChatOverlay-Lobby'
 // import './LobbyView.css'
 // import './LobbyView.module.css'
 
 function LobbyView() {
-	const	{ lobbyId } = useParams()
-	const	{ lobbyStruct, updateRules, toggleReady, startGame, lobbyError, gameId, joinLobby, leaveLobby } = useLobby()
+	const	{ lobbyId: urlLobbyId } = useParams()
+	const	{ lobbyStruct, connected, lobbyId, updateRules, toggleReady, startGame, lobbyError, gameId, joinLobby, leaveLobby } = useLobby()
 	const	{ user } = useAuth()
 	const	[error, setError] = useState(null)
 	const	[copied, setCopied] = useState(false)
 	const	navigate = useNavigate()
+	const	gameIdRef = useRef(null);
 
 	useEffect(() => {
 		console.log('LobbyView useEffect - gameId:', gameId);
@@ -21,13 +22,20 @@ function LobbyView() {
 	}, [gameId])
 
 	useEffect(() => {
-		return () => leaveLobby();
+		gameIdRef.current = gameId;
+	}, [gameId]);
+
+	useEffect(() => {
+		return () => {
+			if (!gameIdRef.current)
+				leaveLobby();
+		};
 	}, []);
 
-	// useEffect(() => {
-	// 	if (!lobbyStruct && lobbyId)
-	// 		joinLobby(lobbyId);
-	// }, [lobbyStruct, lobbyId]);
+	useEffect(() => {
+		if (connected && !lobbyStruct && urlLobbyId)
+			joinLobby(urlLobbyId);
+	}, [connected, lobbyStruct, urlLobbyId]);
  
 	if (!lobbyStruct) {
 		return (
