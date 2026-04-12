@@ -28,10 +28,10 @@ NAME	:=	ft_transcendence
 all: cert env secrets build up
 
 cert:
-	bash ./scripts/setup-cert.sh
+	bash ./scripts/generate-cert.sh
 
 env:
-	bash ./scripts/setup-env.sh
+	bash ./scripts/create-env.sh
 
 secrets:
 	bash ./scripts/setup-secrets.sh
