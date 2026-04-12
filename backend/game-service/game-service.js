@@ -110,7 +110,7 @@ io.on('connection', (socket) => {
 			existingPlayer.connected = true;
 			socket.join(data.gameId);
 			gameBySocket.set(socket.id, data.gameId);
-			socket.emit('game:reconnected', { gameStruct });
+			socket.emit('game:reconnected', { gameStruct, riverSlots: gameStruct.riverSlots });
 			socket.to(data.gameId).emit('game:playerReconnected', { userId : socket.user.id });
 			return;
 		}

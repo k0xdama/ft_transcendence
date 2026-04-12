@@ -16,9 +16,24 @@ export function GameProvider({ children }) {
 	const [disconnectedPlayer, setDisconnectedPlayer] = useState(null);
 	const [revealedHandCards, setRevealedHandCards] = useState([]);
 	const [gameResult, setGameResult] = useState(null);
+	const [riverSlots, setRiverSlot] = useState(null);
 	const socketRef = useRef(null);
-	const riverSlotsRef = useRef(null);
 	const gameRoute = '/api/game';
+
+	const updateRiverSlot = (slots) => {
+		setRiverSlot(slots);
+	};
+
+	const hydrateRiverSlots = (slots, cardsInMiddle) => {
+		if (!Array.isArray(slots))
+			return [];
+		const cardsById = new Map((cardsInMiddle || []).map(card => [card.id, card]));
+		return slots.map(slot => {
+			if (!slot)
+				return null;
+			return cardsById.get(slot.id) || slot;
+		});
+	};
 
 	const connect = (gameId, onConnected, onError) => {
 		if (socketRef.current)
@@ -39,16 +54,13 @@ export function GameProvider({ children }) {
 
 		socketRef.current.on('game:started', ({ gameStruct }) => {
 			setGameStruct(gameStruct);
-			riverSlotsRef.current = gameStruct.cardsInMiddle.map(card => ({...card}));
+			updateRiverSlot(hydrateRiverSlots(gameStruct.riverSlots, gameStruct.cardsInMiddle));
 		});
 
 		socketRef.current.on('game:update', ({ gameStruct, action_result }) => {
 			setGameStruct(gameStruct);
 			setLastAction(action_result);
-			if (riverSlotsRef.current) {
-				const activeIds = new Set(gameStruct.cardsInMiddle.map(c => c.id));
-				riverSlotsRef.current = riverSlotsRef.current.map(slot => slot && activeIds.has(slot.id) ? slot : null);
-			}
+			updateRiverSlot(hydrateRiverSlots(gameStruct.riverSlots, gameStruct.cardsInMiddle));
 			if (action_result?.actionDone !== 'FLIP_MIDDLE' && action_result?.revealedCard) {
 				setRevealedHandCards(prev => [...prev, {
 					cardId: action_result.revealedCard.id,
@@ -64,6 +76,7 @@ export function GameProvider({ children }) {
 
 		socketRef.current.on('game:turnChanged', ({ gameStruct }) => {
 			setGameStruct(gameStruct);
+			updateRiverSlot(hydrateRiverSlots(gameStruct.riverSlots, gameStruct.cardsInMiddle));
 			setLastAction(null);
 			setPendingCheck(false);
 			setTurnTimer(false);
@@ -86,9 +99,10 @@ export function GameProvider({ children }) {
 			setDisconnectedPlayer(null);
 		})
 
-		socketRef.current.on('game:reconnected', ({ gameStruct }) => {
+		socketRef.current.on('game:reconnected', ({ gameStruct, riverSlots: receivedRiverSlots }) => {
 			setGameStruct(gameStruct);
-		})
+			updateRiverSlot(hydrateRiverSlots(receivedRiverSlots, gameStruct.cardsInMiddle));
+		});
 
 		socketRef.current.on('error', (message) => {
 			setGameError(message);
@@ -113,6 +127,7 @@ export function GameProvider({ children }) {
 		setTurnTimer(false);
 		setDisconnectedPlayer(null);
 		setRevealedHandCards([]);
+		setRiverSlot(null);
 	};
 
 	const sendAction = (gameId, actionType, target = null) => {
@@ -140,7 +155,7 @@ export function GameProvider({ children }) {
 		pendingCheck,
 		lastAction,
 		revealedHandCards,
-		riverSlots: riverSlotsRef.current
+		riverSlots
 	};
 
 	return (
@@ -149,5 +164,3 @@ export function GameProvider({ children }) {
 		</GameContext.Provider>
 	);
 }
-
-

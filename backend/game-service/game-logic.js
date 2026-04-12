@@ -40,6 +40,7 @@ export function createGame(gameId, gameMode, gameType, creatorId) {
 		expectedPlayers: null,
 		cardsInMiddle: [],
 		cardsRevealed: [],
+		riverSlots: [],
 		trioWonArray: {},
 		lastTrioWinner: null,
 		eliminationOrder: [],
@@ -138,6 +139,7 @@ export function flipMiddleCard(gameStruct, cardId) {
 
 export function removeCard(gameStruct, cardId) {
 	gameStruct.cardsInMiddle = gameStruct.cardsInMiddle.filter(card => card.id !== cardId);
+	gameStruct.riverSlots = gameStruct.riverSlots.map(slot => slot === null ? null : (slot.id === cardId ? null : slot));
 
 	for (const player of gameStruct.players) {
 		player.hand = player.hand.filter(card => card.id !== cardId);
@@ -201,6 +203,7 @@ export function shuffleAndDeal(gameStruct, deck) {
 	console.log('deck après distribution:', shuffled.map(c => c.value));
 
 	gameStruct.cardsInMiddle = shuffled;
+	gameStruct.riverSlots = shuffled.map(card => ({ id: card.id }));
 }
 // if action is FLIP_MIDDLE target parameter gonna be the cardId, else if action is ASK_LOWEST/HIGHEST so target gonna be the player's id targeted by the action
 export function executeAction(gameStruct, actionType, target) {
