@@ -16,7 +16,6 @@ fi
 printf "\n${BOLD}${P_PURPLE}------------- CERTIFICATE GENERATION -------------${RESET}\n\n"
 
 # ── Certificate generation ──────
-# IP=$(ipconfig getifaddr en0 2>/dev/null)
 IP=$(hostname -I | awk '{print $1}')
 mkdir -p secrets/ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
