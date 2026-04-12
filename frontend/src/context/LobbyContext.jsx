@@ -16,6 +16,7 @@ export function LobbyProvider({ children }) {
 	const [connected, setConnected] = useState(false)
 	const [lobbyError, setLobbyError] = useState(null);
 	const socketRef = useRef(null);
+	const retry = useRef(0);
 	const lobbyRoute = '/api/lobby';
 
 	const { user, logout } = useAuth();
@@ -97,11 +98,35 @@ export function LobbyProvider({ children }) {
 				onConnected();
 		});
 
-		socketRef.current.on('connect_error', (err) => {
+		socketRef.current.on('connect_error', async (err) => {
 			console.error('Connection failed:', err.message);
+			socketRef.current.disconnect();
 			socketRef.current = null;
-			if (onConnectionError)
-				onConnectionError(err.message);
+
+			if (retry.current >= 1) {
+				retry.current = 0;
+				logout();
+				return;
+			}
+			retry.current++;
+			try {
+				const res = await fetch('/api/auth/refresh', {
+          	  		method: 'POST',
+           			credentials: 'include',
+            		headers: { 'Content-Type': 'application/json' }
+        		});
+				if (res.ok) {
+					connect();
+				}
+				else {
+					logout();
+				}
+			}
+			catch (e) {
+				logout();
+			}
+			// if (onConnectionError)
+			// 	onConnectionError(err.message);
 		});
 
 		socketRef.current.on('error', (message) => {

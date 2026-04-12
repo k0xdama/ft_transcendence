@@ -144,6 +144,10 @@ io.on('connection', (socket) => {
 			return;
 		}
 		const action_result = executeAction(gameStruct, data.actionType, data.target);
+		if (action_result.error) {
+			socket.emit('error, action_result.error');
+			return;
+		}
 		io.to(data.gameId).emit('game:update', { action_result, gameStruct });
 		if (action_result.winner != null) {
 			const stats = buildGameStats(gameStruct, action_result.winner.winnerId);

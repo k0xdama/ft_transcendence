@@ -51,8 +51,8 @@ export function createGame(gameId, gameMode, gameType, creatorId) {
 
 export function startGame(gameStruct) {
 	console.log('in StartGame');
-	gameStruct.currentPlayerIndex = 0;
-	gameStruct.currentPlayer = gameStruct.players[0].id;
+	gameStruct.currentPlayerIndex = randomInt(0, gameStruct.players.length);
+	gameStruct.currentPlayer = gameStruct.players[gameStruct.currentPlayerIndex].id;
 	gameStruct.currentAction = ACTIONS_NUMBER.FIRST;
 	gameStruct.start = Date.now();
 
@@ -230,6 +230,8 @@ export function executeAction(gameStruct, actionType, target) {
 				if (player.id === target)
 					hand = player.hand;
 			}
+			if (!hand || hand.length === 0)
+				return { error: 'This player has no cards left' };
 			card = getLowestCard(gameStruct, hand);
 			return_object.actionDone = actionType;
 			return_object.target = target;

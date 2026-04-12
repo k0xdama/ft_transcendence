@@ -257,6 +257,14 @@ io.on('connection', (socket) => {
 			return;
 		}
 
+		if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED)
+			return;
+
+		if (data.maxUsers && data.maxUsers < lobbyStruct.users.length) {
+			socket.emit('error', 'Cannot set max players below the current number of players');
+			return;
+		}
+
 		if (data.maxUsers)
 			lobbyStruct.rules.maxUsers = Math.max(3, Math.min(6, data.maxUsers));
 
@@ -266,8 +274,10 @@ io.on('connection', (socket) => {
 		if (data.gameType)
 			lobbyStruct.rules.gameType = data.gameType;
 
-		if (lobbyStruct.state === LOBBY_STATE.GAME_STARTED)
-			return;
+		if (lobbyStruct.users.length === lobbyStruct.rules.maxUsers)
+			lobbyStruct.state = LOBBY_STATE.FULL;
+		else
+			lobbyStruct.state = LOBBY_STATE.WAITING;
 
 		io.to(data.lobbyId).emit('lobby:rulesChanged', { lobbyStruct })
 	});
