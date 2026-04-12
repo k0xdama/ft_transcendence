@@ -806,14 +806,31 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
         console.log(`✅ User blocked`);
 
         if (existing_friendship) {
-            // Si la relation existe, la mettre à jour en blocked
-            await db.none(
-                `UPDATE player.friendships 
-                SET status = 'blocked', responded_at = NOW()
-                WHERE id = $1`,
-            	[existing_friendship.id]);
+			//si relation pending on la supprime
+			if (existing_friendship.status === 'pending') {
+				const deleted = await db.result(
+				`DELETE FROM player.friendships 
+				WHERE status = 'pending'
+				AND ((requester_id = $1 AND addressee_id = $2)
+				OR (requester_id = $2 AND addressee_id = $1))`,
+				[user.id, blocked.id]
+				);
 
-            console.log(`✅ (updated existing relationship)`);
+				if (deleted.rowCount === 0) {
+					return res.status(404).json({ error: 'No pending friend request found' });
+				}
+				console.log(`✅ Deleted the pending firend request with ${blocked.username}`);
+			}
+			else {
+				// Si la relation existe, la mettre à jour en blocked
+				await db.none(
+					`UPDATE player.friendships 
+					SET status = 'blocked', responded_at = NOW()
+					WHERE id = $1`,
+					[existing_friendship.id]);
+
+				console.log(`✅ (updated existing relationship)`);
+			}
         } 
         
         //methode nulle car si en face il unblock alors il pourra demander amitie alors que j'ai block mieux vaut check au niveau de la creation d'amitie
@@ -896,7 +913,7 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 
         if (existing_friendship && !check_reverse) {
             // Si la relation existe, et que les deux side ne bloque pas on enleve le status blocked
-            await db.none(
+			await db.none(
                 `UPDATE player.friendships 
                 SET status = 'accepted', responded_at = NOW()
                 WHERE id = $1`,
