@@ -489,6 +489,11 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 	try {
 		const { user, friend } = await getUserIds(userAuthId, friendAuthId);
 
+		//verif demande a soi meme
+		if (user.id === friend.id) {
+			return res.status(403).json({ message: 'You cannot befriend your selflove is sufficient <3' });
+		}
+
 		//Je dois verif le blocage
 
 		const check = await didUserBlockedThem(user.id, friend.id);
