@@ -489,6 +489,18 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 	try {
 		const { user, friend } = await getUserIds(userAuthId, friendAuthId);
 
+		//Je dois verif le blocage
+
+		const check = await didUserBlockedThem(user.id, friend.id);
+		if (check) {
+            return res.status(403).json({ message: 'You blocked the user' });
+        }
+
+        const check_reverse = await didUserBlockedThem(friend.id, user.id);//check si block existe dans ce sens
+		if (check_reverse) {
+			return res.status(403).json({ message: 'The user blocked you' });
+		}
+
 		// Vérifier si une relation existe déjà (dans les deux sens)
 		const existing = await db.oneOrNone(
 			`SELECT id, requester_id, addressee_id, status 
