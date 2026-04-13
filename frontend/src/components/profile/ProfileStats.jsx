@@ -63,10 +63,10 @@ function ProfileStats({ stats }) {
 			color: '#e0aaff'
 		},
 		{
-			label: 'Longest Combo',
-			value: stats.longestCombo,
-			maxValue: Math.max(stats.longestCombo, 5),
-			current: stats.longestCombo,
+			label: 'Last Game Rank',
+			value: stats.lastRank,
+			maxValue: Math.max(stats.lastRank, 6),
+			current: stats.lastRank,
 			color: '#ff6bcb'
 		},
 		{

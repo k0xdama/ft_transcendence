@@ -99,7 +99,7 @@ class StatsWorker {
                 rank: playerStats.rank,
                 score: (player.score || 0) + playerStats.score,
                 actions_played: (player.actions_played || 0) + playerStats.actionsPlayed,
-                combo: Math.max(player.combo || 0, playerStats.achievements.COMBO),
+                combo: (player.combo || 0) + playerStats.achievements.COMBO,
                 trio_of_7: (player.trio_of_7 || 0) + playerStats.achievements.TRIO_OF_7,
                 perfect_game: (player.perfect_game || 0) + playerStats.achievements.PERFECT_GAME,
 				played_game: (player.played_game || 0) + 1

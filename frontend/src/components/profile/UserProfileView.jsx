@@ -91,8 +91,8 @@ function UserProfileView() {
 				totalScore: playerData.score || 0,
 				totalActions: playerData.actions_played || 0,
 				triosOf7: playerData.trio_of_7 || 0,
-				totalCombos: playerData.combo ,//remplacer lui par rank peut etre
-				longestCombo: playerData.longest_combo || 0,
+				totalCombos: playerData.combo || 0,
+				lastRank: playerData.rank || 0,//remplacer lui par rank peut etre
 				perfectGames: playerData.perfect_game || 0
 			})
 		} catch (err) {
