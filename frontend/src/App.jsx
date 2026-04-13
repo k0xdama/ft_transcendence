@@ -81,6 +81,12 @@ function App() {
 					<Route path="/how_to_play" element={<HowToPlayView />} />
 					<Route path="/privacy" element={<PrivacyPolicyView />} />
 					<Route path="/terms" element={<TermsOfServiceView />} />
+					<Route path="*" element={
+						<div className="flex flex-col items-center gap-4">
+							<p className="text-lg font-bold uppercase tracking-ui text-purple-pale">Page not found</p>
+							<a href="/" className="text-xs uppercase tracking-ui text-purple-pale/50 hover:text-purple-pale transition-colors">Back to home</a>
+						</div>
+					} />
 				</Routes>
 			</div>
 

@@ -19,8 +19,8 @@ CREATE TABLE auth.users (
 		CONSTRAINT check_password_hash_length
 		CHECK (length(password_hash) = 60),
 	-- is_verified		BOOLEAN DEFAULT FALSE,		-- ajouter pour 2FA module
-	created_at		TIMESTAMPTZ DEFAULT NOW(),
-	updated_at		TIMESTAMPTZ DEFAULT NOW()
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	updated_at		TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE INDEX idx_users_email
@@ -36,8 +36,8 @@ CREATE TABLE auth.refresh_tokens (
 	token_hash		TEXT NOT NULL UNIQUE
 		CONSTRAINT check_token_hash_length
 		CHECK (length(token_hash) = 64),
-	created_at		TIMESTAMPTZ DEFAULT NOW(),
-	expires_at		TIMESTAMPTZ NOT NULL
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	expires_at		TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 RESET ROLE;
@@ -45,7 +45,7 @@ RESET ROLE;
 
 -- ==============================================
 --				   PLAYER SCHEMA
---					 3 tables
+--					 4 tables
 -- ==============================================
 
 SET ROLE player_user;
@@ -134,12 +134,22 @@ CREATE TABLE player.blocked (
     id              SERIAL PRIMARY KEY,
     requester_id    INTEGER REFERENCES player.users(id) ON DELETE CASCADE,
     addressee_id    INTEGER REFERENCES player.users(id) ON DELETE CASCADE,
-    -- blocked_status	BOOLEAN DEFAULT 0, pas besoin car deja dans la table
     requested_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
     -- Contrainte : pas d'auto-block
     CONSTRAINT no_self_block
 	CHECK (requester_id != addressee_id)
+);
+
+-------------------------------------------------
+CREATE TABLE player.match_history (
+	id			SERIAL PRIMARY KEY,
+	game_id 	VARCHAR,
+	player_id	UUID,
+	won			BOOLEAN,
+	game_mode	VARCHAR,
+	game_type	VARCHAR,
+	played_at	TIMESTAMP DEFAULT NOW()
 );
 
 RESET ROLE;
@@ -164,8 +174,8 @@ CREATE TABLE chat.ws_messages (
 	message_type	TEXT NOT NULL DEFAULT 'user_text'
 		CONSTRAINT check_lobby_msg_type
 		CHECK (message_type IN ('user_text', 'quick_reply', 'game_invite')),
-	created_at		TIMESTAMPTZ DEFAULT NOW(),
-	expires_at		TIMESTAMPTZ
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	expires_at		TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX idx_lobby_recent
@@ -180,7 +190,7 @@ CREATE TABLE chat.direct_conversations (
 	id				UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	user1_id		UUID NOT NULL,
 	user2_id		UUID NOT NULL,
-	created_at 		TIMESTAMPTZ DEFAULT NOW(),
+	created_at 		TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 	CONSTRAINT check_different_users	-- Prevents a user from DMing themselves
 		CHECK (user1_id <> user2_id),
 	CONSTRAINT check_user_order			-- Require user1 < user2 to avoid duplicates (1-2, 2-1)
@@ -196,9 +206,9 @@ CREATE TABLE chat.direct_messages (
 	content			TEXT NOT NULL
 		CONSTRAINT check_dm_content_length
 		CHECK (char_length(content) BETWEEN 1 AND 500),
-	created_at		TIMESTAMPTZ DEFAULT NOW(),
-	read_at			TIMESTAMPTZ DEFAULT NULL,
-	expires_at		TIMESTAMPTZ
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	read_at			TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+	expires_at		TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX idx_dm_recent
@@ -215,7 +225,7 @@ CREATE INDEX idx_dm_expiry
 CREATE TABLE chat.blocked_users (
 	blocker_id		UUID NOT NULL,
 	blocked_id		UUID NOT NULL,
-	created_at		TIMESTAMPTZ DEFAULT NOW(),
+	created_at		TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 	PRIMARY KEY (blocker_id, blocked_id),
 	CONSTRAINT check_no_self_block
 	CHECK (blocker_id != blocked_id)
@@ -243,7 +253,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION set_updated_at()
-	TO auth_user, player_user, lobby_user, game_user, chat_user;
+	TO auth_user, player_user, chat_user;
 
 ---
 CREATE TRIGGER trg_auth_users_updated_at

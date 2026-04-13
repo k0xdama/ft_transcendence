@@ -130,6 +130,17 @@ class StatsWorker {
                 player.id
             ]);
 
+			await db.none(`
+				INSERT INTO player.match_history (game_id, player_id, won, game_mode, game_type)
+				VALUES ($1, $2, $3, $4, $5)
+				`, [
+					gameStats.gameId,
+					playerStats.userId,
+					playerStats.won,
+					gameStats.gameMode,
+					gameStats.gameType
+				]);
+
 			console.log(`  ✅ Updated stats for player ${userId}: +${playerStats.score} score, rank ${playerStats.rank}`);
 
 		} catch (error) {

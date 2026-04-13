@@ -6,6 +6,8 @@ import ProfileStats from './ProfileStats'
 import ProfileAchievements from './ProfileAchievements'
 import ProfileFriends from './ProfileFriends'
 import ProfileFriendRequests from './ProfileFriendRequests'
+import ProfileMatchHistory from './ProfileMatchHistory'
+import ProfileLeaderboard from './ProfileLeaderboard'
 import ProfileSettings from './ProfileSettings'
 import DeleteAccountModal from './DeleteAccountModal'
 import { useDM } from '../../context/DMContext'
@@ -20,7 +22,7 @@ function UserProfileView() {
 
 	const [activeTab, setActiveTab] = useState(() => {
 		const tab = searchParams.get('tab')
-		return ['stats', 'achievements', 'friends', 'friend-requests', 'settings'].includes(tab) ? tab : 'stats'
+		return ['stats', 'history', 'achievements', 'leaderboard', 'friends', 'friend-requests', 'settings'].includes(tab) ? tab : 'stats'
 	})
 	const [profileData, setProfileData] = useState(null)
 	const [stats, setStats] = useState(null)
@@ -36,7 +38,7 @@ function UserProfileView() {
 	// Sync active tab with ?tab= query param
 	useEffect(() => {
 		const tab = searchParams.get('tab')
-		if (tab && ['stats', 'achievements', 'friends', 'friend-requests', 'settings'].includes(tab))
+		if (tab && ['stats', 'history', 'achievements', 'leaderboard', 'friends', 'friend-requests', 'settings'].includes(tab))
 			setActiveTab(tab)
 	}, [searchParams])
 
@@ -44,6 +46,8 @@ function UserProfileView() {
 		if (!targetUserId)
 			return
 
+		setError('')
+		setProfileData(null)
 		fetchProfileData()
 		fetchStats()
 
@@ -326,10 +330,22 @@ function UserProfileView() {
 						Stats
 					</button>
 					<button
+						className={`${tabBaseClass} ${activeTab === 'history' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
+						onClick={() => setActiveTab('history')}
+					>
+						History
+					</button>
+					<button
 						className={`${tabBaseClass} ${activeTab === 'achievements' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
 						onClick={() => setActiveTab('achievements')}
 					>
 						Achievements
+					</button>
+					<button
+						className={`${tabBaseClass} ${activeTab === 'leaderboard' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
+						onClick={() => setActiveTab('leaderboard')}
+					>
+						Leaderboard
 					</button>
 					<button
 						className={`${tabBaseClass} ${activeTab === 'friends' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
@@ -357,8 +373,14 @@ function UserProfileView() {
 					{activeTab === 'stats' && (
 						<ProfileStats stats={stats} />
 					)}
+					{activeTab === 'history' && (
+						<ProfileMatchHistory targetUserId={targetUserId} />
+					)}
 					{activeTab === 'achievements' && (
 						<ProfileAchievements stats={stats} />
+					)}
+					{activeTab === 'leaderboard' && (
+						<ProfileLeaderboard />
 					)}
 					{activeTab === 'friends' && (
 						<ProfileFriends />

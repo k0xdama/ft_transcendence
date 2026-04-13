@@ -21,8 +21,8 @@ flowchart TB
   subgraph SERVICES["Microservices (REST + WSS)"]
     direction LR
     AUTH["<b>AUTH :3000</b><br>• Register / Login / Logout<br>• JWT access + refresh<br>• Token rotation<br>• Password hashing<br>• /internal/users/:id (DELETE, PATCH)"]:::serviceStyle
-    PLAYER["<b>PLAYER :3001</b><br>• CRUD profiles<br>• Avatar upload<br>• Friends system<br>• Block users<br>• Game statistics<br>• /internal/users (POST)"]:::serviceStyle
-    CHAT["<b>CHAT :2000 <i>(REST + WSS)</b></i><br>• Lobby / game messages<br>• Direct messages<br>• Chat history<br>• Block users<br>• Typing indicators<br>• Sound buzzers<br>• Game invitations<br>• /internal/users/:id (DELETE)"]:::chatStyle
+    PLAYER["<b>PLAYER :3001</b><br>• CRUD profiles<br>• Avatar upload<br>• Friends system<br>• Block users<br>• Game statistics<br>• Match history<br>• /internal/users (POST)<br>• /internal/users/batch (POST)"]:::serviceStyle
+    CHAT["<b>CHAT :2000 <i>(REST + WSS)</b></i><br>• Lobby / game messages<br>• Direct messages<br>• Chat history<br>• Block users<br>• Typing indicators<br>• Sound buzzers<br>• Game invitations<br>• /internal/users/:id (DELETE)<br>• /internal/block (POST)<br>• /internal/unblock (DELETE)"]:::chatStyle
     LOBBY["<b>LOBBY :3003 <i>(WSS)</i></b><br>• Create / Join / Leave<br>• Matchmaking queue<br>• Room config<br>• Ready check<br>• Start game trigger"]:::serviceStyle
     GAME["<b>GAME :3002 <i>(WSS)</i></b><br>• Card game state machine<br>• Turn management<br>• 3–6 players<br>• Disconnect / reconnect<br>• Win conditions (trios)<br>• /internal/create (POST)"]:::serviceStyle
   end
@@ -34,8 +34,8 @@ flowchart TB
   GATEWAY -. WSS .-> GAME
 
   %% === DATABASES ===
-  PG["<b>PostgreSQL</b><br><br><b>3 schemas :</b><br>• <b>auth</b> : users, refresh_tokens<br>• <b>player</b> : users, friendships, blocked<br>• <b>chat</b> : ws_messages,<br>&nbsp;&nbsp;direct_conversations,<br>&nbsp;&nbsp;direct_messages, blocked_users"]:::dbStyle
-  REDIS["<b>Redis</b><br><br><b>Pub/Sub channels :</b><br>• chat:messages<br>• lobby:membersChanged<br>• lobby:gameStarting<br>• user:statusChanged<br>• game:ended<br><br><b>List :</b><br>• game:results (stats-worker)<br><br><b>Sets :</b><br>• users:online<br>• chat:blocked:$userId"]:::redisStyle
+  PG["<b>PostgreSQL</b><br><br><b>3 schemas :</b><br>• <b>auth</b> : users, refresh_tokens<br>• <b>player</b> : users, friendships,<br>&nbsp;&nbsp;blocked, match_history<br>• <b>chat</b> : ws_messages,<br>&nbsp;&nbsp;direct_conversations,<br>&nbsp;&nbsp;direct_messages, blocked_users"]:::dbStyle
+  REDIS["<b>Redis</b><br><br><b>Pub/Sub channels :</b><br>• chat:messages<br>• dm:newMessage<br>• lobby:membersChanged<br>• lobby:gameStarting<br>• user:statusChanged<br>• game:ended<br><br><b>List :</b><br>• game:results (stats-worker)<br><br><b>Sets :</b><br>• users:online<br>• chat:blocked:$userId"]:::redisStyle
 
   AUTH & PLAYER & CHAT -. DB .-> PG
   CHAT & PLAYER & LOBBY & GAME -. Pub/Sub .-> REDIS
@@ -45,21 +45,23 @@ flowchart TB
     direction TB
     I1["AUTH /internal/users/:id<br>DELETE &amp; PATCH"]
     I2["PLAYER /internal/users<br>POST"]
+    I2B["PLAYER /internal/users/batch<br>POST"]
     I3["CHAT /internal/users/:id<br>DELETE"]
     I4["GAME /internal/create<br>POST"]
   end
   class INTERNAL internalGroupStyle
-  class I1,I2,I3,I4 internalStyle
+  class I1,I2,I2B,I3,I4 internalStyle
 
-  PLAYER -- "sync username/email<br>delete cascade" --> I1
+  PLAYER -- "sync username/email/password<br>delete cascade" --> I1
   AUTH -- "create profile<br>on signup" --> I2
+  CHAT -- "resolve usernames<br>(DM, lobby chat)" --> I2B
   PLAYER -- "purge user data<br>" --> I3
   LOBBY -- "start game<br>(players, config)" --> I4
 
   %% === WS NOTES ===
   subgraph WS_NOTES["Socket.io (via Gateway)"]
     direction TB
-    WS_CHAT_NOTE@{ shape: braces, label: "<b>/api/chat</b><br>• chat:join / message / typing<br>• chat:sound / notification<br>• user:statusChanged<br>• dm:read" }
+    WS_CHAT_NOTE@{ shape: braces, label: "<b>/api/chat</b><br>• chat:join / message / typing<br>• chat:sound / notification<br>• user:statusChanged<br>• dm:message / typing / read" }
     WS_LOBBY_NOTE@{ shape: braces, label: "<b>/api/lobby</b><br>• lobby:create / join / ready<br>• lobby:start / back<br>• lobby:rulesChanged / readyChanged<br>• lobby:gameStarting / disconnected<br>• matchmaking:join / leave" }
     WS_GAME_NOTE@{ shape: braces, label: "<b>/api/game</b><br>• game:join / action / check<br>• game:started / update / turnChanged<br>• game:ended / reconnected<br>• game:playerDisconnected<br>• game:playerReconnected<br>• game:playerEliminated" }
   end
@@ -86,4 +88,4 @@ flowchart TB
   linkStyle 0,1,2,3,4,5,6 stroke:#1e88e5,stroke-width:2.5px
   linkStyle 7,8,9 stroke:#43a047,stroke-width:2px,stroke-dasharray:4 2
   linkStyle 10,11,12,13 stroke:#ef6c00,stroke-width:2px,stroke-dasharray:2 2
-  linkStyle 14,15,16,17 stroke:#6a1b9a,stroke-width:2px,stroke-dasharray:3 2
+  linkStyle 14,15,16,17,18 stroke:#6a1b9a,stroke-width:2px,stroke-dasharray:3 2

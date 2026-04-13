@@ -24,7 +24,11 @@ read -p "PSQL_DBNAME: " psql_dbname
 read -p "PSQL_ADMIN_USER: " psql_admin_user
 read -s -p "PSQL_ADMIN_PASSWD: " psql_admin_passwd
 echo ""
-read -s -p "PSQL_SERVICES_PASSWD: " psql_services_passwd
+read -s -p "PSQL_AUTH_PASSWD: " psql_auth_passwd
+echo ""
+read -s -p "PSQL_PLAYER_PASSWD: " psql_player_passwd
+echo ""
+read -s -p "PSQL_CHAT_PASSWD: " psql_chat_passwd
 echo ""
 read -s -p "REDIS_PASSWD: " redis_passwd
 echo ""
@@ -43,7 +47,9 @@ fi
 echo "$psql_dbname" > secrets/psql_dbname.txt
 echo "$psql_admin_user" > secrets/psql_admin_user.txt
 echo "$psql_admin_passwd" > secrets/psql_admin_passwd.txt
-echo "$psql_services_passwd" > secrets/psql_services_passwd.txt
+echo "$psql_auth_passwd" > secrets/psql_auth_passwd.txt
+echo "$psql_player_passwd" > secrets/psql_player_passwd.txt
+echo "$psql_chat_passwd" > secrets/psql_chat_passwd.txt
 echo "$redis_passwd" > secrets/redis_passwd.txt
 echo "$jwt_access" > secrets/jwt_access.txt
 
