@@ -36,9 +36,8 @@ const router = express.Router();
 // Headers injected by the API Gateway after JWT verification
 router.use((req, res, next) => {
 	const userId = req.headers['x-user-id'];
-	if (!userId) {
+	if (!userId)
 		return res.status(401).json({ error: 'Missing user context' });
-	}
 
 	req.user = {
 		id: userId,
@@ -68,15 +67,15 @@ router.post('/me/profile-picture', upload.single('profilePicture'), async (req, 
         );
 
 		if (!player) {
-			if (req.file) {
+			if (req.file)
 				deleteFile(req.file.path);
-			}
+
 			return res.status(404).json({ error: 'Player not found' });
 		}
 
-		if (!req.file) {
+		if (!req.file)
 			return res.status(400).json({ error: 'No file uploaded' });
-		}
+
 
 		if (player.pp_path && !isDefaultProfilePicture(player.pp_path)) {
 			const oldFilePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
@@ -112,9 +111,8 @@ router.post('/me/profile-picture', upload.single('profilePicture'), async (req, 
 	} catch (error) {
 		console.error('❌ Error uploading profile picture:', error);
 		
-		if (req.file) {
+		if (req.file)
 			deleteFile(req.file.path);
-		}
 
 		res.status(500).json({ error: 'Failed to upload profile picture' });
 	}
@@ -130,19 +128,16 @@ router.get('/:auth_user_id/profile-picture', async (req, res) => {
             [req.params.auth_user_id]
         );
 
-		if (!player) {
+		if (!player)
 			return res.status(404).json({ error: 'Player not found' });
-		}
 
-		if (!player.pp_path) {
+		if (!player.pp_path)
 			return res.status(404).json({ error: 'No profile picture' });
-		}
 
 		const filePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
 
-		if (!fs.existsSync(filePath)) {
+		if (!fs.existsSync(filePath))
 			return res.status(404).json({ error: 'Profile picture file not found' });
-		}
 
 		res.sendFile(filePath);
 
@@ -164,9 +159,8 @@ router.delete('/me/profile-picture', async (req, res) => {
             [playerId]
         );
 
-		if (!player) {
+		if (!player)
 			return res.status(404).json({ error: 'Player not found' });
-		}
 
 		if (isDefaultProfilePicture(player.pp_path)) {
 		// ✅ 409 Conflict: La ressource existe mais on ne peut pas la supprimer car elle est déjà dans l'état par défaut
@@ -177,9 +171,8 @@ router.delete('/me/profile-picture', async (req, res) => {
 		});
 	}
 
-		if (!player.pp_path) {
+		if (!player.pp_path)
 			return res.status(404).json({ error: 'No profile picture to delete' });
-		}
 
 		const filePath = path.join(UPLOAD_DIR, path.basename(player.pp_path));
 		deleteFile(filePath);
@@ -259,9 +252,8 @@ router.get('/:auth_user_id', async (req, res) => { //WARN j'ai CHANGE CAR pas se
 			[req.params.auth_user_id]//a voir si je peux et doit synchroniser les id de l'auth et du player
 		);
 
-		if (!player) {
+		if (!player)
 	  		return res.status(404).json({ error: 'Player not found' });
-		}
 
 		console.log(`Player with auth_user_id : ${player.auth_user_id} username : ${player.username} in player schema`);
 		res.status(200).json(player);
@@ -283,9 +275,8 @@ router.delete('/me', async (req, res) => {
 			WHERE auth_user_id = $1`,
 			[req.user.id]
 		);
-		if (!player) {
+		if (!player)
 			return res.status(404).json({error : `Player not found`});
-		}
 
 		/*
 			1. Delete from auth.users FIRST, so that the user can no longer
@@ -335,21 +326,23 @@ router.delete('/me', async (req, res) => {
 });
 
 router.patch('/me', async (req, res) => {
-	const { username } = req.body;
+	const { username, email, password } = req.body;
 
 	try {
+		// ── Player-side updates (username lives in both schemas) ──
 		const updates = [];
 		const values = [];
 		let paramIndex = 1;
 
-		if (username !== undefined){
+		if (username !== undefined) {
 			updates.push(`username = $${paramIndex++}`);
 			values.push(username);
 		}
 
-		if (updates.length === 0) {
+		// email and password are auth-only, but we accept them here so the
+		// frontend has a single PATCH endpoint for all profile edits
+		if (updates.length === 0 && email === undefined && password === undefined)
 			return res.status(400).json({ error: `No fields to update`});
-		}
 
 		// Snapshot the old row so we can rollback if the auth sync fails
 		const oldPlayer = await db.oneOrNone(
@@ -358,57 +351,74 @@ router.patch('/me', async (req, res) => {
 			WHERE auth_user_id = $1`,
 			[req.user.id]
 		);
-		if (!oldPlayer) {
+		if (!oldPlayer)
 			return res.status(404).json({ error: 'Player not found' });
+
+		let updatedPlayer = oldPlayer;
+
+		if (updates.length > 0) {
+			values.push(req.user.id);
+
+			updatedPlayer = await db.one(
+				`UPDATE player.users
+				SET ${updates.join(', ')}
+				WHERE auth_user_id = $${paramIndex}
+				RETURNING *`,
+				values
+			);
 		}
 
-		values.push(req.user.id);
+		// ── Sync with auth-service ──
+		const authPayload = {};
+		if (username !== undefined)
+			authPayload.username = username;
 
-		const updatedPlayer = await db.one(
-			`UPDATE player.users
-			SET ${updates.join(', ')}
-			WHERE auth_user_id = $${paramIndex}
-			RETURNING *`,
-			values
-		);
+		if (email !== undefined)
+			authPayload.email = email;
 
-		// Sync with auth.users
-		// If this fails, rollback player.users so the two schemas stay consistent
-		if (username !== undefined) {
+		if (password !== undefined)
+			authPayload.password = password;
+
+		if (Object.keys(authPayload).length > 0) {
 			try {
 				await callService(`${AUTH_URL}/internal/users/${req.user.id}`, {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ username })
+					body: JSON.stringify(authPayload)
 				});
 			} catch (err) {
-				await db.none(
-					`UPDATE player.users
-					SET username = $1
-					WHERE auth_user_id = $2`,
-					[oldPlayer.username, req.user.id]
-				);
+				// Rollback player.users if we changed the username
+				if (username !== undefined) {
+					await db.none(
+						`UPDATE player.users
+						SET username = $1
+						WHERE auth_user_id = $2`,
+						[oldPlayer.username, req.user.id]
+					);
+				}
 
-				console.error('Failed to sync username with auth-service, rolled back player.users:', err.message);
+				console.error('Failed to sync with auth-service, rolled back player.users:', err.message);
 
 				// Forward a client-side upstream error (ex: 400 'username taken')
 				// as-is; fall back to 502 for anything else (upstream down, 5xx...)
 				let	status = 502;
-				if (err.status >= 400 && err.status < 500) {
+				if (err.status >= 400 && err.status < 500)
 					status = err.status;
-				}
 
 				return res.status(status).json({ error: err.message || 'Failed to sync with auth-service' });
 			}
 		}
 
+		// Include email in response so the frontend can update its state
+		if (email !== undefined)
+			updatedPlayer.email = email;
+
 		res.json(updatedPlayer);
 	} catch (error) {
 		console.error('Error updating player:', error);
 
-		if (error.message.includes('No data returned')) {
+		if (error.message.includes('No data returned'))
 			return res.status(404).json({ error: 'Player not found' });
-		}
 
 		res.status(500).json({ error: 'Failed to update player' });
 	}
@@ -429,9 +439,8 @@ async function getUserIds(userAuthId, friendAuthId) {
         [userAuthId]
     );
     
-    if (!user) {
+    if (!user)
         throw { status: 404, message: 'User not found' };
-    }
 
     // const friend = await db.oneOrNone(
     //     `SELECT id, username
@@ -459,9 +468,8 @@ async function getUserIds(userAuthId, friendAuthId) {
 
 
 
-    if (!friend) {
+    if (!friend)
         throw { status: 404, message: 'Friend not found' };
-    }
 
 	return { user, friend };
 }
@@ -513,15 +521,12 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 		if (existing) {
 			// Si demande déjà envoyée par moi
 			if (existing.requester_id === user.id) {
-				if (existing.status === 'pending') {
+				if (existing.status === 'pending')
 					return res.status(400).json({ error: 'Friend request already sent' });
-				}
-				if (existing.status === 'accepted') {
+				if (existing.status === 'accepted')
 					return res.status(400).json({ error: 'Already friends' });
-				}
-				if (existing.status === 'blocked') {
+				if (existing.status === 'blocked')
 					return res.status(403).json({ error: 'Cannot send friend request to this user' });
-				}
 			}
 			
 			// Si l'autre a déjà envoyé une demande (acceptation automatique)
@@ -543,12 +548,10 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 			}
 
 			// Si déjà amis ou bloqué
-			if (existing.status === 'accepted') {
+			if (existing.status === 'accepted')
 				return res.status(400).json({ error: 'Already friends' });
-			}
-			if (existing.status === 'blocked') {
+			if (existing.status === 'blocked')
 				return res.status(403).json({ error: 'Cannot send friend request' });
-			}
 		}
 
 		// Créer la demande
@@ -567,9 +570,9 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 		});
 
 	} catch (error) {
-		if (error.status) {
+		if (error.status)
 			return res.status(error.status).json({ error: error.message });
-		}
+
 		console.error('❌ Error sending friend request:', error);
 		res.status(500).json({ error: 'Failed to send friend request' });
 	}
@@ -600,9 +603,8 @@ router.post('/me/friend-requests/:friend_auth_user_id/accept', async (req, res) 
 			[friend.id, user.id]
 		);
 
-		if (!updated) {
+		if (!updated)
 			return res.status(404).json({ error: 'No pending friend request found' });
-		}
 
 		console.log(`✅ Friend request accepted: ${user.username} ← ${friend.username}`);
 
@@ -612,9 +614,9 @@ router.post('/me/friend-requests/:friend_auth_user_id/accept', async (req, res) 
 		});
 
 	} catch (error) {
-		if (error.status) {
+		if (error.status)
 			return res.status(error.status).json({ error: error.message });
-		}
+
 		console.error('❌ Error accepting friend request:', error);
 		res.status(500).json({ error: 'Failed to accept friend request' });
 	}
@@ -643,18 +645,17 @@ router.delete('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 			[user.id, friend.id]
 		);
 
-		if (deleted.rowCount === 0) {
+		if (deleted.rowCount === 0)
 			return res.status(404).json({ error: 'No pending friend request found' });
-		}
 
 		console.log(`✅ Friend request declined/cancelled`);
 
 		res.status(200).json({ message: 'Friend request declined/cancelled' });
 
 	} catch (error) {
-		if (error.status) {
+		if (error.status)
 			return res.status(error.status).json({ error: error.message });
-		}
+
 		console.error('❌ Error declining friend request:', error);
 		res.status(500).json({ error: 'Failed to decline friend request' });
 	}
@@ -805,18 +806,17 @@ router.delete('/me/friends/:friend_auth_user_id', async (req, res) => {
 			[user.id, friend.id]
 		);
 
-		if (deleted.rowCount === 0) {
+		if (deleted.rowCount === 0)
 			return res.status(404).json({ error: 'Friendship not found' });
-		}
 
 		console.log(`✅ Friend removed: ${user.username} ↔ ${friend.username}`);
 
 		res.status(200).json({ message: 'Friend removed successfully' });
 
 	} catch (error) {
-		if (error.status) {
+		if (error.status)
 			return res.status(error.status).json({ error: error.message });
-		}
+
 		console.error('❌ Error removing friend:', error);
 		res.status(500).json({ error: 'Failed to remove friend' });
 	}
@@ -838,9 +838,8 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 
         const check = await didUserBlockedThem(user.id, blocked.id);//check si block existe dans ce sens
 
-        if (check && check.requester_id === user.id && check.addressee_id === blocked) {
+        if (check && check.requester_id === user.id && check.addressee_id === blocked)
             return res.status(200).json({ message: 'User already blocked' });
-        }
 
         // Vérifier si une relation existe pour savoir si on la met en status blocked PEUT ETRE ENLEVER CA
         const existing_friendship = await db.oneOrNone(
@@ -871,9 +870,9 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 				[user.id, blocked.id]
 				);
 
-				if (deleted.rowCount === 0) {
+				if (deleted.rowCount === 0)
 					return res.status(404).json({ error: 'No pending friend request found' });
-				}
+
 				console.log(`✅ Deleted the pending firend request with ${blocked.username}`);
 			}
 			else {
@@ -915,9 +914,9 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 		res.status(200).json({ message: 'User blocked successfully' });
 
 	} catch (error) {
-		if (error.status) {
+		if (error.status)
 			return res.status(error.status).json({ error: error.message });
-		}
+
 		console.error('❌ Error blocking user:', error);
 		res.status(500).json({ error: 'Failed to block user' });
 	}
@@ -939,9 +938,8 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 
         const check = await didUserBlockedThem(user.id, blocked.id);//check si block existe dans ce sens
 
-        if (!check) {
+        if (!check)
             return res.status(200).json({ message: 'User not blocked' });
-        }
 
         const check_reverse = await didUserBlockedThem(blocked.id, user.id);//check si block existe dans ce sens
 
@@ -960,9 +958,8 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
         	[user.id, blocked.id]
     	);//delete le bloquage dans ce sens
 
-		if (deleted.rowCount === 0) {
+		if (deleted.rowCount === 0)
 			return res.status(404).json({ error: 'User is not blocked' });
-		}
 
 		console.log(`✅ User unblocked`);
 
@@ -993,9 +990,9 @@ router.delete('/me/blocked/:blocked_auth_user_id', async (req, res) => {
         res.status(200).json({ message: 'User unblocked successfully' });
 
 	} catch (error) {
-		if (error.status) {
+		if (error.status)
 			return res.status(error.status).json({ error: error.message });
-		}
+
 		console.error('❌ Error unblocking user:', error);
 		res.status(500).json({ error: 'Failed to unblock user' });
 	}
@@ -1058,9 +1055,8 @@ router.get('/me/friends/:friend_auth_user_id/mutual', async (req, res) => {
 			[user.id, friend.id]
 		);
 
-		if (!areFriends) {
+		if (!areFriends)
 			return res.status(403).json({ error: 'You must be friends to see mutual friends' });
-		}
 
 		// Récupérer les amis en commun
 		const mutualFriends = await db.any(
@@ -1104,9 +1100,9 @@ router.get('/me/friends/:friend_auth_user_id/mutual', async (req, res) => {
 		});
 
 	} catch (error) {
-		if (error.status) {
+		if (error.status)
 			return res.status(error.status).json({ error: error.message });
-		}
+
 		console.error('❌ Error fetching mutual friends:', error);
 		res.status(500).json({ error: 'Failed to fetch mutual friends' });
 	}

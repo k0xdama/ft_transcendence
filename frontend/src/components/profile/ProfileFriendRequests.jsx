@@ -32,9 +32,8 @@ function ProfileFriendRequests() {
 				authFetch(`${playerRoute}/me/friend-requests/sent`)
 			])
 
-			if (!pendingRes.ok || !sentRes.ok) {
+			if (!pendingRes.ok || !sentRes.ok)
 				throw new Error('Failed to fetch friend requests')
-			}
 
 			const pendingData = await pendingRes.json()
 			const sentData = await sentRes.json()
@@ -70,9 +69,8 @@ function ProfileFriendRequests() {
 			const response = await authFetch(`${playerRoute}/me/friend-requests/${friendId}/accept`, {
 				method: 'POST'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to accept friend request')
-			}
 
 			await fetchPendingRequests()
 		} catch (err) {
@@ -86,9 +84,8 @@ function ProfileFriendRequests() {
 			const response = await authFetch(`${playerRoute}/me/friend-requests/${friendId}`, {
 				method: 'DELETE'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to decline friend request')
-			}
 
 			await fetchPendingRequests()
 		} catch (err) {
@@ -102,9 +99,8 @@ function ProfileFriendRequests() {
 			const response = await authFetch(`${playerRoute}/me/friend-requests/${friendId}`, {
 				method: 'DELETE'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to cancel friend request')
-			}
 
 			await fetchSentRequests()
 		} catch (err) {
@@ -119,14 +115,12 @@ function ProfileFriendRequests() {
 
 		setSending(true)
 		try {
-			// For now, assume sendQuery is username. In real app, might need search first
-			// This is a simplification - in practice, you'd search for users first
 			const response = await authFetch(`${playerRoute}/me/friend-requests/${sendQuery}`, {
 				method: 'POST'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to send friend request')
-			}
+
 			setSendQuery('')
 			// Refresh sent requests
 			const sentRes = await authFetch(`${playerRoute}/me/friend-requests/sent`)

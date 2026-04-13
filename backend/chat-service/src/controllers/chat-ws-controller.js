@@ -16,9 +16,8 @@ export async function sendWsMessage(req, res) {
 		return res.status(201).json(message);
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Send WS message:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
@@ -43,9 +42,8 @@ export async function getChatWsHistory(req, res) {
 		return res.status(200).json(history);
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Chat WS history:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });

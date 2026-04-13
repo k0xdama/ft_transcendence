@@ -40,9 +40,8 @@ redisClient.connect();
 io.use((socket, next) => {
 	const userId = socket.handshake.headers['x-user-id'];
 	const username = socket.handshake.headers['x-user-username'];
-	if (!userId || !username) {
+	if (!userId || !username)
 		return next(new Error('Missing user identity headers'));
-	}
 
 	socket.user = { id: userId, username: username };
 	next();

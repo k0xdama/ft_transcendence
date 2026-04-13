@@ -61,7 +61,9 @@
 #             echo "${{ secrets.PSQL_DBNAME }}" > secrets/psql_dbname.txt
 #             echo "${{ secrets.PSQL_ADMIN_USER }}" > secrets/psql_admin_user.txt
 #             echo "${{ secrets.PSQL_ADMIN_PASSWD }}" > secrets/psql_admin_passwd.txt
-#             echo "${{ secrets.PSQL_SERVICES_PASSWD }}" > secrets/psql_services_passwd.txt
+#             echo "${{ secrets.PSQL_AUTH_PASSWD }}" > secrets/psql_auth_passwd.txt
+#             echo "${{ secrets.PSQL_PLAYER_PASSWD }}" > secrets/psql_player_passwd.txt
+#             echo "${{ secrets.PSQL_CHAT_PASSWD }}" > secrets/psql_chat_passwd.txt
 #             echo "${{ secrets.REDIS_PASSWD }}" > secrets/redis_passwd.txt
 #             echo "${{ secrets.JWT_ACCESS }}" > secrets/jwt_access.txt
 #         - run: docker compose up -d

@@ -35,7 +35,7 @@ function ProfileHeader({
 				<img
 					src={profileData.avatarUrl || PFP_Default}
 					alt={`${profileData.username}'s avatar`}
-					className="w-24 h-24 rounded-full border-4 border-purple-brand shadow-lg shadow-purple-brand/40"
+					className="w-18 h-18 rounded-full border-4 border-purple-brand shadow-lg shadow-purple-brand/40 md:w-24 md:h-24"
 				/>
 				{isOwnProfile && (
 					<div className="flex gap-2">
@@ -70,7 +70,7 @@ function ProfileHeader({
 			</div>
 
 			{!isOwnProfile && (
-				<div className="flex gap-2.5">
+				<div className="flex flex-wrap justify-center gap-2.5">
 					{friendStatus === 'none' && (
 						<button className="px-5 py-2 rounded text-xs uppercase tracking-ui text-cyan-glow bg-cyan-glow/8 border border-cyan-glow/50 hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 transition-all cursor-pointer" onClick={onAddFriend}>
 							Add friend

@@ -11,9 +11,8 @@ export async function blockUser(req, res) {
 		return res.status(200).json({ message: 'User blocked successfully' });
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Block user:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });
@@ -31,9 +30,8 @@ export async function unblockUser(req, res) {
 		return res.status(200).json({ message: 'User unblocked successfully' });
 	}
 	catch (error) {
-		if (error.isOperational) {
+		if (error.isOperational)
 			return res.status(error.statusCode).json({ error: error.reason });
-		}
 
 		console.error('Unblock user:', error);
 		return res.status(500).json({ error: 'Internal Server Error' });

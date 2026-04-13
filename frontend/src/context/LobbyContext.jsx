@@ -23,9 +23,9 @@ export function LobbyProvider({ children }) {
 
 	useEffect(() => {
 		console.log('LobbyContext useEffect - user:', user, 'socket:', socketRef.current);
-		if (user && !socketRef.current) {
+		if (user && !socketRef.current)
 			connect();
-		}
+
 		if (!user && socketRef.current) {
 			console.log("Disconnecting lobby socket !");
 			socketRef.current.disconnect();

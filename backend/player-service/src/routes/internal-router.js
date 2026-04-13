@@ -17,9 +17,8 @@ router.post('/users', async (req, res) => {
 	console.log('===== PLAYER CREATE REQUEST =====');
 	console.log(`Received : id = ${auth_user_id}, username = ${username}`);
 
-	if (!auth_user_id || !username){
+	if (!auth_user_id || !username)
 		return res.status(400).json({error : 'Missing required field'});
-	}
 
 	try {
 		const newPlayerUsers = await db.one(

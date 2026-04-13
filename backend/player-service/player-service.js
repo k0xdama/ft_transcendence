@@ -1,23 +1,3 @@
-// const	express = require("express");
-// const	app = express();
-// const	initOptions = {};
-// const	pgPromiseLib = require("pg-promise");
-// const	pgp = pgPromiseLib(initOptions);
-// const	fs = require('fs');
-
-// const	dbName = fs.readFileSync('/run/secrets/psql_dbname', 'utf8').trim();
-// const	dbUser = 'player_user';
-// const	dbPassword = fs.readFileSync('/run/secrets/psql_services_passwd', 'utf8').trim();
-// const	connectionString = `postgres://${dbUser}:${dbPassword}@db:5432/${dbName}`;
-// const	db = pgp(connectionString);
-// pas besoin de au dessus car player-service/src/db/queries creer deja bd comme dans la ligne ci-dessus
-// const	port = 2000;
-
-// app.listen(port, () => {
-// 	console.log(`Player service running on port ${port}`);
-// });
-
-
 import express from 'express';
 import playerRoutes from './src/routes/player.js';
 import internalRoutes from './src/routes/internal-router.js';

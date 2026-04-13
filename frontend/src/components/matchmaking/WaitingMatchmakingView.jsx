@@ -11,15 +11,13 @@ function WaitingMatchmakingView() {
 	const { gameMode, gameType, maxUsers } = location.state || {}
 
 	useEffect(() => {
-		if (!location.state) {
+		if (!location.state)
 			navigate('/matchmaking')
-		}
 	}, [location.state, navigate])
 
 	useEffect(() => {
-		if (gameId) {
+		if (gameId)
 			navigate(`/game/${gameId}`)
-		}
 	}, [gameId, navigate])
 
 	const handleCancel = () => {
@@ -31,8 +29,8 @@ function WaitingMatchmakingView() {
 		return null
 
 	return (
-		<div className='flex flex-col items-center pt-20 gap-6'>
-			<div className='bg-card border border-purple-mid rounded-2xl p-8 w-96 backdrop-blur-3xl shadow-card text-center'>
+		<div className='flex flex-col items-center pt-8 gap-6 w-full px-4 md:pt-20 md:px-0'>
+			<div className='bg-card border border-purple-mid rounded-2xl p-6 w-full max-w-96 backdrop-blur-3xl shadow-card text-center md:p-8'>
 				<h2 className='text-lg uppercase tracking-title text-purple-pale text-shadow-purple m-0 mb-6 animate-crt-pulse'>Searching for opponents</h2>
 
 				<div className='flex justify-center gap-6 mb-6 pb-5 border-b border-purple-dim'>

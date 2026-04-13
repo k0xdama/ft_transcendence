@@ -3,6 +3,8 @@ import { useState } from 'react'
 function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 	const [username, setUsername] = useState(profileData.username)
 	const [email, setEmail] = useState(profileData.email || '')
+	const [password, setPassword] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
 	const [editingField, setEditingField] = useState(null)
 	const [saving, setSaving] = useState(false)
 	const [message, setMessage] = useState({ text: '', type: '' })
@@ -11,12 +13,34 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 		setSaving(true)
 		setMessage({ text: '', type: '' })
 
-		const value = field === 'username' ? username : email
+		let value
+		if (field === 'username')
+			value = username
+		else if (field === 'email')
+			value = email
+		else if (field === 'password') {
+			if (password.length < 8) {
+				setMessage({ text: 'Password must be at least 8 characters', type: 'error' })
+				setSaving(false)
+				return
+			}
+			if (password !== confirmPassword) {
+				setMessage({ text: 'Passwords do not match', type: 'error' })
+				setSaving(false)
+				return
+			}
+			value = password
+		}
+
 		const result = await onUpdate(field, value)
 
 		if (result.success) {
 			setMessage({ text: `${field} updated successfully`, type: 'success' })
 			setEditingField(null)
+			if (field === 'password') {
+				setPassword('')
+				setConfirmPassword('')
+			}
 		} else {
 			setMessage({ text: result.error || 'Update failed', type: 'error' })
 		}
@@ -28,9 +52,18 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 			setUsername(profileData.username)
 		if (field === 'email')
 			setEmail(profileData.email || '')
+		if (field === 'password') {
+			setPassword('')
+			setConfirmPassword('')
+		}
 		setEditingField(null)
 		setMessage({ text: '', type: '' })
 	}
+
+	const inputClass = "flex-1 px-3 py-2 rounded text-sm font-normal text-white bg-card-input border border-purple-mid/25 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 disabled:text-purple-pale/70 disabled:cursor-not-allowed transition-all"
+	const saveBtnClass = "px-4 py-2 rounded text-xs uppercase tracking-ui text-green-400 bg-green-500/8 border border-green-500/50 hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+	const cancelBtnClass = "px-4 py-2 rounded text-xs uppercase tracking-ui text-purple-pale/60 bg-white/4 border border-white/15 hover:bg-white/8 transition-all cursor-pointer"
+	const editBtnClass = "px-4 py-2 rounded text-xs uppercase tracking-ui text-cyan-glow bg-cyan-glow/8 border border-cyan-glow/50 hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 transition-all cursor-pointer"
 
 	return (
 		<div className="flex flex-col gap-5">
@@ -38,6 +71,7 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 				<div className={`px-3.5 py-2 rounded text-xs text-center uppercase tracking-wider ${message.type === 'success' ? 'text-green-400 bg-green-500/8 border border-green-500/25' : 'text-red-400 bg-red-500/8 border border-red-500/25'}`}>{message.text}</div>
 			)}
 
+			{/* Username */}
 			<div className="flex flex-col gap-1.5">
 				<label className="text-xs uppercase tracking-ui text-purple-pale/70">Username</label>
 				<div className="flex gap-2.5 items-center">
@@ -46,36 +80,27 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						disabled={editingField !== 'username'}
-						className="flex-1 px-3 py-2 rounded text-sm font-normal text-white bg-card-input border border-purple-mid/25 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 disabled:text-purple-pale/70 disabled:cursor-not-allowed transition-all"
+						className={inputClass}
 						style={{ WebkitTextFillColor: editingField === 'username' ? '#fff' : 'rgba(224,170,255,0.7)' }}
 					/>
 					{editingField === 'username' ? (
 						<div className="flex gap-1.5">
-							<button
-								className="px-4 py-2 rounded text-xs uppercase tracking-ui text-green-400 bg-green-500/8 border border-green-500/50 hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-								onClick={() => handleSave('username')}
-								disabled={saving}
-							>
+							<button className={saveBtnClass} onClick={() => handleSave('username')} disabled={saving}>
 								{saving ? '...' : 'Save'}
 							</button>
-							<button
-								className="px-4 py-2 rounded text-xs uppercase tracking-ui text-purple-pale/60 bg-white/4 border border-white/15 hover:bg-white/8 transition-all cursor-pointer"
-								onClick={() => handleCancel('username')}
-							>
+							<button className={cancelBtnClass} onClick={() => handleCancel('username')}>
 								Cancel
 							</button>
 						</div>
 					) : (
-						<button
-							className="px-4 py-2 rounded text-xs uppercase tracking-ui text-cyan-glow bg-cyan-glow/8 border border-cyan-glow/50 hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 transition-all cursor-pointer"
-							onClick={() => setEditingField('username')}
-						>
+						<button className={editBtnClass} onClick={() => setEditingField('username')}>
 							Edit
 						</button>
 					)}
 				</div>
 			</div>
 
+			{/* Email */}
 			<div className="flex flex-col gap-1.5">
 				<label className="text-xs uppercase tracking-ui text-purple-pale/70">Email</label>
 				<div className="flex gap-2.5 items-center">
@@ -84,36 +109,73 @@ function ProfileSettings({ profileData, onUpdate, onDeleteAccount }) {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						disabled={editingField !== 'email'}
-						className="flex-1 px-3 py-2 rounded text-sm font-normal text-white bg-card-input border border-purple-mid/25 focus:outline-none focus:border-purple-mid/50 focus:shadow-lg focus:shadow-purple-brand/15 disabled:text-purple-pale/70 disabled:cursor-not-allowed transition-all"
+						className={inputClass}
 						style={{ WebkitTextFillColor: editingField === 'email' ? '#fff' : 'rgba(224,170,255,0.7)' }}
 					/>
 					{editingField === 'email' ? (
 						<div className="flex gap-1.5">
-							<button
-								className="px-4 py-2 rounded text-xs uppercase tracking-ui text-green-400 bg-green-500/8 border border-green-500/50 hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-								onClick={() => handleSave('email')}
-								disabled={saving}
-							>
+							<button className={saveBtnClass} onClick={() => handleSave('email')} disabled={saving}>
 								{saving ? '...' : 'Save'}
 							</button>
-							<button
-								className="px-4 py-2 rounded text-xs uppercase tracking-ui text-purple-pale/60 bg-white/4 border border-white/15 hover:bg-white/8 transition-all cursor-pointer"
-								onClick={() => handleCancel('email')}
-							>
+							<button className={cancelBtnClass} onClick={() => handleCancel('email')}>
 								Cancel
 							</button>
 						</div>
 					) : (
-						<button
-							className="px-4 py-2 rounded text-xs uppercase tracking-ui text-cyan-glow bg-cyan-glow/8 border border-cyan-glow/50 hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 transition-all cursor-pointer"
-							onClick={() => setEditingField('email')}
-						>
+						<button className={editBtnClass} onClick={() => setEditingField('email')}>
 							Edit
 						</button>
 					)}
 				</div>
 			</div>
 
+			{/* Password */}
+			<div className="flex flex-col gap-1.5">
+				<label className="text-xs uppercase tracking-ui text-purple-pale/70">Password</label>
+				{editingField === 'password' ? (
+					<div className="flex flex-col gap-2.5">
+						<input
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							placeholder="New password"
+							className={inputClass}
+							autoComplete="new-password"
+						/>
+						<input
+							type="password"
+							value={confirmPassword}
+							onChange={(e) => setConfirmPassword(e.target.value)}
+							placeholder="Confirm new password"
+							className={inputClass}
+							autoComplete="new-password"
+						/>
+						<div className="flex gap-1.5">
+							<button className={saveBtnClass} onClick={() => handleSave('password')} disabled={saving}>
+								{saving ? '...' : 'Save'}
+							</button>
+							<button className={cancelBtnClass} onClick={() => handleCancel('password')}>
+								Cancel
+							</button>
+						</div>
+					</div>
+				) : (
+					<div className="flex gap-2.5 items-center">
+						<input
+							type="password"
+							value="••••••••"
+							disabled
+							className={inputClass}
+							style={{ WebkitTextFillColor: 'rgba(224,170,255,0.7)' }}
+						/>
+						<button className={editBtnClass} onClick={() => setEditingField('password')}>
+							Edit
+						</button>
+					</div>
+				)}
+			</div>
+
+			{/* Danger Zone */}
 			<div className="mt-4 p-5 border border-red-500/25 rounded-2xl bg-red-500/4">
 				<h3 className="text-sm uppercase tracking-ui text-red-400 m-0 mb-2">Danger Zone</h3>
 				<p className="text-xs text-purple-pale/50 m-0 mb-4">

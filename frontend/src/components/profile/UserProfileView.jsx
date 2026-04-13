@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Navigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import ProfileHeader from './ProfileHeader'
@@ -14,30 +14,46 @@ import { useDM } from '../../context/DMContext'
 
 function UserProfileView() {
 	const { userId } = useParams()
+	const [searchParams] = useSearchParams()
 	const navigate = useNavigate()
-	const { user, isAuthenticated, authFetch, logout } = useAuth()
+	const { user, isAuthenticated, authFetch, logout, updateUser } = useAuth()
 	const { openDM } = useDM()
 	const playerRoute = '/api/players'
 
-	const [activeTab, setActiveTab] = useState('stats')
+	const [activeTab, setActiveTab] = useState(() => {
+		const tab = searchParams.get('tab')
+		return ['stats', 'history', 'achievements', 'leaderboard', 'friends', 'friend-requests', 'settings'].includes(tab) ? tab : 'stats'
+	})
 	const [profileData, setProfileData] = useState(null)
 	const [stats, setStats] = useState(null)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
 	const [friendStatus, setFriendStatus] = useState(null) // 'friend', 'pending', 'none', 'blocked'
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
-	const tabBaseClass = 'w-full min-w-0 !rounded-none !bg-transparent !border-0 border-b-2 border-b-transparent px-2 py-2 text-[0.64rem] uppercase tracking-ui cursor-pointer transition-colors focus:outline-none focus-visible:outline-none'
+	const tabBaseClass = 'shrink-0 !rounded-none !bg-transparent !border-0 border-b-2 border-b-transparent px-3 py-2 text-[0.64rem] uppercase tracking-ui cursor-pointer transition-colors whitespace-nowrap focus:outline-none focus-visible:outline-none md:w-full md:shrink md:px-2'
 
 	const isOwnProfile = !userId || (user && userId === user.id)
 	const targetUserId = userId || (user && user.id)
 
+	// Sync active tab with ?tab= query param
+	useEffect(() => {
+		const tab = searchParams.get('tab')
+		if (tab && ['stats', 'history', 'achievements', 'leaderboard', 'friends', 'friend-requests', 'settings'].includes(tab))
+			setActiveTab(tab)
+	}, [searchParams])
+
 	useEffect(() => {
 		if (!targetUserId)
 			return
+<<<<<<< HEAD
+
+=======
+>>>>>>> 7c87a61745ccc2568e8270229a8b6fe205bb38d7
 		setError('')
 		setProfileData(null)
 		fetchProfileData()
 		fetchStats()
+
 		if (!isOwnProfile)
 			fetchFriendStatus()
 	}, [targetUserId])
@@ -47,9 +63,8 @@ function UserProfileView() {
 		try {
 			// todo: Peut etre Mettre des donnees par defaut en cas de fail de fetch pour eviter les trous
 			const response = await authFetch(`${playerRoute}/${targetUserId}`)
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to fetch profile data')
-			}
 
 			const playerData = await response.json()
 
@@ -76,9 +91,8 @@ function UserProfileView() {
 	const fetchStats = async () => {
 		try {
 			const response = await authFetch(`${playerRoute}/${targetUserId}`)
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to fetch stats')
-			}
 			
 			const playerData = await response.json()
 			
@@ -147,9 +161,8 @@ function UserProfileView() {
 			const response = await authFetch(`${playerRoute}/me/friend-requests/${targetUserId}`, {
 				method: 'POST'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to send friend request')
-			}
 
 			setFriendStatus('pending')
 		} catch (err) {
@@ -162,9 +175,8 @@ function UserProfileView() {
 			const response = await authFetch(`${playerRoute}/me/friends/${targetUserId}`, {
 				method: 'DELETE'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to remove friend')
-			}
 
 			setFriendStatus('none')
 		} catch (err) {
@@ -177,9 +189,8 @@ function UserProfileView() {
 			const response = await authFetch(`${playerRoute}/me/blocked/${targetUserId}`, {
 				method: 'POST'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to block user')
-			}
 
 			setFriendStatus('blocked')
 		} catch (err) {
@@ -197,9 +208,8 @@ function UserProfileView() {
 				body: formData
 				// NE PAS mettre de Content-Type, le navigateur le met automatiquement
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Upload failed')
-			}
 
 			await response.json()
 			setProfileData(prev => ({
@@ -217,9 +227,8 @@ function UserProfileView() {
 			const response = await authFetch(`${playerRoute}/me/profile-picture`, {
 				method: 'DELETE'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Delete failed')
-			}
 
 			await response.json()
 			setProfileData(prev => ({
@@ -252,6 +261,9 @@ function UserProfileView() {
 				[field]: updatedData[field]
 			}))
 
+			if (field === 'username')
+				updateUser({ username: updatedData[field] })
+
 			return { success: true }
 		} catch (err) {
 			console.error('Error updating profile:', err)
@@ -265,9 +277,8 @@ function UserProfileView() {
 			const response = await authFetch(`${playerRoute}/me`, {
 				method: 'DELETE'
 			})
-			if (!response.ok) {
+			if (!response.ok)
 				throw new Error('Failed to delete account')
-			}
 
 			await logout()
 			navigate('/')
@@ -276,14 +287,13 @@ function UserProfileView() {
 		}
 	}
 
-	if (!isAuthenticated()) {
+	if (!isAuthenticated())
 		return <Navigate to="/login" />
-	}
 
 	if (loading) {
 		return (
-			<div className="flex flex-col items-center pt-10 gap-6 w-full">
-				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-8 w-[620px] h-[62vh] max-w-[92vw] backdrop-blur-3xl shadow-card">
+			<div className="flex flex-col items-center pt-4 gap-4 w-full px-4 md:pt-10 md:gap-6 md:px-0">
+				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-4 w-full max-w-[620px] h-[75vh] backdrop-blur-3xl shadow-card md:p-8 md:h-[62vh]">
 					<p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading profile...</p>
 				</div>
 			</div>
@@ -292,8 +302,8 @@ function UserProfileView() {
 
 	if (error && !profileData) {
 		return (
-			<div className="flex flex-col items-center pt-10 gap-6 w-full">
-				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-8 w-[620px] h-[62vh] max-w-[92vw] backdrop-blur-3xl shadow-card">
+			<div className="flex flex-col items-center pt-4 gap-4 w-full px-4 md:pt-10 md:gap-6 md:px-0">
+				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-4 w-full max-w-[620px] h-[75vh] backdrop-blur-3xl shadow-card md:p-8 md:h-[62vh]">
 					<p className="text-red-500 text-xs text-center mt-2">{error}</p>
 				</div>
 			</div>
@@ -301,8 +311,8 @@ function UserProfileView() {
 	}
 
 	return (
-		<div className="flex flex-col items-center pt-10 gap-6 w-full">
-			<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-8 w-[620px] h-[62vh] max-w-[92vw] backdrop-blur-3xl shadow-card">
+		<div className="flex flex-col items-center pt-4 gap-4 w-full px-4 md:pt-10 md:gap-6 md:px-0">
+			<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-4 w-full max-w-[620px] h-[75vh] backdrop-blur-3xl shadow-card md:p-8 md:h-[62vh]">
 				<ProfileHeader
 					profileData={profileData}
 					isOwnProfile={isOwnProfile}
@@ -315,7 +325,7 @@ function UserProfileView() {
 					onSendMessage={() => openDM(targetUserId, profileData.username, profileData.avatarUrl)}
 				/>
 
-				<div className={`mb-5 grid w-full grid-cols-4 gap-1 border-b border-purple-dim pb-1`}>
+				<div className={`mb-5 flex w-full overflow-x-auto gap-1 border-b border-purple-dim pb-1 md:grid ${isOwnProfile ? 'md:grid-cols-5' : 'md:grid-cols-4'} [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
 					<button
 						className={`${tabBaseClass} ${activeTab === 'stats' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
 						onClick={() => setActiveTab('stats')}

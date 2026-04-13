@@ -39,8 +39,8 @@ function PublicMatchmakingView() {
 	const playerOptions = [3, 4, 5, 6]
 
 	return (
-		<div className='flex flex-col items-center pt-20 gap-6'>
-			<div className='bg-card border border-purple-mid rounded-2xl p-8 w-96 backdrop-blur-3xl shadow-card'>
+		<div className='flex flex-col items-center pt-8 gap-6 w-full px-4 md:pt-20 md:px-0'>
+			<div className='bg-card border border-purple-mid rounded-2xl p-6 w-full max-w-96 backdrop-blur-3xl shadow-card md:p-8'>
 				<h2 className='text-lg uppercase tracking-title text-purple-pale text-shadow-purple m-0 mb-7 text-center'>Public Match</h2>
 
 				{error && <p className='text-red-500 text-xs text-center mb-4'>{error}</p>}

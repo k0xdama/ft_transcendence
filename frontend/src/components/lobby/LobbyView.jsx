@@ -40,7 +40,7 @@ function LobbyView() {
 	if (!lobbyStruct) {
 		return (
 			<div className="flex flex-col items-center">
-				<div className="bg-card border border-purple-mid rounded-2xl py-[2vh] px-[3vh] w-[460px] backdrop-blur-md shadow-card">
+				<div className="bg-card border border-purple-mid rounded-2xl py-[2vh] px-[3vh] w-full max-w-[460px] backdrop-blur-md shadow-card">
 					<p className="text-center text-[rgba(200,160,255,0.6)] text-[0.8rem] tracking-title uppercase">Creating Lobby...</p>
 				</div>
 			</div>
@@ -77,16 +77,16 @@ function LobbyView() {
 	const activeBtnStyle = "!border-purple-str !bg-[rgba(140,40,200,0.2)] !shadow-glow-purple"
  
 	return (
-		<div className="flex flex-col items-center">
-			<div className="bg-card border border-purple-mid rounded-2xl py-[2vh] px-[3vh] w-[460px] backdrop-blur-md shadow-card">
+		<div className="flex flex-col items-center w-full px-4 md:px-0">
+			<div className="bg-card border border-purple-mid rounded-2xl py-[2vh] px-[3vh] w-full max-w-[460px] backdrop-blur-md shadow-card">
 				<h2 className="text-[1.1rem] tracking-title uppercase text-purple-pale text-shadow-purple m-0 mb-6 text-center animate-crt-pulse">
 					{creator?.username ?? lobbyStruct.creatorId}'s lobby
 				</h2>
  
 				{(error || lobbyError) && <p className="text-[#ff4466] text-[0.75rem] text-center m-0 mb-4 tracking-[0.05em]">{error || lobbyError}</p>}
  
-				<div className="flex items-center justify-center gap-3 mb-6 px-4 py-3 bg-card-input border border-cyan-mid rounded-xl">
-					<span className="text-[1.6rem] tracking-code font-bold text-cyan-glow text-shadow-cyan font-mono">
+				<div className="flex items-center justify-center gap-2 mb-6 px-3 py-3 bg-card-input border border-cyan-mid rounded-xl md:gap-3 md:px-4">
+					<span className="text-[1.1rem] tracking-code font-bold text-cyan-glow text-shadow-cyan font-mono md:text-[1.6rem]">
 						{lobbyId}
 					</span>
 					<button 

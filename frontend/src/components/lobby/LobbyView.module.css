@@ -32,7 +32,7 @@
 	text-transform: uppercase;
 }
 
-/* Lobby code */
+/* ─── Lobby code ──────────────────────── */
 .lobbyCodeRow {
 	display: flex;
 	align-items: center;
@@ -150,7 +150,7 @@
 	color: rgba(223, 213, 236, 0.5);
 }
 
-/* Player list */
+/* ─── Player list ──────────────────────── */
 .playerList {
 	list-style: none;
 	padding: 0;
@@ -209,7 +209,7 @@
 	border: 1px solid rgba(180, 60, 255, 0.15);
 }
 
-/* Actions */
+/* ─── Actions ──────────────────────────── */
 .lobbyAction {
 	display: flex;
 	gap: 12px;

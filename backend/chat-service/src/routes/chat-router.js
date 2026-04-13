@@ -8,9 +8,8 @@ const router = express.Router();
 
 router.use((req, res, next) => {
 	const userId = req.headers['x-user-id'];
-	if (!userId) {
+	if (!userId)
 		return res.status(401).json({ error: 'Missing user context' });
-	}
 
 	req.user = {
 		id: userId,

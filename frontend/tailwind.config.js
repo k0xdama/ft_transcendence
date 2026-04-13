@@ -4,7 +4,7 @@ module.exports = {
 
   theme: {
     extend: {
-      // ── Colors ─────────────────────────────────────────
+      // ─── Colors ──────────────────────────────────────────
       // From: #752586, #9d4edd, #c060ff, #e0aaff, #00dcff
       colors: {
         purple: {
@@ -18,7 +18,11 @@ module.exports = {
         },
       },
 
-      // ── Background opacity shorthands ───────────────────
+      fontFamily: {
+        'moonstrike': ['Moonstrike', 'sans-serif'],
+      },
+
+      // ─── Background opacity shorthands ───────────────────
       // From: rgba(10,5,20,0.75), rgba(0,0,0,0.3) etc.
       backgroundColor: {
         'card':        'rgba(10, 5, 20, 0.75)',
@@ -28,7 +32,7 @@ module.exports = {
         'btn-cyan':    'rgba(0, 200, 255, 0.08)',
       },
 
-      // ── Box shadows ─────────────────────────────────────
+      // ─── Box shadows ─────────────────────────────────────
       // From: box-shadow on .lobbyCard, .matchmaking-card
       boxShadow: {
         'card': '0 0 40px rgba(125,116,129,0.2), inset 0 0 20px rgba(169,98,216,0.4)',
@@ -37,7 +41,7 @@ module.exports = {
         'glow-purple': '0 0 16px rgba(140, 40, 200, 0.4)',
       },
 
-      // ── Text shadows (via plugin) ────────────────────────
+      // ─── Text shadows (via plugin) ───────────────────────
       // From: text-shadow on .lobbyTitle, .waiting-title
       textShadow: {
         'purple':  '0 0 12px rgba(180, 80, 255, 0.8)',
@@ -45,7 +49,7 @@ module.exports = {
         'cyan':    '0 0 12px rgba(0, 220, 255, 0.6)',
       },
 
-      // ── Border colors (rgba) ─────────────────────────────
+      // ─── Border colors (rgba) ────────────────────────────
       borderColor: {
         'purple-dim':  'rgba(180, 60, 255, 0.15)',
         'purple-mid':  'rgba(180, 60, 255, 0.4)',
@@ -54,7 +58,7 @@ module.exports = {
         'cyan-str':    'rgba(0, 220, 255, 0.5)',
       },
 
-      // ── Letter spacing ───────────────────────────────────
+      // ─── Letter spacing ──────────────────────────────────
       // From: letter-spacing: 0.15em, 0.35em etc.
       letterSpacing: {
         'ui':    '0.12em',
@@ -62,11 +66,11 @@ module.exports = {
         'code':  '0.35em',
       },
 
-      // ── Width / height ───────────────────────────────────
+      // ─── Width / height ──────────────────────────────────
       width: { '18': '4.5rem' },
       height: { '18': '4.5rem' },
 
-      // ── Animations ──────────────────────────────────────
+      // ─── Animations ──────────────────────────────────────
       // Keyframes stay in CSS (or global.css) — see last tab
       keyframes: {
         'dot-bounce': {
@@ -81,6 +85,14 @@ module.exports = {
           '0%, 100%': { textShadow: '0 0 12px rgba(180, 80, 255, 0.8)' },
           '50%': { textShadow: '0 0 20px rgba(180, 80, 255, 1), 0 0 40px rgba(180, 80, 255, 0.4)' },
         },
+        'slide-in-right': {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        'rotate-phone': {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '50%': { transform: 'rotate(90deg)' },
+        },
       },
       animation: {
         'pulse-name':  'pulse-name 1.5s ease-in-out infinite',
@@ -89,6 +101,8 @@ module.exports = {
         'crt-pulse':   'crt-pulse 2s ease-in-out infinite',
         'fade-in':     'fade-in 0.6s ease forwards',
         'pulse-check': 'pulse-check 1.2s ease-in-out infinite',
+        'slide-in-right': 'slide-in-right 0.25s ease-out',
+        'rotate-phone': 'rotate-phone 1.5s ease-in-out infinite',
       },
     },
   },

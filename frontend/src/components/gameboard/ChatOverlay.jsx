@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
+import { useIsMobileGame } from "../../hooks/useIsMobileGame";
 import { SOUNDS } from "./SoundBuzzers";
 import "./ChatOverlay.css"
 
@@ -21,9 +22,13 @@ function getAuthorColor(author) {
 }
 
 function ChatOverlay({ lobbyId }) {
+	const isMobile = useIsMobileGame()
 	const [messages, setMessages] = useState([])
 	const [draft, setDraft] = useState("")
 	const [typingUsers, setTypingUsers] = useState([])
+	const [mobileOpen, setMobileOpen] = useState(false)
+	const [unreadCount, setUnreadCount] = useState(0)
+	const mobileOpenRef = useRef(false)
 	const bottomRef = useRef(null)
 	const typingTimers = useRef({})
 	const typingDebounce = useRef(null)
@@ -32,7 +37,7 @@ function ChatOverlay({ lobbyId }) {
 	const navigate = useNavigate()
 	const chatRoute = '/api/chat'
 
-	// Fetch history separately — runs once when the room/user changes.
+	// Fetch history separately — runs once when the room/user changes
 	useEffect(() => {
 		if (!user || !lobbyId)
 			return
@@ -52,8 +57,8 @@ function ChatOverlay({ lobbyId }) {
 		fetchHistory()
 	}, [lobbyId, user])
 
-	// Wire chat events through the shared ChatContext socket.
-	// Wait until 'connected' so the 'chat:join' emit isn't dropped.
+	// Wire chat events through the shared ChatContext socket
+	// Wait until 'connected' so the 'chat:join' emit isn't dropped
 	useEffect(() => {
 		if (!user || !lobbyId || !connected)
 			return
@@ -62,6 +67,8 @@ function ChatOverlay({ lobbyId }) {
 
 		const offMessage = on('chat:message', (msg) => {
 			setMessages(prev => [...prev, mapMessage(user.id, msg)])
+			if (msg.sender_id !== user.id && !mobileOpenRef.current)
+				setUnreadCount(prev => prev + 1)
 		})
 
 		const offTyping = on('chat:typing', ({ username }) => {
@@ -94,6 +101,13 @@ function ChatOverlay({ lobbyId }) {
 			offNotif()
 		}
 	}, [lobbyId, user, connected, on, emit])
+
+	// Keep ref in sync for use inside socket callbacks
+	useEffect(() => {
+		mobileOpenRef.current = mobileOpen
+		if (mobileOpen)
+			setUnreadCount(0)
+	}, [mobileOpen])
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -133,8 +147,8 @@ function ChatOverlay({ lobbyId }) {
 			sendMessage()
 	}
 
-	return (
-		<div className="absolute bottom-12 left-4 z-10 flex max-h-[220px] w-[280px] flex-col overflow-hidden rounded-lg bg-black/10 transition-colors duration-300 hover:bg-black/55">
+	const chatContent = (
+		<>
 			<div className="min-h-0 flex flex-1 flex-col items-start gap-[0.2rem] overflow-y-auto px-3 py-2 text-[0.8rem] [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-[2px] [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar]:w-1">
 				{messages.map(msg => <ChatMessage key={msg.id} msg={msg} onNavigate={navigate} />)}
 				<div ref={bottomRef} />
@@ -168,6 +182,49 @@ function ChatOverlay({ lobbyId }) {
 				/>
 				<button className="cursor-pointer rounded-none border-none border-l border-white/10 bg-transparent px-[0.6rem] py-[0.4rem] text-base text-[#9d4edd] hover:border-transparent hover:bg-white/5" onClick={sendMessage}>Send</button>
 			</div>
+		</>
+	)
+
+	if (isMobile) {
+		return (
+			<>
+				{/* Mobile: toggle button */}
+				<button
+					className={`absolute bottom-[2vh] left-3 z-30 flex h-9 w-9 items-center justify-center rounded-full border border-purple-mid bg-[rgba(10,5,20,0.9)] text-[1rem] text-purple-pale shadow-card transition-all hover:bg-[rgba(20,10,40,0.95)] ${mobileOpen ? 'hidden' : ''}`}
+					onClick={() => setMobileOpen(true)}
+					aria-label="Open chat"
+				>
+					💬
+					{unreadCount > 0 && (
+						<span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
+							{unreadCount > 99 ? '99+' : unreadCount}
+						</span>
+					)}
+				</button>
+
+				{/* Mobile: fullscreen chat overlay */}
+				{mobileOpen && (
+					<div className="fixed inset-0 z-[150] flex flex-col bg-[rgba(10,5,20,0.95)] backdrop-blur-md">
+						<div className="flex items-center justify-between border-b border-white/[0.08] px-3 py-2">
+							<span className="text-[0.75rem] uppercase tracking-ui text-purple-pale/70">Game Chat</span>
+							<button
+								className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/50 text-xs text-white/80"
+								onClick={() => setMobileOpen(false)}
+								aria-label="Close chat"
+							>
+								✕
+							</button>
+						</div>
+						{chatContent}
+					</div>
+				)}
+			</>
+		)
+	}
+
+	return (
+		<div className="absolute bottom-12 left-4 z-10 flex max-h-[220px] w-[280px] flex-col overflow-hidden rounded-lg bg-black/10 transition-colors duration-300 hover:bg-black/55">
+			{chatContent}
 		</div>
 	)
 }
@@ -187,7 +244,7 @@ function ChatMessage({ msg, onNavigate }) {
 				style={{ color: getAuthorColor(msg.author) }}
 				onClick={() => msg.author !== 'You' && onNavigate(`/profile/${msg.senderId}`)}
 			>
-				{msg.author}: 
+				{msg.author}:
 			</span>
 			<span className="font-sans text-white/90">{msg.text}</span>
 		</div>

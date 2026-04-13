@@ -11,6 +11,13 @@ body.gameboard-active .main-container {
 	align-items: stretch;
 }
 
+/* Mobile: hide navbar & footer, game takes full screen */
+@media (max-width: 767px), (max-height: 500px) {
+	body.gameboard-active {
+		--navbar-height: 0px;
+	}
+}
+
 .gameboard::before {
 	content: '';
 	position: fixed;
@@ -563,4 +570,44 @@ body.gameboard-active .main-container {
 .game-over-btn:hover {
 	background: rgba(0, 200, 255, 0.18);
 	box-shadow: 0 0 20px rgba(0, 200, 255, 0.35);
+}
+
+/* ══════════════════════════════════════════════════════════
+   Mobile game layout — detected via max-height (landscape
+   phones have short viewport height even though width > 768)
+   ══════════════════════════════════════════════════════════ */
+@media (max-height: 500px), (max-width: 767px) {
+	.card {
+		width: 3vw;
+		height: 4vw;
+		min-width: 32px;
+		min-height: 44px;
+	}
+
+	.river {
+		gap: 8px;
+	}
+
+	.trio-mini-card {
+		width: 1.4vw;
+		height: 2vw;
+		min-width: 18px;
+		min-height: 24px;
+	}
+
+	.trio-badge {
+		border-left: 10px solid transparent;
+		border-right: 10px solid transparent;
+		border-bottom: 18px solid gold;
+	}
+
+	.trio-badge-count {
+		bottom: -16px;
+		font-size: 0.5rem;
+	}
+
+	.seat-left .card-back,
+	.seat-right .card-back {
+		margin: -20px 0;
+	}
 }

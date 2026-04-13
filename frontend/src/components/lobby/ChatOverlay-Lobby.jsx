@@ -19,6 +19,8 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	const [friendsLoading, setFriendsLoading] = useState(false)
 	const [inviteSent, setInviteSent] = useState({})
 	const [mobileOpen, setMobileOpen] = useState(false)
+	const [unreadCount, setUnreadCount] = useState(0)
+	const mobileOpenRef = useRef(false)
 	const bottomRef = useRef(null)
 	const typingTimers = useRef({})
 	const { authFetch, user } = useAuth()
@@ -56,6 +58,8 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 
 		const offMessage = on('chat:message', (msg) => {
 			setMessages(prev => [...prev, mapMessage(user.id, msg)])
+			if (msg.sender_id !== user.id && !mobileOpenRef.current)
+				setUnreadCount(prev => prev + 1)
 		})
 
 		const offTyping = on('chat:typing', ({ username }) => {
@@ -85,6 +89,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	useEffect(() => {
 		if (!gameStarting)
 			return
+
 		setMessages(prev => [...prev, {
 			id: 'system-game-starting',
 			author: 'System',
@@ -92,6 +97,13 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 			type: 'notification'
 		}])
 	}, [gameStarting])
+
+	// Keep ref in sync for use inside socket callbacks
+	useEffect(() => {
+		mobileOpenRef.current = mobileOpen
+		if (mobileOpen)
+			setUnreadCount(0)
+	}, [mobileOpen])
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -112,6 +124,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 	const sendMessage = async () => {
 		if (!draft.trim())
 			return
+
 		const content = draft
 		setDraft("")
 		await postMessage(content, 'user_text')
@@ -149,6 +162,7 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 			})
 			if (!dmRes.ok)
 				return
+
 			const conversation = await dmRes.json()
 
 			await authFetch(`${chatRoute}/dm/${conversation.id}/send`, {
@@ -169,24 +183,18 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 			sendMessage()
 	}
 
-	return (
+	const chatContent = (
 		<>
-			<button
-				className={`md:hidden fixed bottom-14 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-purple-mid bg-[rgba(10,5,20,0.9)] text-xl text-purple-pale shadow-card transition-all hover:bg-[rgba(20,10,40,0.95)] ${mobileOpen ? 'hidden' : ''}`}
-				onClick={() => setMobileOpen(true)}
-				aria-label="Open chat"
-			>
-				💬
-			</button>
-		<div className={`${mobileOpen ? 'flex' : 'hidden'} md:flex fixed bottom-14 left-4 z-30 max-h-[70vh] w-[calc(100vw-2rem)] max-w-[340px] md:max-h-[380px] md:w-[340px] flex-col overflow-hidden rounded-lg bg-black/80 md:bg-black/45 backdrop-blur-md transition-colors duration-300 hover:bg-black/55`}>
-			<button
-				className="md:hidden absolute right-2 top-2 z-40 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-black/50 text-xs text-white/80"
-				onClick={() => setMobileOpen(false)}
-				aria-label="Close chat"
-			>
-				✕
-			</button>
-			<div className="relative flex justify-end border-b border-white/[0.08] px-2 py-[0.3rem]">
+			<div className="relative flex justify-between items-center border-b border-white/[0.08] px-2 py-[0.3rem]">
+				{/* Mobile close button */}
+				<button
+					className="md:hidden flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/50 text-xs text-white/80"
+					onClick={() => setMobileOpen(false)}
+					aria-label="Close chat"
+				>
+					✕
+				</button>
+				<div className="flex-1" />
 				<button className="rounded border border-[rgba(157,78,221,0.4)] bg-[rgba(157,78,221,0.15)] px-[0.6rem] py-[0.2rem] font-sans text-[0.7rem] text-white/75 transition-colors duration-150 hover:border-[#9d4edd] hover:bg-[rgba(157,78,221,0.3)] hover:text-white" onClick={openInvitePanel}>Send Invite</button>
 				{showInvite && (
 					<div className="absolute right-0 top-full z-20 mt-1 w-[260px] rounded-lg border border-purple-mid bg-[rgba(10,5,20,0.95)] p-2 shadow-card backdrop-blur-md">
@@ -248,7 +256,36 @@ function ChatOverlay({ lobbyId, gameStarting }) {
 				/>
 				<button className="cursor-pointer rounded-none border-none border-l border-white/10 bg-transparent px-[0.6rem] py-[0.4rem] text-base text-[#9d4edd] hover:border-transparent hover:bg-white/5" onClick={sendMessage}>Send</button>
 			</div>
-		</div>
+		</>
+	)
+
+	return (
+		<>
+			{/* Mobile: toggle button (visible when chat is closed) */}
+			<button
+				className={`md:hidden fixed bottom-4 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-purple-mid bg-[rgba(10,5,20,0.9)] text-xl text-purple-pale shadow-card transition-all hover:bg-[rgba(20,10,40,0.95)] ${mobileOpen ? 'hidden' : ''}`}
+				onClick={() => setMobileOpen(true)}
+				aria-label="Open chat"
+			>
+				💬
+				{unreadCount > 0 && (
+					<span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
+						{unreadCount > 99 ? '99+' : unreadCount}
+					</span>
+				)}
+			</button>
+
+			{/* Mobile: fullscreen chat overlay */}
+			{mobileOpen && (
+				<div className="md:hidden fixed inset-0 z-[150] flex flex-col bg-[rgba(10,5,20,0.95)] backdrop-blur-md">
+					{chatContent}
+				</div>
+			)}
+
+			{/* Desktop: fixed chat panel (unchanged behavior) */}
+			<div className="hidden md:flex fixed bottom-14 left-4 z-30 max-h-[380px] w-[340px] flex-col overflow-hidden rounded-lg bg-black/45 backdrop-blur-md transition-colors duration-300 hover:bg-black/55">
+				{chatContent}
+			</div>
 		</>
 	)
 }

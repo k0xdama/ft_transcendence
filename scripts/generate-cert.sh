@@ -13,10 +13,10 @@ if [ -f secrets/ssl/key.pem ]; then
 	exit 0
 fi
 
-printf "\n${BOLD}${P_PURPLE}------------- CERTIFICATE GENERATION -------------${RESET}\n\n"
+printf "${BOLD}${P_PURPLE}------------- CERTIFICATE GENERATION -------------${RESET}\n\n"
 
 # ─── Certificate generation ──────
-IP=$(hostname -I | awk '{print $1}')
+IP=$(ipconfig getifaddr en0 2>/dev/null)
 KEY_FILE="secrets/ssl/key.pem"
 CERT_FILE="secrets/ssl/cert.pem"
 SAN="IP:${IP},DNS:localhost"

@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 
 function HowToPlayView() {
 	return (
-		<div className='flex w-full flex-col items-center gap-6 pt-10 pb-[60px]'>
-			<div className='w-[720px] max-w-[92vw] rounded-2xl border border-purple-mid bg-card px-11 py-9 backdrop-blur-xl shadow-card'>
+		<div className='flex w-full flex-col items-center gap-6 px-4 pt-4 pb-[60px] md:px-0 md:pt-10'>
+			<div className='w-full max-w-[720px] rounded-2xl border border-purple-mid bg-card px-5 py-6 backdrop-blur-xl shadow-card md:px-11 md:py-9'>
 				<h2 className='m-0 mb-1 text-center text-[1.1rem] uppercase tracking-title text-purple-pale text-shadow-purple'>How To Play</h2>
 				<p className='m-0 mb-7 text-center text-[0.65rem] uppercase tracking-[0.1em] text-white/40'>Learn the rules of Triple</p>
 
