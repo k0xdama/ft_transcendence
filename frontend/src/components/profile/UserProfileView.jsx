@@ -45,10 +45,7 @@ function UserProfileView() {
 	useEffect(() => {
 		if (!targetUserId)
 			return
-<<<<<<< HEAD
 
-=======
->>>>>>> 7c87a61745ccc2568e8270229a8b6fe205bb38d7
 		setError('')
 		setProfileData(null)
 		fetchProfileData()
