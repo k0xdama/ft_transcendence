@@ -92,7 +92,7 @@ The `.env` file is generated automatically by `scripts/create-env.sh` with sensi
 - **Meetings**: One or two weekly meetings depending on our advances in the features we were working on
 - **Communication**: Discord for daily chat, meetups for brainstorming
 - **Version control**: Git + GitHub, feature branches merged into `main` via pull requests with peer review
-- **Design**: Diagrams authored in Excalidraw / Mermaid — see `./docs/` (`archi_v3.png`, `GameTheory.excalidraw`, `LobbyService.excalidraw`, etc.)
+- **Design**: Diagrams authored in Excalidraw / Mermaid — see `./docs/` (`archi_v3.pdf`, `GameTheory.excalidraw`, `LobbyService.excalidraw`, etc.)
 
 ---
 
@@ -289,7 +289,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.png`, `DevOps.excali
 
 ### Use of AI
 
-AI assistants (Claude and Copilot???) were used as a **pair-programming and reviewing tool**, never as an autonomous generator of deliverables. Specifically:
+AI assistants (Claude and Copilot) were used as a **pair-programming and reviewing tool**, never as an autonomous generator of deliverables. Specifically:
 
 - **Rubber-ducking and design reviews**: challenging our microservice boundaries, our WebSocket event naming, and reviewing the shape of our API contract (e.g. `docs/API_CONTRACT_LOBBY_GAME.md`).
 - **Debugging assistance**: explaining cryptic error messages (Postgres errors, TLS handshake issues, and ????).
