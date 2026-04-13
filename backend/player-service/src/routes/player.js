@@ -208,7 +208,48 @@ router.delete('/me/profile-picture', async (req, res) => {
 // CRUD de base sur /players
 // ========================================
 
+router.get('/leaderboard', async (req, res) => {
+	try {
+		const leaderboard = await db.manyOrNone(
+			`SELECT auth_user_id, username, won
+			FROM player.users
+			ORDER BY won DESC
+			LIMIT 50`
+		);
+		res.status(200).json(leaderboard);
+	} catch (error) {
+		console.error('Error fetching leaderboard:', error);
+		res.status(500).json({ error: 'Failed to fetch leaderboard' });
+	}
+});
+
+router.get('/:auth_user_id/match-history', async (req, res) => {
+	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+	if (!uuidRegex.test(req.params.auth_user_id)) {
+		return res.status(404).json({ error: 'Player not found' });
+	}
+
+	try {
+		const matches = await db.manyOrNone(
+			`SELECT game_id, won, game_mode, game_type, played_at
+			FROM player.match_history
+			WHERE player_id = $1
+			ORDER BY played_at DESC`,
+			[req.params.auth_user_id]
+		);
+		res.status(200).json(matches);
+	} catch (error) {
+		console.error('Error fetching match history:', error);
+		res.status(500).json({ error: 'Failed to fetch match history' });
+	}
+});
+
 router.get('/:auth_user_id', async (req, res) => { //WARN j'ai CHANGE CAR pas secu on ne met jamais de SERIAL dans une routes car c'est une faiblesse tres simpl a exploiter on met de l'UUID ici authUserId
+
+	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+	if (!uuidRegex.test(req.params.auth_user_id)) {
+		return res.status(404).json({ error: 'Player not found' });
+	}
 
 	try {
 		const player = await db.oneOrNone(

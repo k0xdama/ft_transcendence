@@ -142,6 +142,16 @@ CREATE TABLE player.blocked (
 	CHECK (requester_id != addressee_id)
 );
 
+CREATE TABLE player.match_history (
+	id			SERIAL PRIMARY KEY,
+	game_id 	VARCHAR,
+	player_id	UUID,
+	won			BOOLEAN,
+	game_mode	VARCHAR,
+	game_type	VARCHAR,
+	played_at	TIMESTAMP DEFAULT NOW()
+);
+
 RESET ROLE;
 
 
