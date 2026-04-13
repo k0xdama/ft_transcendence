@@ -39,7 +39,7 @@ function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf, gameMode }) {
 			onClick={() => isMyTurn && onSelectSelf()}
 		>
 			{isMyTurn && (
-				<span className={`absolute -top-[22px] left-1/2 -translate-x-1/2 whitespace-nowrap tracking-[0.2em] text-[#00dcff] [text-shadow:0_0_8px_rgba(0,220,255,0.8)] ${isMobile ? 'text-[0.5rem]' : 'text-[0.65rem]'}`}>
+				<span className={`absolute -top-[22px] left-1/2 -translate-x-1/2 whitespace-nowrap tracking-[0.2em] text-cyan-glow [text-shadow:0_0_8px_rgba(0,220,255,0.8)] ${isMobile ? 'text-[0.5rem]' : 'text-[0.65rem]'}`}>
 					YOUR TURN
 				</span>
 			)}

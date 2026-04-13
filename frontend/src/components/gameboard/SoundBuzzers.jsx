@@ -2,7 +2,6 @@ import { useChat } from "../../context/ChatContext";
 import { useIsMobileGame } from "../../hooks/useIsMobileGame";
 import ahhhSound from "../../assets/sounds/ahhh.mp3";
 import faaahSound from "../../assets/sounds/faaahh.mp3";
-import "./SoundBuzzers.css";
 
 const SOUNDS = {
 	ahhh: ahhhSound,

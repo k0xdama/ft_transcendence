@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
-import "./ChatOverlay-Lobby.css"
 
 const TYPING_TIMEOUT_MS = 2000;
 

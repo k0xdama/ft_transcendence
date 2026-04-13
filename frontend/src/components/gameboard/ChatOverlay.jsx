@@ -4,7 +4,6 @@ import { useAuth } from "../../context/AuthContext";
 import { useChat } from "../../context/ChatContext";
 import { useIsMobileGame } from "../../hooks/useIsMobileGame";
 import { SOUNDS } from "./SoundBuzzers";
-import "./ChatOverlay.css"
 
 const TYPING_TIMEOUT_MS = 1000;
 

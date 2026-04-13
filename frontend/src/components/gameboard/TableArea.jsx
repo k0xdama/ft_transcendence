@@ -42,7 +42,7 @@ function TableArea({ riverSlots, isMyTurn, currentAction, cardsRevealed, onFlip,
 					return (
 						<div
 							key={card.id}
-							className={`relative ${cardBase} overflow-hidden ${isRevealed ? 'flex cursor-default items-center justify-center font-bold' : ''} ${isClickable ? 'cursor-pointer hover:scale-[1.15] hover:border-[rgba(0,220,255,0.7)] hover:shadow-[0_0_12px_rgba(0,200,255,0.4)]' : ''}`}
+							className={`relative ${cardBase} overflow-hidden ${isRevealed ? 'flex cursor-default items-center justify-center font-bold' : ''} ${isClickable ? 'cursor-pointer hover:scale-[1.15] hover:border-game-cyan/70 hover:shadow-[0_0_12px_rgba(0,200,255,0.4)]' : ''}`}
 							onClick={() => isClickable && onFlip(card.id)}
 						>
 							{isRevealed 
