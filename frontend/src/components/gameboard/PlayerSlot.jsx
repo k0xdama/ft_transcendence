@@ -55,7 +55,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 			onClick={() => isMyTurn && onSelect(player.id)}
 		>
 			<span
-				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[0.7rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-[#00dcff] [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''}`}
+				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-[#00dcff] [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''}`}
 			>
 				{player.username ?? 'Opponent'}
 			</span>
@@ -65,7 +65,9 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 						<div
 							key={i}
 							className={`${cardSize} ${cardBackSeat} ${isMyTurn ? 'group-hover/hand:border-[rgba(180,60,255,0.7)] group-hover/hand:shadow-[0_0_10px_rgba(140,40,200,0.4)]' : ''}`}
-						/>
+						>
+							<img src={getCardImage("back")} className="h-full w-full rounded-md object-contain" alt={`Card back`} />
+						</div>
 					))}
 				</div>
 				<TrioBadge trios={player.trios} />
