@@ -16,6 +16,11 @@ module.exports = {
         cyan: {
           glow:   '#00dcff',   // lobby code, ready badge
         },
+        'game-cyan': 'rgb(0 220 255 / <alpha-value>)',
+        'game-cyan-soft': 'rgb(0 200 255 / <alpha-value>)',
+        'game-purple': 'rgb(180 60 255 / <alpha-value>)',
+        'game-purple-soft': 'rgb(200 160 255 / <alpha-value>)',
+        'game-panel': 'rgb(10 5 20 / <alpha-value>)',
       },
 
       fontFamily: {
@@ -23,7 +28,6 @@ module.exports = {
       },
 
       // ─── Background opacity shorthands ───────────────────
-      // From: rgba(10,5,20,0.75), rgba(0,0,0,0.3) etc.
       backgroundColor: {
         'card':        'rgba(10, 5, 20, 0.75)',
         'card-input':  'rgba(0, 0, 0, 0.3)',
@@ -33,7 +37,6 @@ module.exports = {
       },
 
       // ─── Box shadows ─────────────────────────────────────
-      // From: box-shadow on .lobbyCard, .matchmaking-card
       boxShadow: {
         'card': '0 0 40px rgba(125,116,129,0.2), inset 0 0 20px rgba(169,98,216,0.4)',
         'btn-purple': '0 0 16px rgba(140, 40, 200, 0.3)',
@@ -42,7 +45,6 @@ module.exports = {
       },
 
       // ─── Text shadows (via plugin) ───────────────────────
-      // From: text-shadow on .lobbyTitle, .waiting-title
       textShadow: {
         'purple':  '0 0 12px rgba(180, 80, 255, 0.8)',
         'purple-lg': '0 0 20px rgba(180, 80, 255, 1), 0 0 40px rgba(180, 80, 255, 0.4)',

@@ -44,7 +44,7 @@ const	getCardImage = (label) => {
 	return cardImages[key]?.default
 }
 
-const	playerActionBtn = 'cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]';
+const	playerActionBtn = 'cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/[0.08] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-cyan-glow transition-[background,box-shadow] duration-200 hover:bg-game-cyan-soft/[0.18] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]';
 
 function GameView() {
 	const { gameId } = useParams()
@@ -220,7 +220,7 @@ function GameView() {
 			{showGameMenu && isMobile && (
 				<div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm" onClick={() => setShowGameMenu(false)}>
 					<div
-						className="absolute right-0 top-0 flex h-full w-[220px] max-w-[70vw] flex-col bg-[rgba(10,5,20,0.95)] shadow-[-8px_0_40px_rgba(0,0,0,0.5)] animate-slide-in-right"
+						className="absolute right-0 top-0 flex h-full w-[220px] max-w-[70vw] flex-col bg-game-panel/95 shadow-[-8px_0_40px_rgba(0,0,0,0.5)] animate-slide-in-right"
 						onClick={e => e.stopPropagation()}
 					>
 						<div className="flex justify-end p-3">
@@ -251,8 +251,8 @@ function GameView() {
 			{/* Mobile: quit confirm overlay */}
 			{showQuitConfirm && isMobile && (
 				<div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-[4px]" onClick={() => setShowQuitConfirm(false)}>
-					<div className="flex flex-col items-center gap-4 rounded-2xl border border-[rgba(180,60,255,0.4)] bg-[rgba(10,5,20,0.95)] px-8 py-6 shadow-[0_0_40px_rgba(140,40,200,0.3)]" onClick={e => e.stopPropagation()}>
-						<p className="m-0 text-[0.85rem] uppercase tracking-[0.15em] text-[#e0aaff] [text-shadow:0_0_10px_rgba(180,80,255,0.6)]">Leave the game?</p>
+					<div className="flex flex-col items-center gap-4 rounded-2xl border border-game-purple/40 bg-game-panel/95 px-8 py-6 shadow-[0_0_40px_rgba(140,40,200,0.3)]" onClick={e => e.stopPropagation()}>
+						<p className="m-0 text-[0.85rem] uppercase tracking-[0.15em] text-purple-pale [text-shadow:0_0_10px_rgba(180,80,255,0.6)]">Leave the game?</p>
 						<div className="flex gap-3">
 							<button
 								className="cursor-pointer rounded-lg border border-red-500/50 bg-red-500/10 px-6 py-2.5 text-[0.75rem] uppercase tracking-[0.1em] text-red-400 transition-all hover:bg-red-500/25"
@@ -274,7 +274,7 @@ function GameView() {
 			{pendingCheck && (
 				<div className={`absolute left-[40%] z-40 -translate-x-1/2 ${isMobile ? 'bottom-[calc(6vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`}>
 					<button
-						className={`cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.1)] px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-[#00dcff] ${checkSent ? 'cursor-not-allowed opacity-45 shadow-none' : 'animate-[pulse-check_1.2s_ease-in-out_infinite]'}`}
+						className={`cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/10 px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-cyan-glow ${checkSent ? 'cursor-not-allowed opacity-45 shadow-none' : 'animate-[pulse-check_1.2s_ease-in-out_infinite]'}`}
 						disabled={checkSent}
 						onClick={() => sendCheck(gameId)}
 					>
@@ -297,8 +297,8 @@ function GameView() {
 
 			{selectedOpponent && (
 				<div className='absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[4px]' onClick={() => setSelectedOpponent(null)}>
-					<div className='flex flex-col items-center gap-4 rounded-2xl border border-[rgba(180,60,255,0.4)] bg-[rgba(10,5,20,0.9)] px-6 py-5 shadow-[0_0_40px_rgba(140,40,200,0.3)] md:gap-5 md:px-10 md:py-8' onClick={e => e.stopPropagation()}>
-						<p className='m-0 text-[0.75rem] uppercase tracking-[0.15em] text-[#e0aaff] [text-shadow:0_0_10px_rgba(180,80,255,0.6)] md:text-[0.85rem]'>Choose an action</p>
+					<div className='flex flex-col items-center gap-4 rounded-2xl border border-game-purple/40 bg-game-panel/90 px-6 py-5 shadow-[0_0_40px_rgba(140,40,200,0.3)] md:gap-5 md:px-10 md:py-8' onClick={e => e.stopPropagation()}>
+						<p className='m-0 text-[0.75rem] uppercase tracking-[0.15em] text-purple-pale [text-shadow:0_0_10px_rgba(180,80,255,0.6)] md:text-[0.85rem]'>Choose an action</p>
 						<div className='flex gap-3 md:gap-4'>
 							<button className={playerActionBtn} onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
 								Lowest card
@@ -307,7 +307,7 @@ function GameView() {
 								Highest card
 							</button>
 						</div>
-						<button className='cursor-pointer border-none bg-transparent text-[0.7rem] uppercase tracking-[0.1em] text-[rgba(200,160,255,0.4)] transition-colors duration-200 hover:text-[rgba(200,160,255,0.8)]' onClick={() => setSelectedOpponent(null)}>Cancel</button>
+						<button className='cursor-pointer border-none bg-transparent text-[0.7rem] uppercase tracking-[0.1em] text-game-purple-soft/40 transition-colors duration-200 hover:text-game-purple-soft/80' onClick={() => setSelectedOpponent(null)}>Cancel</button>
 					</div>
 				</div>
 			)}
@@ -324,9 +324,9 @@ function GameView() {
 								{gameResult.winnerId === user?.id ? 'You win!' : 'You lose!'}
 							</p>
 							{gameResult.reason === 'FORFEIT' && (
-								<p className="m-0 text-[0.9rem] uppercase tracking-[0.2em] text-[rgba(200,160,255,0.7)]">Opponent forfeited</p>
+								<p className="m-0 text-[0.9rem] uppercase tracking-[0.2em] text-game-purple-soft/70">Opponent forfeited</p>
 							)}
-							<button className='mt-2 cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.08)] px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-[#00dcff] transition-[background,box-shadow] duration-200 hover:bg-[rgba(0,200,255,0.18)] hover:shadow-[0_0_20px_rgba(0,200,255,0.35)]' onClick={() => navigate('/')}>
+							<button className='mt-2 cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/[0.08] px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-cyan-glow transition-[background,box-shadow] duration-200 hover:bg-game-cyan-soft/[0.18] hover:shadow-[0_0_20px_rgba(0,200,255,0.35)]' onClick={() => navigate('/')}>
 								Back to home
 							</button>
 						</div>
@@ -336,7 +336,7 @@ function GameView() {
 
 			{/* Rotate hint overlay — shown on mobile portrait when orientation lock failed */}
 			{showRotateHint && (
-				<div className="fixed inset-0 z-[300] flex flex-col items-center justify-center gap-6 bg-[rgba(10,5,20,0.95)] backdrop-blur-md">
+				<div className="fixed inset-0 z-[300] flex flex-col items-center justify-center gap-6 bg-game-panel/95 backdrop-blur-md">
 					<span className="text-[4rem] animate-[rotate-phone_1.5s_ease-in-out_infinite]">📱</span>
 					<p className="m-0 text-center text-[0.9rem] uppercase tracking-[0.2em] text-purple-pale [text-shadow:0_0_12px_rgba(180,80,255,0.6)]">
 						Rotate your device

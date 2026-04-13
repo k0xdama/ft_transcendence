@@ -9,7 +9,7 @@ const getCardImage = (value) => {
 }
 
 const SEAT_DESKTOP = {
-	top: "top-5 left-1/2 -translate-x-1/2",
+	top: "top-10 left-1/2 -translate-x-1/2",
 	left: "left-[5vw] top-[calc(50%+var(--navbar-height)/2)] -translate-y-1/2",
 	right: "right-[5vw] top-[calc(50%+var(--navbar-height)/2)] -translate-y-1/2",
 	"top-left": "left-[22vw] top-[8vh]",
@@ -61,7 +61,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 			onClick={() => isMyTurn && onSelect(player.id)}
 		>
 			<span
-				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-[#00dcff] [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''}`}
+				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-cyan-glow [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''}`}
 			>
 				{player.username ?? 'Opponent'}
 			</span>
@@ -70,7 +70,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 					{Array.from({ length: player.cardCount }).map((_, i) => (
 						<div
 							key={i}
-							className={`${cardSize} ${cardBackSeat} overflow-hidden ${isMyTurn ? 'group-hover/hand:border-[rgba(180,60,255,0.7)] group-hover/hand:shadow-[0_0_10px_rgba(140,40,200,0.4)]' : ''}`}
+							className={`${cardSize} ${cardBackSeat} overflow-hidden ${isMyTurn ? 'group-hover/hand:border-game-purple/70 group-hover/hand:shadow-[0_0_10px_rgba(140,40,200,0.4)]' : ''}`}
 						>
 							<img src={getCardImage("back")} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card back`} />
 						</div>
@@ -81,7 +81,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 			{revealedHandCards.length > 0 && (
 				<div className={`absolute flex gap-[0.4rem] ${revealedSeatClass}`}>
 					{revealedHandCards.map(rc => (
-						<div key={rc.cardId} className={`flex ${cardSize} overflow-hidden items-center justify-center border-[rgba(180,60,255,0.6)] shadow-[0_0_10px_rgba(140,40,200,0.4)] ${isBottomLeft ? 'origin-bottom' : ''}`}>
+						<div key={rc.cardId} className={`flex ${cardSize} overflow-hidden items-center justify-center border-game-purple/60 shadow-[0_0_10px_rgba(140,40,200,0.4)] ${isBottomLeft ? 'origin-bottom' : ''}`}>
 							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card ${rc.value}`} />
 							{gameMode === 'LINKED' && (
 								<>
