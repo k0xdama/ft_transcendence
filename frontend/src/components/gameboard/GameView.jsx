@@ -31,6 +31,12 @@ const LAYOUTS = {
 	}
 }
 
+const LINKS = {
+	1:	[6, 8],		2: [5, 9],	3: [4, 10],	4: [3, 11],
+	5:	[2, 12],	6: [1],		7: [],		8: [1],
+	9:	[2],		10: [3],	11: [4],	12: [5]
+}
+
 const	cardImages = import.meta.glob('../../assets/cards/Card_*.png', { eager: true })
 
 const	getCardImage = (label) => {
@@ -117,6 +123,7 @@ function GameView() {
 	const expectedRevealed = { FIRST: 0, SECOND: 1, BONUS: 2 }
 	const myRevCards = revealedHandCards.filter(c => c.ownerId === me.id)
 	const canAct = isMyTurn && gameStruct.cardsRevealed.length === expectedRevealed[currentAction]
+	const mode = gameStruct.gameMode
 
 	return (
 		<div className={`relative w-screen overflow-hidden ${isMobile ? 'h-screen' : 'h-[calc(100vh-var(--navbar-height))]'}`}>
@@ -144,6 +151,7 @@ function GameView() {
 							setSelectedOpponent(opponentId);
 					}}
 					lastAction={lastAction}
+					gameMode={mode}
 				/>
 			))}
 
@@ -153,6 +161,7 @@ function GameView() {
 				currentAction={currentAction}
 				cardsRevealed={gameStruct.cardsRevealed}
 				onFlip={(cardId) => sendAction(gameId, 'FLIP_MIDDLE', cardId)}
+				gameMode={mode}
 			/>
 
 			{myRevCards.length > 0 && (
@@ -161,8 +170,22 @@ function GameView() {
 					: `${isMobile ? 'bottom-[calc(6vh+50px)] right-[10vw]' : 'bottom-[calc(8vh+150px)] right-[22vw]'}`
 				}`}>
 					{myRevCards.map(rc => (
-						<div key={rc.cardId} className={`flex ${isMobile ? 'h-[4vw] w-[3vw] min-h-[44px] min-w-[32px]' : 'h-[5.5vw] w-[4vw] min-h-[90px] min-w-[70px]'} items-center justify-center rounded-md border border-[rgba(180,60,255,0.6)] bg-black font-bold shadow-[0_0_10px_rgba(140,40,200,0.4)]`}>
-							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-contain" alt={`Card ${rc.value}`} />
+						<div key={rc.cardId} className={`flex relative overflow-hidden ${isMobile ? 'h-[4vw] w-[3vw] min-h-[44px] min-w-[32px]' : 'h-[5.5vw] w-[4vw] min-h-[90px] min-w-[70px]'} items-center justify-center rounded-md border border-[rgba(180,60,255,0.6)] bg-black font-bold shadow-[0_0_10px_rgba(140,40,200,0.4)]`}>
+							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card ${rc.value}`} />
+							{gameStruct.gameMode === 'LINKED' && (
+								<>
+									{LINKS[rc.value]?.[0] != null && (
+										<span className="absolute bottom-1 left-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
+											{LINKS[rc.value]?.[0]}
+										</span>
+									)}
+									{LINKS[rc.value]?.[1] != null && (
+										<span className="absolute bottom-1 right-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
+											{LINKS[rc.value]?.[1]}
+										</span>
+									)}
+								</>
+							)}
 						</div>
 					))}
 				</div>
@@ -174,6 +197,7 @@ function GameView() {
 				trios={gameStruct.trioWonArray[me.id] ?? []}
 				isMyTurn={canAct}
 				onSelectSelf={() => setSelectedOpponent(me.id)}
+				gameMode={mode}
 			/>
 
 			<ChatOverlay lobbyId={lobbyId} />
@@ -248,7 +272,7 @@ function GameView() {
 			)}
 
 			{pendingCheck && (
-				<div className={`absolute left-1/2 z-40 -translate-x-1/2 ${isMobile ? 'bottom-[calc(6vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`}>
+				<div className={`absolute left-[40%] z-40 -translate-x-1/2 ${isMobile ? 'bottom-[calc(6vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`}>
 					<button
 						className={`cursor-pointer rounded-lg border border-[rgba(0,220,255,0.5)] bg-[rgba(0,200,255,0.1)] px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-[#00dcff] ${checkSent ? 'cursor-not-allowed opacity-45 shadow-none' : 'animate-[pulse-check_1.2s_ease-in-out_infinite]'}`}
 						disabled={checkSent}

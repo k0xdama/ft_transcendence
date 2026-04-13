@@ -7,6 +7,11 @@
   src: url('./assets/fonts/Sddystopiandemo-GO7xa.otf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Moonstrike';
+  src: url('./assets/fonts/Moonstrike.otf') format('opentype');
+}
+
 :root {
   font-family: 'SDDystopian', sans-serif;
   line-height: 1.5;

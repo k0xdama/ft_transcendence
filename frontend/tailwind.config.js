@@ -18,6 +18,10 @@ module.exports = {
         },
       },
 
+      fontFamily: {
+        'moonstrike': ['Moonstrike', 'sans-serif'],
+      },
+
       // ─── Background opacity shorthands ───────────────────
       // From: rgba(10,5,20,0.75), rgba(0,0,0,0.3) etc.
       backgroundColor: {

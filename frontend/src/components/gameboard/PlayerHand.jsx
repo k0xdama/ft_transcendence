@@ -19,7 +19,13 @@ const HAND_MOBILE = {
 	"bottom-right": "bottom-[6vh] right-[10vw]"
 }
 
-function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf }) {
+const LINKS = {
+	1:	[6, 8],		2: [5, 9],	3: [4, 10],	4: [3, 11],
+	5:	[2, 12],	6: [1],		7: [],		8: [1],
+	9:	[2],		10: [3],	11: [4],	12: [5]
+}
+
+function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf, gameMode }) {
 	const isMobile = useIsMobileGame()
 	const seatClass = (isMobile ? HAND_MOBILE : HAND_DESKTOP)[seat] ?? ""
 	const isBottomLeft = seat === 'bottom-left'
@@ -42,12 +48,26 @@ function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf }) {
 				style={isMyTurn ? { filter: 'drop-shadow(0 0 14px rgba(0, 200, 255, 0.7))' } : undefined}
 			>
 				{cards.map(card => (
-					<div key={card.id} className={`flex overflow-hidden ${cardSize} items-center justify-center rounded-md border border-white/20 bg-black font-bold ${isBottomLeft ? 'origin-bottom' : ''}`}>
+					<div key={card.id} className={`relative flex overflow-hidden ${cardSize} items-center justify-center rounded-md border border-white/20 bg-black font-bold ${isBottomLeft ? 'origin-bottom' : ''}`}>
 						<img
 							src={getCardImage(card.value)}
 							alt={`Card ${card.value}`}
 							className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]"
 						/>
+						{gameMode === 'LINKED' && (
+							<>
+								{LINKS[card.value]?.[0] != null && (
+									<span className="absolute bottom-1 left-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
+										{LINKS[card.value]?.[0]}
+									</span>
+								)}
+								{LINKS[card.value]?.[1] != null && (
+									<span className="absolute bottom-1 right-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
+										{LINKS[card.value]?.[1]}
+									</span>
+								)}
+							</>
+						)}
 					</div>
 				))}
 				<TrioBadge trios={trios} />

@@ -35,9 +35,15 @@ const REVEALED_SEAT = {
 	"bottom-left": "bottom-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 flex-row"
 }
 
+const LINKS = {
+	1:	[6, 8],		2: [5, 9],	3: [4, 10],	4: [3, 11],
+	5:	[2, 12],	6: [1],		7: [],		8: [1],
+	9:	[2],		10: [3],	11: [4],	12: [5]
+}
+
 const SIDE_SEATS = new Set(["left", "right"])
 
-function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards, onSelect, lastAction }) {
+function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards, onSelect, lastAction, gameMode }) {
 	void lastAction
 	const isMobile = useIsMobileGame()
 	const isSideSeat = SIDE_SEATS.has(seat)
@@ -77,6 +83,20 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 					{revealedHandCards.map(rc => (
 						<div key={rc.cardId} className={`flex ${cardSize} overflow-hidden items-center justify-center border-[rgba(180,60,255,0.6)] shadow-[0_0_10px_rgba(140,40,200,0.4)] ${isBottomLeft ? 'origin-bottom' : ''}`}>
 							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card ${rc.value}`} />
+							{gameMode === 'LINKED' && (
+								<>
+									{LINKS[rc.value]?.[0] != null && (
+										<span className="absolute bottom-1 left-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
+											{LINKS[rc.value]?.[0]}
+										</span>
+									)}
+									{LINKS[rc.value]?.[1] != null && (
+										<span className="absolute bottom-1 right-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
+											{LINKS[rc.value]?.[1]}
+										</span>
+									)}
+								</>
+							)}
 						</div>
 					))}
 				</div>
