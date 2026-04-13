@@ -42,11 +42,11 @@ function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf }) {
 				style={isMyTurn ? { filter: 'drop-shadow(0 0 14px rgba(0, 200, 255, 0.7))' } : undefined}
 			>
 				{cards.map(card => (
-					<div key={card.id} className={`flex ${cardSize} items-center justify-center rounded-md border border-white/20 bg-black font-bold ${isBottomLeft ? 'origin-bottom' : ''}`}>
+					<div key={card.id} className={`flex overflow-hidden ${cardSize} items-center justify-center rounded-md border border-white/20 bg-black font-bold ${isBottomLeft ? 'origin-bottom' : ''}`}>
 						<img
 							src={getCardImage(card.value)}
 							alt={`Card ${card.value}`}
-							className="h-full w-full rounded-md object-contain"
+							className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]"
 						/>
 					</div>
 				))}

@@ -64,9 +64,9 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 					{Array.from({ length: player.cardCount }).map((_, i) => (
 						<div
 							key={i}
-							className={`${cardSize} ${cardBackSeat} ${isMyTurn ? 'group-hover/hand:border-[rgba(180,60,255,0.7)] group-hover/hand:shadow-[0_0_10px_rgba(140,40,200,0.4)]' : ''}`}
+							className={`${cardSize} ${cardBackSeat} overflow-hidden ${isMyTurn ? 'group-hover/hand:border-[rgba(180,60,255,0.7)] group-hover/hand:shadow-[0_0_10px_rgba(140,40,200,0.4)]' : ''}`}
 						>
-							<img src={getCardImage("back")} className="h-full w-full rounded-md object-contain" alt={`Card back`} />
+							<img src={getCardImage("back")} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card back`} />
 						</div>
 					))}
 				</div>
@@ -75,8 +75,8 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 			{revealedHandCards.length > 0 && (
 				<div className={`absolute flex gap-[0.4rem] ${revealedSeatClass}`}>
 					{revealedHandCards.map(rc => (
-						<div key={rc.cardId} className={`flex ${cardSize} items-center justify-center border-[rgba(180,60,255,0.6)] shadow-[0_0_10px_rgba(140,40,200,0.4)] ${isBottomLeft ? 'origin-bottom' : ''}`}>
-							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-contain" alt={`Card ${rc.value}`} />
+						<div key={rc.cardId} className={`flex ${cardSize} overflow-hidden items-center justify-center border-[rgba(180,60,255,0.6)] shadow-[0_0_10px_rgba(140,40,200,0.4)] ${isBottomLeft ? 'origin-bottom' : ''}`}>
+							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card ${rc.value}`} />
 						</div>
 					))}
 				</div>
