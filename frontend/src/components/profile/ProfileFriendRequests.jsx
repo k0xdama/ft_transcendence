@@ -65,6 +65,15 @@ function ProfileFriendRequests() {
 		}
 	}
 
+	const getApiErrorMessage = async (response, fallbackMessage) => {
+		try {
+			const data = await response.json()
+			return data?.message || data?.error || fallbackMessage
+		} catch {
+			return fallbackMessage
+		}
+	}
+
 	const handleAccept = async (friendId) => {
 		try {
 			const response = await authFetch(`${playerRoute}/me/friend-requests/${friendId}/accept`, {
@@ -118,6 +127,7 @@ function ProfileFriendRequests() {
 			return
 
 		setSending(true)
+		setError('')
 		try {
 			// For now, assume sendQuery is username. In real app, might need search first
 			// This is a simplification - in practice, you'd search for users first
@@ -125,7 +135,10 @@ function ProfileFriendRequests() {
 				method: 'POST'
 			})
 			if (!response.ok) {
-				throw new Error('Failed to send friend request')
+				const message = await getApiErrorMessage(response, 'Failed to send friend request')
+				const apiError = new Error(message)
+				apiError.status = response.status
+				throw apiError
 			}
 			setSendQuery('')
 			// Refresh sent requests
@@ -142,8 +155,10 @@ function ProfileFriendRequests() {
 				})))
 			}
 		} catch (err) {
-			setError('Failed to send friend request')
-			console.error('Error sending request:', err)
+			setError(err.message || 'Failed to send friend request')
+			if (!err.status || err.status >= 500) {
+				console.error('Error sending request:', err)
+			}
 		} finally {
 			setSending(false)
 		}
