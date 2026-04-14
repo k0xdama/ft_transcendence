@@ -86,8 +86,8 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 |---|---|---|---|
 | Morgan | `@morajaon` | Product Owner / Frontend | API Gateway + the whole web application esthetic (HTML, Tailwind CSS) |
 | Ana | `@itsbraga` | Project Manager / Backend | DevOps (DB, Redis, Docker Compose) + Auth and Chat microservices + Mobile responsive |
-| Mateo | `@k0xdama` | Technical Lead / Backend | Lobby and Game services + search for bugs, warnings |
-| Antoine | `@agremill` | Developer Backend | Player service + game statistics and match history |
+| Mateo | `@k0xdama` | Technical Lead / Backend | Lobby and Game services + search for bugs, warnings and match history |
+| Antoine | `@agremill` | Developer Backend | Player service + game statistics |
 
 ---
 
@@ -214,8 +214,8 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 | Private lobby | Create lobby, share 6-char code, ready-check, host starts game | [pmateo] |
 | Public matchmaking | Queue by mode/type/player count, auto-start when full | [pmateo] |
 | Real-time game | Card game for 3–6 players, Classic and Linked modes, Solo/Team | [pmateo] |
-| Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo, morajaon] |
-| Match history | Per-user log of past games, opponents, outcomes | [????????? agremill, pmateo ????????] |
+| Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo, morajaon, ?????????] |
+| Match history | Per-user log of past games, opponents, outcomes | [?????????, pmateo, ????????] |
 | Stats & achievements | Wins, combos, trio-of-7, perfect games, progression | [pmateo, agremill] |
 | Leaderboard | Global ranking by score | [pmateo] |
 | Mobile responsive UI | Adaptive layouts for phone and desktop, including dedicated mobile chat overlays, split desktop/mobile NavBar and responsive size dictionaries per breakpoint | [morajaon, annabrag] |
