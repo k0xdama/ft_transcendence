@@ -843,7 +843,15 @@ router.post('/me/blocked/:blocked_auth_user_id', async (req, res) => {
 
         const check = await didUserBlockedThem(user.id, blocked.id);//check si block existe dans ce sens
 
-        if (check && check.requester_id === user.id && check.addressee_id === blocked)
+		console.log("POST BLOCK check : ", check);
+		if (check) {
+			console.log("POST BLOCK check.requester_id : ", check.requester_id);
+			console.log("POST BLOCK check.addr : ", check.addressee_id);
+		}
+		console.log("POST BLOCK user.id : ", user.id);
+		console.log("POST BLOCK blocked : ", blocked);
+
+        if (check && check.requester_id === user.id && check.addressee_id === blocked.id)
             return res.status(200).json({ message: 'User already blocked' });
 
         // Vérifier si une relation existe pour savoir si on la met en status blocked PEUT ETRE ENLEVER CA
