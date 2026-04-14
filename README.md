@@ -120,6 +120,8 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 - **Socket.IO** server for real-time WebSocket channels (chat, lobby, game)
 - **JWT** (access tokens) for stateless authentication propagated via the API gateway
 - **bcrypt** for password hashing
+- **axios** to do some requests
+- **multer** to upload files for the profile pictures
 
 
 ### Database and caching
@@ -200,7 +202,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 
 | Feature | Description | Contributor(s) |
 |---|---|---|
-| Registration & login | Email + username + password, bcrypt hashing, JWT issuance | [annabrag] |
+| Registration & login | Email + username + password, bcrypt hashing, JWT issuance | [annabrag, agremill] |
 | Profile page | Display user info, avatar, stats, match history, achievements | [agremill] |
 | Profile settings | Update username, email, password; delete account | [agremill, annabrag] |
 | Avatar upload | Upload custom avatar, default avatar if none | [agremill] |
@@ -212,7 +214,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 | Private lobby | Create lobby, share 6-char code, ready-check, host starts game | [pmateo] |
 | Public matchmaking | Queue by mode/type/player count, auto-start when full | [pmateo] |
 | Real-time game | Card game for 3–6 players, Classic and Linked modes, Solo/Team | [pmateo] |
-| Reconnection | 30s grace window on disconnect, full state resync on return | [?????????? pmateo, morajaon ?????????] |
+| Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo, morajaon ?????????] |
 | Match history | Per-user log of past games, opponents, outcomes | [????????? agremill, pmateo ????????] |
 | Stats & achievements | Wins, combos, trio-of-7, perfect games, progression | [pmateo, agremill] |
 | Leaderboard | Global ranking by score | [pmateo] |
@@ -269,9 +271,9 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 - **Challenges**: ?????
 
 ### Antoine @agremill
-- **Owned**: player-service, some frontend pages????
-- **Modules**: #1, #2, #3, #4, #9, #11  A VERIFIER
-- **Challenges**: ????
+- **Owned**: player-service, some sections of the frontend profile page
+- **Modules**: #2, #3, #4, #7, #9, #11
+- **Challenges**: The most challenging part is that it was my first time programming with these technologies. Beside that, I had to do a lot of research and exange with my team mates to understand how a microservice architecture and the backend work.
 
 ### Mateo @pmateo
 - **Owned**: lobby-service, matchmaking, game-service
