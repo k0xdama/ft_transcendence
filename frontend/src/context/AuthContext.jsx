@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 
 	const logout = async () => {
 		try {
-			await fetch(`${authRoute}/logout`, {
+			await fetch(`${AUTH_ROUTE}/logout`, {
 				method: 'POST',
 				credentials: 'include'
 			});

@@ -1,5 +1,6 @@
-import PFP_Default from '../../assets/PFP_Default.webp'
 import { useRef } from 'react'
+import PFP_Default from '../../assets/PFP_Default.webp'
+import { formatJoinDate } from './ProfileUtils'
 
 function ProfileHeader({
 	profileData,
@@ -14,23 +15,9 @@ function ProfileHeader({
 }) {
 	const fileInputRef = useRef(null)
 
-	const handleFileSelect = (e) => {
-		const file = e.target.files[0]
-		if (file)
-			onAvatarUpload(file)
-	}
-
-	const formatDate = (dateStr) => {
-		const date = new Date(dateStr)
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})
-	}
-
 	return (
 		<div className="flex flex-col items-center gap-4 pb-6 border-b border-purple-dim mb-6">
+			{/* Avatar */}
 			<div className="flex flex-col items-center gap-2">
 				<img
 					src={profileData.avatarUrl || PFP_Default}
@@ -39,36 +26,26 @@ function ProfileHeader({
 				/>
 				{isOwnProfile && (
 					<div className="flex gap-2">
-						<button
-							className="px-3 py-1 rounded text-xs uppercase tracking-ui text-white/70 bg-purple-brand/10 border border-purple-brand/30 hover:bg-purple-brand/25 hover:shadow-lg hover:shadow-purple-brand/30 transition-all"
-							onClick={() => fileInputRef.current?.click()}
-						>
+						<button className="px-3 py-1 rounded text-xs uppercase tracking-ui text-white/70 bg-purple-brand/10 border border-purple-brand/30 hover:bg-purple-brand/25 hover:shadow-lg hover:shadow-purple-brand/30 transition-all" onClick={() => fileInputRef.current?.click()}>
 							Upload
 						</button>
-						<button
-							className="px-3 py-1 rounded text-xs uppercase tracking-ui text-red-400 bg-red-500/8 border border-red-500/30 hover:bg-red-500/15 hover:shadow-lg hover:shadow-red-500/30 transition-all"
-							onClick={onAvatarDelete}
-						>
+						<button className="px-3 py-1 rounded text-xs uppercase tracking-ui text-red-400 bg-red-500/8 border border-red-500/30 hover:bg-red-500/15 hover:shadow-lg hover:shadow-red-500/30 transition-all" onClick={onAvatarDelete}>
 							Remove
 						</button>
-						<input
-							type="file"
-							ref={fileInputRef}
-							onChange={handleFileSelect}
-							accept="image/*"
-							hidden
-						/>
+						<input type="file" ref={fileInputRef} onChange={e => e.target.files[0] && onAvatarUpload(e.target.files[0])} accept="image/*" hidden />
 					</div>
 				)}
 			</div>
 
+			{/* Username + join date */}
 			<div className="text-center">
 				<h2 className="text-2xl uppercase tracking-ui text-purple-pale text-shadow-purple m-0">{profileData.username}</h2>
 				<p className="m-0 mt-1 text-xs uppercase tracking-ui text-white/50">
-					Joined <span className="text-white/70">{formatDate(profileData.createdAt)}</span>
+					Joined <span className="text-white/70">{formatJoinDate(profileData.createdAt)}</span>
 				</p>
 			</div>
 
+			{/* Social actions (other user's profile) */}
 			{!isOwnProfile && (
 				<div className="flex flex-wrap justify-center gap-2.5">
 					{friendStatus === 'none' && (

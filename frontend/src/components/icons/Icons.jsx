@@ -18,7 +18,7 @@ export const IconCheck       = (p) => <Icon glyph="✓"  label="Done"     {...p}
 export const IconDoubleCheck = (p) => <Icon glyph="✓✓" label="Read"     {...p} />
 export const IconDecline     = (p) => <Icon glyph="✗"  label="Decline"  {...p} />
 export const IconLock        = (p) => <Icon glyph="🔒" label="Lock"     {...p} />
-export const IconProfile     = (p) => <Icon glyph="☿"  label="Profile"  {...p} />
+export const IconProfile     = (p) => <Icon glyph="☰" label="Profile"  {...p} />
 
 // ─── Chat & messaging ────────────────────────────────────────
 export const IconChat     = (p) => <Icon glyph="💬" label="Chat"     {...p} />

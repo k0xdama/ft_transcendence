@@ -2,11 +2,18 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
-import PFP_Default from '../../assets/PFP_Default.webp'
 import { IconProfile, IconClose, IconLock } from '../icons/Icons'
+import FriendRow from './FriendRow'
+import { PLAYER_ROUTE, CHAT_ROUTE } from '../../constants/ApiRoutes'
+import { transformFriendEntry } from './ProfileUtils'
 
 const STATUS_ORDER = { 'online': 0, 'in-game': 1, 'offline': 2 }
 const STATUS_LABELS = { 'online': 'Online', 'in-game': 'In Game', 'offline': 'Offline' }
+const STATUS_COLORS = {
+	online:   'text-green-400',
+	'in-game': 'text-cyan-glow',
+	offline:  'text-purple-pale/40'
+}
 
 function ProfileFriends() {
 	const { authFetch } = useAuth()
@@ -17,8 +24,6 @@ function ProfileFriends() {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
 	const [searchQuery, setSearchQuery] = useState('')
-	const playerRoute = '/api/players'
-	const chatRoute = '/api/chat'
 
 	useEffect(() => {
 		fetchFriends()
@@ -38,147 +43,87 @@ function ProfileFriends() {
 		})
 	}, [on])
 
-	const fetchFriends = async () => {
+		const fetchFriends = async () => {
 		try {
-			const response = await authFetch(`${playerRoute}/me/friends`)
-			if (!response.ok)
-				throw new Error('Failed to fetch friends')
-
-			const data = await response.json()
-			// Transform API data to match component expectations
-			const transformedFriends = data.friends.map(friend => ({
-				id: friend.auth_user_id,
-				username: friend.username,
-				avatarUrl: friend.pp_path && friend.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-					? `${playerRoute}/${friend.auth_user_id}/profile-picture`
-					: null,
-				status: 'offline'
-			}))
-
-			// Fetch initial online statuses
-			const friendIds = transformedFriends.map(f => f.id)
-			if (friendIds.length > 0) {
+			const res = await authFetch(`${PLAYER_ROUTE}/me/friends`)
+			if (!res.ok) throw new Error()
+			const { friends: raw } = await res.json()
+			const transformed = raw.map(transformFriendEntry)
+ 
+			// Hydrate online statuses in one batch request
+			const ids = transformed.map(f => f.id)
+			if (ids.length > 0) {
 				try {
-					const statusRes = await authFetch(`${chatRoute}/status/online`, {
+					const statusRes = await authFetch(`${CHAT_ROUTE}/status/online`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ userIds: friendIds })
+						body: JSON.stringify({ userIds: ids })
 					})
 					if (statusRes.ok) {
 						const { statuses } = await statusRes.json()
-
-						transformedFriends.forEach(f => {
-							if (statuses[f.id])
-								f.status = statuses[f.id]
-						})
+						transformed.forEach(f => { if (statuses[f.id]) f.status = statuses[f.id] })
 					}
-				} catch (err) {
-					console.error('Failed to fetch online statuses:', err)
-				}
+				} catch { /* statuses default to offline */ }
 			}
-
-			setFriends(transformedFriends)
-		} catch (err) {
+			setFriends(transformed)
+		} catch {
 			setError('Failed to load friends')
-			console.error('Error fetching friends:', err)
 		} finally {
 			setLoading(false)
 		}
 	}
-
+ 
 	const fetchBlocked = async () => {
 		try {
-			const response = await authFetch(`${playerRoute}/me/blocked`)
-			if (!response.ok)
-				throw new Error('Failed to fetch blocked users')
-
-			const data = await response.json()
-			const transformedBlocked = data.blocked.map(user => ({
-				id: user.auth_user_id,
-				username: user.username,
-				avatarUrl: user.pp_path && user.pp_path !== '/uploads/profilePictures/default_profile_picture.png'
-					? `${playerRoute}/${user.auth_user_id}/profile-picture`
-					: null,
-				blockedAt: user.blocked_at
-			}))
-			setBlocked(transformedBlocked)
-		} catch (err) {
-			console.error('Error fetching blocked users:', err)
-		}
+			const res = await authFetch(`${PLAYER_ROUTE}/me/blocked`)
+			if (!res.ok) throw new Error()
+			const { blocked: raw } = await res.json()
+			setBlocked(raw.map(u => ({
+				...transformFriendEntry(u),
+				blockedAt: u.blocked_at
+			})))
+		} catch { /* silently ignore */ }
 	}
 
 	const handleRemoveFriend = async (friendId) => {
 		try {
-			const response = await authFetch(`${playerRoute}/me/friends/${friendId}`, {
-				method: 'DELETE'
-			})
-
-			if (!response.ok)
-				throw new Error('Failed to remove friend')
-
+			const res = await authFetch(`${PLAYER_ROUTE}/me/friends/${friendId}`, { method: 'DELETE' })
+			if (!res.ok) throw new Error()
 			await fetchFriends()
-		} catch (err) {
-			setError('Failed to remove friend')
-			console.error('Error removing friend:', err)
-		}
+		} catch { setError('Failed to remove friend') }
 	}
-
+ 
 	const handleBlockUser = async (friendId) => {
 		try {
-			const response = await authFetch(`${playerRoute}/me/blocked/${friendId}`, {
-				method: 'POST'
-			})
-
-			if (!response.ok)
-				throw new Error('Failed to block user')
-
+			const res = await authFetch(`${PLAYER_ROUTE}/me/blocked/${friendId}`, { method: 'POST' })
+			if (!res.ok) throw new Error()
 			await fetchFriends()
-		} catch (err) {
-			setError('Failed to block user')
-			console.error('Error blocking user:', err)
-		}
+		} catch { setError('Failed to block user') }
 	}
-
+ 
 	const handleUnblockUser = async (userId) => {
 		try {
-			const response = await authFetch(`${playerRoute}/me/blocked/${userId}`, {
-				method: 'DELETE'
-			})
-
-			if (!response.ok)
-				throw new Error('Failed to unblock user')
-
+			const res = await authFetch(`${PLAYER_ROUTE}/me/blocked/${userId}`, { method: 'DELETE' })
+			if (!res.ok) throw new Error()
 			await fetchBlocked()
-		} catch (err) {
-			setError('Failed to unblock user')
-			console.error('Error unblocking user:', err)
-		}
+		} catch { setError('Failed to unblock user') }
 	}
 
 	const filtered = friends
 		.filter(f => f.username.toLowerCase().includes(searchQuery.toLowerCase()))
 		.sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
-
+ 
 	const onlineCount = friends.filter(f => f.status !== 'offline').length
+ 
+	if (loading)
+		return <p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink m-0 py-6">Loading friends...</p>
+ 
+	if (error)
+		return <p className="text-red-500 text-xs text-center m-0 py-6">{error}</p>
 
-	if (loading) {
 		return (
-			<div className="flex flex-col gap-4 max-h-96 min-h-0">
-				<p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink m-0 py-6">Loading friends...</p>
-			</div>
-		)
-	}
-
-	if (error) {
-		return (
-			<div className="flex flex-col gap-4 max-h-96 min-h-0">
-				<p className="text-red-500 text-xs text-center m-0 py-6">{error}</p>
-			</div>
-		)
-	}
-
-	return (
 		<div className="flex flex-col gap-4 max-h-96 min-h-0">
+			{/* Header row */}
 			<div className="flex justify-between items-center gap-3 flex-shrink-0">
 				<span className="whitespace-nowrap">
 					<span className="text-lg font-bold text-green-400 tracking-wide">{onlineCount}</span>
@@ -192,84 +137,56 @@ function ProfileFriends() {
 					onChange={e => setSearchQuery(e.target.value)}
 				/>
 			</div>
-
+ 
+			{/* Friend list */}
 			<div className="flex flex-col gap-1.5 overflow-y-auto min-h-0 flex-1 pr-1">
-				{filtered.length === 0 && (
-					<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-6 m-0">No friends found</p>
-				)}
-				{filtered.map(friend => (
-					<div key={friend.id} className="flex items-center gap-3 px-3.5 py-2.5 bg-white/4 border border-purple-dim rounded-xl hover:border-purple-mid hover:shadow-lg hover:shadow-purple-brand/10 transition-all">
-						<div className="relative flex-shrink-0">
-							<img
-								className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
-								src={friend.avatarUrl || PFP_Default}
-								alt={friend.username}
-							/>
-							<span className={`absolute bottom-0 right-0.5 w-2.5 h-2.5 rounded-full border-2 border-opacity-90 ${
-								friend.status === 'online' ? 'bg-green-400 shadow-lg shadow-green-400/50' :
-								friend.status === 'in-game' ? 'bg-cyan-glow shadow-lg shadow-cyan-glow/50' :
-								'bg-purple-pale/30'
-							}`} />
-						</div>
-						<div className="flex flex-col gap-0.5 flex-1 min-w-0">
-							<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{friend.username}</span>
-							<span className={`text-xs uppercase tracking-ui ${
-								friend.status === 'online' ? 'text-green-400' :
-								friend.status === 'in-game' ? 'text-cyan-glow' :
-								'text-purple-pale/40'
-							}`}>
-								{STATUS_LABELS[friend.status]}
-							</span>
-						</div>
-						<div className="flex gap-1.5 flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity">
-							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-cyan-glow/50 hover:bg-cyan-glow/10 hover:text-cyan-glow transition-all" title="View Profile" onClick={() => navigate(`/profile/${friend.id}`)}>
-								<IconProfile />
-							</button>
-							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all" title="Remove Friend" onClick={() => handleRemoveFriend(friend.id)}>
-								<IconClose />
-							</button>
-							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400 transition-all" title="Block User" onClick={() => handleBlockUser(friend.id)}>
-								<IconLock />
-							</button>
-						</div>
-					</div>
-				))}
+				{filtered.length === 0
+					? <p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-6 m-0">No friends found</p>
+					: filtered.map(friend => (
+						<FriendRow
+							key={friend.id}
+							user={friend}
+							statusDot={friend.status}
+							statusLabel={STATUS_LABELS[friend.status]}
+							statusColor={STATUS_COLORS[friend.status]}
+						>
+							<div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1.5">
+								<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-cyan-glow/50 hover:bg-cyan-glow/10 hover:text-cyan-glow transition-all" title="View Profile" onClick={() => navigate(`/profile/${friend.id}`)}>
+									<IconProfile className="items-center justify-center"/>
+								</button>
+								<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all" title="Remove Friend" onClick={() => handleRemoveFriend(friend.id)}>
+									<IconClose />
+								</button>
+								<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400 transition-all" title="Block User" onClick={() => handleBlockUser(friend.id)}>
+									<IconLock />
+								</button>
+							</div>
+						</FriendRow>
+					))
+				}
 			</div>
-
+ 
 			{/* Blocked users */}
 			<div className="mt-20 flex flex-col gap-3 border-t border-purple-dim pt-5">
 				<h3 className="m-0 text-sm font-semibold uppercase tracking-ui text-purple-pale">Blocked Users</h3>
 				<div className="profile-scrollbar flex flex-col gap-1.5 max-h-40 overflow-y-auto min-h-0 pr-1">
-					{blocked.length === 0 ? (
-						<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-4 m-0">No blocked users found</p>
-					) : (
-						blocked.map(user => (
-							<div key={user.id} className="flex items-center gap-3 px-3.5 py-2.5 bg-white/4 border border-purple-dim rounded-xl hover:border-purple-mid hover:shadow-lg hover:shadow-purple-brand/10 transition-all">
-								<div className="relative flex-shrink-0">
-									<img
-										className="w-9 h-9 rounded-full border-2 border-purple-brand/30 object-cover"
-										src={user.avatarUrl || PFP_Default}
-										alt={user.username}
-									/>
-								</div>
-								<div className="flex flex-col gap-0.5 flex-1 min-w-0">
-									<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{user.username}</span>
-									<span className="text-xs uppercase tracking-ui text-purple-pale/50">
-										Blocked {new Date(user.blockedAt).toLocaleDateString()}
-									</span>
-								</div>
-								<div className="flex gap-1.5 flex-shrink-0">
-									<button
-										className="px-2.5 h-7 rounded border border-green-500/50 bg-green-500/8 text-green-400 text-xs uppercase tracking-ui cursor-pointer flex items-center justify-center hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 transition-all"
-										title="Unblock User"
-										onClick={() => handleUnblockUser(user.id)}
-									>
-										Unblock
-									</button>
-								</div>
-							</div>
+					{blocked.length === 0
+						? <p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-4 m-0">No blocked users found</p>
+						: blocked.map(user => (
+							<FriendRow
+								key={user.id}
+								user={user}
+								statusLabel={`Blocked ${new Date(user.blockedAt).toLocaleDateString()}`}
+							>
+								<button
+									className="px-2.5 h-7 rounded border border-green-500/50 bg-green-500/8 text-green-400 text-xs uppercase tracking-ui cursor-pointer flex items-center justify-center hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 transition-all"
+									onClick={() => handleUnblockUser(user.id)}
+								>
+									Unblock
+								</button>
+							</FriendRow>
 						))
-					)}
+					}
 				</div>
 			</div>
 		</div>
