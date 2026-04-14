@@ -53,11 +53,11 @@ dev: cert env secrets
 
 down:
 	docker compose down
-	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned!\n${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned!${RESET}"
 
 down-v:
 	docker compose down -v
-	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned and volumes have been erased!\n${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned and volumes have been erased!${RESET}"
 
 logs:
 	docker compose logs
@@ -70,14 +70,14 @@ status:
 
 restart:
 	docker compose restart
-	@echo "${GREEN}${BOLD}${BLINK}All containers have been restarted!\n${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been restarted!${RESET}"
 
 recreate: down up
-	@echo "${GREEN}${BOLD}${BLINK}All containers have been recreated!\n${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been recreated!${RESET}"
 
 clean:
 	docker compose down -v --rmi all
-	@echo "${P_YELLOW}${BOLD}Containers shutdowned, data and ALL images erased!\n${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers shutdowned, data and ALL images erased!${RESET}"
 
 fclean:
 	docker compose down -v --rmi all
