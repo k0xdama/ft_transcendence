@@ -4,12 +4,13 @@ import { TRIO_DESKTOP, TRIO_MOBILE } from "../../constants/GameConstants"
 import { getCardImage } from "./GameUtils"
 import { LINKS } from "../../constants/GameConstants"
 
-function TrioBadge({ trios, gameMode }) {
+function TrioBadge({ trios, gameMode, seat }) {
 	const isMobile = useIsMobileGame()
 	const [showPreview, setShowPreview] = useState(false)
 	const trioBadgeRef = useRef(null)
 	const hasTrios = trios && trios.length > 0
 	const showLinks = gameMode === 'LINKED'
+	const shouldOpenDownOnMobile = isMobile && seat?.startsWith('top')
 
 	const { arrowClass, labelClass, cardPreviewClass } = isMobile ? TRIO_MOBILE : TRIO_DESKTOP
 
@@ -45,7 +46,7 @@ function TrioBadge({ trios, gameMode }) {
 				<span className={`pointer-events-none absolute left-1/2 -translate-x-1/2 font-bold text-black ${labelClass}`}>{trios.length}</span>
 			</div>
 
-			<div className={`absolute bottom-[calc(100%+8px)] left-1/2 z-20 -translate-x-1/2 gap-[0.4rem] whitespace-nowrap rounded-md border border-[rgba(255,255,0,0.4)] bg-[rgba(0,0,0,0.85)] p-[0.4rem] ${isMobile ? showPreview ? 'flex' : 'hidden' : 'hidden group-hover:flex'}`}>
+			<div className={`absolute left-1/2 z-20 -translate-x-1/2 gap-[0.4rem] whitespace-nowrap rounded-md border border-[rgba(255,255,0,0.4)] bg-[rgba(0,0,0,0.85)] p-[0.4rem] ${shouldOpenDownOnMobile ? 'top-[calc(100%+8px)]' : 'bottom-[calc(100%+8px)]'} ${isMobile ? showPreview ? 'flex' : 'hidden' : 'hidden group-hover:flex'}`}>
 				{trios.map((value, i) => (
 					<div key={i} className={`overflow-hidden relative rounded border border-white/20 ${cardPreviewClass}`}>
 						<img src={getCardImage(value)} alt={`Card ${value}`} className="h-full w-full object-cover scale-[1.4] object-[center_-28%]" />
