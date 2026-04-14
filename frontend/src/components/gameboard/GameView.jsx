@@ -12,38 +12,8 @@ import SoundBuzzers from './SoundBuzzers'
 import './GameView.css'
 import CountdownRing from './CountdownRing'
 import boardBackdrop from '../../assets/Board_backdrop.png'
-
-const LAYOUTS = {
-	3: {
-		seats: ["top", "left"],
-		playerSeat: "bottom-center"
-	},
-	4: {
-		seats: ["top", "left", "right"],
-	playerSeat: "bottom-center"
-	},
-	5: {
-		seats: ["top-left", "top-right", "left", "right"],
-		playerSeat: "bottom-right"
-	},
-	6: {
-		seats: ["top-left", "top-right", "left", "right", "bottom-left"],
-		playerSeat: "bottom-right"
-	}
-}
-
-const LINKS = {
-	1:	[6, 8],		2: [5, 9],	3: [4, 10],	4: [3, 11],
-	5:	[2, 12],	6: [1],		7: [],		8: [1],
-	9:	[2],		10: [3],	11: [4],	12: [5]
-}
-
-const	cardImages = import.meta.glob('../../assets/cards/Card_*.png', { eager: true })
-
-const	getCardImage = (label) => {
-	const key = `../../assets/cards/Card_${label}.png`
-	return cardImages[key]?.default
-}
+import GameCard from './GameCard'
+import { LAYOUTS } from '../../constants/GameConstants'
 
 const	playerActionBtn = 'cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/[0.08] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-cyan-glow transition-[background,box-shadow] duration-200 hover:bg-game-cyan-soft/[0.18] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]';
 
@@ -173,23 +143,12 @@ function GameView() {
 					: `${isMobile ? 'bottom-[calc(6vh+50px)] right-[10vw]' : 'bottom-[calc(8vh+150px)] right-[22vw]'}`
 				}`}>
 					{myRevCards.map(rc => (
-						<div key={rc.cardId} className={`flex relative overflow-hidden ${isMobile ? 'h-[4vw] w-[3vw] min-h-[44px] min-w-[32px]' : 'h-[5.5vw] w-[4vw] min-h-[90px] min-w-[70px]'} items-center justify-center rounded-md border border-[rgba(180,60,255,0.6)] bg-black font-bold shadow-[0_0_10px_rgba(140,40,200,0.4)]`}>
-							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card ${rc.value}`} />
-							{gameStruct.gameMode === 'LINKED' && (
-								<>
-									{LINKS[rc.value]?.[0] != null && (
-										<span className="absolute bottom-1 left-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
-											{LINKS[rc.value]?.[0]}
-										</span>
-									)}
-									{LINKS[rc.value]?.[1] != null && (
-										<span className="absolute bottom-1 right-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
-											{LINKS[rc.value]?.[1]}
-										</span>
-									)}
-								</>
-							)}
-						</div>
+						<GameCard
+							key={rc.cardId}
+							value={rc.value}
+							gameMode={mode}
+							className="border-[rgba(180,60,255,0.6)] shadow-[0_0_10px_rgba(140,40,200,0.4)]"
+						/>
 					))}
 				</div>
 			)}
@@ -275,7 +234,7 @@ function GameView() {
 			)}
 
 			{pendingCheck && (
-				<div className={`absolute left-[40%] z-40 -translate-x-1/2 ${isMobile ? 'bottom-[calc(6vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`}>
+			<div className={`absolute z-40 -translate-x-1/2 ${gameStruct.players.length >= 5 ? 'left-1/2' : 'left-[40%]'} ${isMobile ? 'bottom-[calc(6vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`}>
 					<button
 						className={`cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/10 px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-cyan-glow ${checkSent ? 'cursor-not-allowed opacity-45 shadow-none' : 'animate-[pulse-check_1.2s_ease-in-out_infinite]'}`}
 						disabled={checkSent}
@@ -287,7 +246,7 @@ function GameView() {
 			)}
 
 			{turnTimer && (
-				<div className={`absolute z-10 ${isMobile ? 'bottom-[calc(6vh+50px)] right-[15vw]' : 'bottom-0 right-1/4 -translate-x-1/2 translate-y-[calc(-50%-120px)]'}`}>
+				<div className={`absolute z-10 ${isMobile ? 'bottom-[calc(6vh+50px)] right-[15vw]' : `${gameStruct.players.length >= 5 ? 'left-1/2' : 'left-[40%]'} -translate-x-1/2 bottom-[calc(2vh+220px)]`}`}>
 					<CountdownRing duration={7} label="next turn" />
 				</div>
 			)}

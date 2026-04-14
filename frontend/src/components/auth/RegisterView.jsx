@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-// import './RegisterView.css'
+import { AUTH_ROUTE } from '../../constants/ApiRoutes';
+import AuthField from './AuthField';
+import AuthCard from './AuthCard';
 
 function RegisterView() {
 	const navigate = useNavigate();
@@ -11,9 +13,9 @@ function RegisterView() {
 		confirmPassword:''
 	});
 	const [error, setError] = useState('');
-	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState('');
-	const authRoute = '/api/auth'
+	const [loading, setLoading] = useState(false);
+
 
 	const handleChange = (e) => {
 		setFormData({
@@ -35,7 +37,7 @@ function RegisterView() {
 		setLoading(true);
 
 		try {
-			const res = await fetch(`${authRoute}/register`, {
+			const res = await fetch(`${AUTH_ROUTE}/register`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -70,27 +72,42 @@ function RegisterView() {
 	}
 
 	return (
-		<div className='w-full max-w-[400px] rounded-2xl border border-purple-mid bg-card p-6 shadow-card backdrop-blur-3xl md:p-8'>
-			<h2 className='m-0 mb-6 text-center text-lg uppercase tracking-title text-purple-pale text-shadow-purple'>Create an account</h2>
-			{error && <p className='mb-4 text-center text-xs uppercase tracking-ui text-red-400'>{error}</p>}
-			{success && <p className='mb-4 text-center text-xs uppercase tracking-ui text-green-400'>{success}</p>}
+		<AuthCard title="Create an account" error={error} success={success}>
 			<form onSubmit={handleRegister} className='flex flex-col gap-3.5'>
-				<div className='flex flex-col items-start gap-1.5'>
-					<label className='text-xs uppercase tracking-ui text-white/75'>Username</label>
-					<input name='username' value={formData.username} onChange={handleChange} disabled={loading} type="text" className='w-full rounded-lg border border-purple-dim bg-card-input px-3 py-2 text-sm text-white outline-none transition-colors focus:border-purple-mid' autoComplete='username' />
-				</div>
-				<div className='flex flex-col items-start gap-1.5'>
-					<label className='text-xs uppercase tracking-ui text-white/75'>Email address</label>
-					<input name='email' value={formData.email} onChange={handleChange} disabled={loading} type="text" className='w-full rounded-lg border border-purple-dim bg-card-input px-3 py-2 text-sm text-white outline-none transition-colors focus:border-purple-mid' autoComplete='email' />
-				</div>
-				<div className='flex flex-col items-start gap-1.5'>
-					<label className='text-xs uppercase tracking-ui text-white/75'>Password</label>
-					<input name='password' value={formData.password} onChange={handleChange} disabled={loading} type="password" className='w-full rounded-lg border border-purple-dim bg-card-input px-3 py-2 text-sm text-white outline-none transition-colors focus:border-purple-mid' autoComplete='new-password' />
-				</div>
-				<div className='flex flex-col items-start gap-1.5'>
-					<label className='text-xs uppercase tracking-ui text-white/75'>Confirm password</label>
-					<input name='confirmPassword' value={formData.confirmPassword} onChange={handleChange} disabled={loading} type="password" className='w-full rounded-lg border border-purple-dim bg-card-input px-3 py-2 text-sm text-white outline-none transition-colors focus:border-purple-mid' autoComplete='new-password' />
-				</div>
+				<AuthField
+					label="Username"
+					name="username"
+					value={formData.username}
+					onChange={handleChange}
+					disabled={loading}
+					autoComplete="username"
+				/>
+				<AuthField
+					label="Email address"
+					name="email"
+					value={formData.email}
+					onChange={handleChange}
+					disabled={loading}
+					autoComplete="email"
+				/>
+				<AuthField
+					label="Password"
+					name="password"
+					value={formData.password}
+					onChange={handleChange}
+					disabled={loading}
+					type='password'
+					autoComplete="new-password"
+				/>
+				<AuthField
+					label="Confirm password"
+					name="confirmPassword"
+					value={formData.password}
+					onChange={handleChange}
+					disabled={loading}
+					type='password'
+					autoComplete="new-password"
+				/>
 				<button className='mt-2 w-full rounded-lg border border-purple-mid/60 bg-purple-brand/20 px-5 py-2.5 text-xs uppercase tracking-ui text-purple-pale transition-all hover:border-purple-str hover:bg-purple-brand/35 hover:shadow-btn-purple disabled:cursor-not-allowed disabled:opacity-60' type='submit' disabled={loading}>
 					{loading ? 'Registering...' : 'Register'}
 				</button>
@@ -98,7 +115,7 @@ function RegisterView() {
 			<p className='mt-5 mb-0 text-center text-xs uppercase tracking-ui text-white/70'>
 				Already have an account? <Link to="/login" className='text-purple-pale transition-colors hover:text-purple-light'>Sign in</Link>
 			</p>
-		</div>
+		</AuthCard>
 	);
 }
 

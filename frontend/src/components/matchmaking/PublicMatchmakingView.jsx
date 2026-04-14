@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
@@ -6,7 +6,6 @@ import { useAuth } from '../../context/AuthContext'
 
 function PublicMatchmakingView() {
 	const [gameMode, setGameMode] = useState('CLASSIC')
-	const [gameType, setGameType] = useState('SOLO')
 	const [maxUsers, setMaxUsers] = useState(3)
 	const [error, setError] = useState(null)
 
@@ -20,20 +19,15 @@ function PublicMatchmakingView() {
 			setError('You must be logged in to search for a game!')
 			return
 		}
-		joinMatchmaking(gameMode, gameType, maxUsers)
+		joinMatchmaking(gameMode, 'SOLO', maxUsers)
 		navigate('/matchmaking/waiting', {
-			state: { gameMode, gameType, maxUsers }
+			state: { gameMode, gameType: 'SOLO', maxUsers }
 		})
 	}
 
 	const modes = [
 		{ value: 'CLASSIC', label: 'Classic', desc: 'Win 3 trios' },
 		{ value: 'LINKED', label: 'Linked', desc: 'Win 2 linked trios' }
-	]
-
-	const types = [
-		{ value: 'SOLO', label: 'Solo' },
-		{ value: 'TEAM_UP', label: 'Team Up' }
 	]
 
 	const playerOptions = [3, 4, 5, 6]
@@ -62,23 +56,8 @@ function PublicMatchmakingView() {
 				</div>
 
 				<div className='mb-6'>
-					<p className='m-0 mb-2.5 text-xs uppercase tracking-ui text-white/70'>Game Type</p>
-					<div className='flex gap-3'>
-						{types.map(type => (
-							<button
-								key={type.value}
-								className={`flex-1 px-4 py-2.5 rounded border text-xs uppercase tracking-ui transition-all cursor-pointer ${gameType === type.value ? 'border-purple-str bg-purple-brand/20 shadow-lg shadow-purple-brand/30 text-purple-pale' : 'border-purple-dim bg-card text-white/85 hover:border-purple-mid hover:bg-purple-brand/10'}`}
-								onClick={() => setGameType(type.value)}
-							>
-								{type.label}
-							</button>
-						))}
-					</div>
-				</div>
-
-				<div className='mb-6'>
 					<p className='m-0 mb-2.5 text-xs uppercase tracking-ui text-white/70'>Players</p>
-					<div className='flex gap-3'>
+					<div className='flex justify-center gap-3'>
 						{playerOptions.map(n => (
 							<button
 								key={n}

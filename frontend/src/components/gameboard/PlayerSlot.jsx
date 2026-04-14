@@ -1,45 +1,7 @@
 import TrioBadge from "./TrioBadge"
 import { useIsMobileGame } from "../../hooks/useIsMobileGame"
-
-const cardImages = import.meta.glob('../../assets/cards/Card_*.png', { eager: true })
-
-const getCardImage = (value) => {
-	const key = `../../assets/cards/Card_${value}.png`
-	return cardImages[key]?.default
-}
-
-const SEAT_DESKTOP = {
-	top: "top-10 left-1/2 -translate-x-1/2",
-	left: "left-[5vw] top-[calc(50%+var(--navbar-height)/2)] -translate-y-1/2",
-	right: "right-[5vw] top-[calc(50%+var(--navbar-height)/2)] -translate-y-1/2",
-	"top-left": "left-[22vw] top-[8vh]",
-	"top-right": "right-[22vw] top-[8vh]",
-	"bottom-left": "bottom-[8vh] left-[22vw]"
-}
-
-const SEAT_MOBILE = {
-	top: "top-1 left-1/2 -translate-x-1/2",
-	left: "left-[2vw] top-1/2 -translate-y-1/2",
-	right: "right-[2vw] top-1/2 -translate-y-1/2",
-	"top-left": "left-[10vw] top-[3vh]",
-	"top-right": "right-[10vw] top-[3vh]",
-	"bottom-left": "bottom-[3vh] left-[10vw]"
-}
-
-const REVEALED_SEAT = {
-	top: "top-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 flex-row",
-	left: "left-[calc(100%+3rem)] top-1/2 -translate-y-1/2 flex-col",
-	right: "right-[calc(100%+3rem)] top-1/2 -translate-y-1/2 flex-col",
-	"top-left": "top-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 flex-row",
-	"top-right": "top-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 flex-row",
-	"bottom-left": "bottom-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 flex-row"
-}
-
-const LINKS = {
-	1:	[6, 8],		2: [5, 9],	3: [4, 10],	4: [3, 11],
-	5:	[2, 12],	6: [1],		7: [],		8: [1],
-	9:	[2],		10: [3],	11: [4],	12: [5]
-}
+import { SEAT_DESKTOP, SEAT_MOBILE, REVEALED_SEAT } from "../../constants/GameConstants"
+import GameCard from "./GameCard"
 
 const SIDE_SEATS = new Set(["left", "right"])
 
@@ -47,33 +9,34 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 	void lastAction
 	const isMobile = useIsMobileGame()
 	const isSideSeat = SIDE_SEATS.has(seat)
-	const cardSize = isMobile
-		? "h-[4vw] w-[3vw] min-h-[44px] min-w-[32px] rounded-md border border-white/20 bg-black"
-		: "h-[5.5vw] w-[4vw] min-h-[90px] min-w-[70px] rounded-md border border-white/20 bg-black"
-	const cardBackSeat = isSideSeat ? (isMobile ? "my-[-20px] rotate-90" : "my-[-17px] rotate-90") : ""
+	const cardBackSeat = isSideSeat
+		? (isMobile ? "my-[-20px] rotate-90" : "my-[-17px] rotate-90")
+		: ""
+	const hoverClass = isMyTurn
+		? 'group-hover/hand:border-game-purple/70 group-hover/hand:shadow-[0_0_10px_rgba(140,40,200,0.4)]'
+		: ''
 	const isBottomLeft = seat === 'bottom-left'
 	const seatClass = (isMobile ? SEAT_MOBILE : SEAT_DESKTOP)[seat] ?? ""
 	const revealedSeatClass = REVEALED_SEAT[seat] ?? ""
 
 	return (
 		<div
-			className={`absolute flex flex-col items-center gap-[0.4rem] ${seatClass} ${isMyTurn && player.cardCount > 0 ? 'cursor-pointer' : ''} ${player.cardCount === 0 ? 'opacity-40 pointer-events-none' : ''}`}
-			onClick={() => isMyTurn && onSelect(player.id)}
+			className={`absolute flex flex-col items-center gap-[0.4rem] ${seatClass} ${isMyTurn && player.cardCount > 0 ? 'cursor-pointer' : ''}`}
+			onClick={() => isMyTurn && player.cardCount > 0 && onSelect(player.id)}
 		>
 			<span
-				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-cyan-glow [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''}`}
+				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-cyan-glow [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''} ${player.cardCount === 0 ? 'opacity-40' : ''}`}
 			>
 				{player.username ?? 'Opponent'}
 			</span>
-			<div className="flex items-center gap-2">
-				<div className={`group/hand flex ${isMobile ? 'gap-1' : 'gap-2'} ${isSideSeat ? 'flex-col' : 'flex-row'}`}>
+			<div className={`flex items-center gap-2`}>
+				<div className={`group/hand flex ${isMobile ? 'gap-1' : 'gap-2'} ${isSideSeat ? 'flex-col' : 'flex-row'} ${player.cardCount === 0 ? 'opacity-40' : ''}`}>
 					{Array.from({ length: player.cardCount }).map((_, i) => (
-						<div
+						<GameCard
 							key={i}
-							className={`${cardSize} ${cardBackSeat} overflow-hidden ${isMyTurn ? 'group-hover/hand:border-game-purple/70 group-hover/hand:shadow-[0_0_10px_rgba(140,40,200,0.4)]' : ''}`}
-						>
-							<img src={getCardImage("back")} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card back`} />
-						</div>
+							value="back"
+							className={`${cardBackSeat} ${hoverClass}`}
+						/>
 					))}
 				</div>
 				<TrioBadge trios={player.trios} />
@@ -81,23 +44,13 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 			{revealedHandCards.length > 0 && (
 				<div className={`absolute flex gap-[0.4rem] ${revealedSeatClass}`}>
 					{revealedHandCards.map(rc => (
-						<div key={rc.cardId} className={`flex ${cardSize} overflow-hidden items-center justify-center border-game-purple/60 shadow-[0_0_10px_rgba(140,40,200,0.4)] ${isBottomLeft ? 'origin-bottom' : ''}`}>
-							<img src={getCardImage(rc.value)} className="h-full w-full rounded-md object-cover scale-[1.4] object-[center_-28%]" alt={`Card ${rc.value}`} />
-							{gameMode === 'LINKED' && (
-								<>
-									{LINKS[rc.value]?.[0] != null && (
-										<span className="absolute bottom-1 left-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
-											{LINKS[rc.value]?.[0]}
-										</span>
-									)}
-									{LINKS[rc.value]?.[1] != null && (
-										<span className="absolute bottom-1 right-3 font-moonstrike text-[2rem] text-white leading-none pointer-event-none">
-											{LINKS[rc.value]?.[1]}
-										</span>
-									)}
-								</>
-							)}
-						</div>
+						<GameCard
+							key={rc.cardId}
+							value={rc.value}
+							gameMode={gameMode}
+							origin={isBottomLeft ? 'origin-bottom' : ''}
+							className="border-game-purple/60 shadow-[0_0_10px_rgba(140,40,200,0.4)]"
+						/>
 					))}
 				</div>
 			)}

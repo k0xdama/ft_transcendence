@@ -33,6 +33,7 @@ function LobbyView() {
 	}, []);
 
 	useEffect(() => {
+		setError('');
 		if (connected && !lobbyStruct && urlLobbyId)
 			joinLobby(urlLobbyId);
 	}, [connected, lobbyStruct, urlLobbyId]);
@@ -66,10 +67,6 @@ function LobbyView() {
 	const modes = [
 		{ value: 'CLASSIC', label: 'Classic', desc: 'Win 3 trios' },
 		{ value: 'LINKED', label: 'Linked', desc: 'Win 2 linked trios' }
-	]
-	const types = [
-		{ value: 'SOLO', label: 'Solo' },
-		{ value: 'TEAM_UP', label: 'Team Up' }
 	]
 	const playerOptions = [3, 4, 5, 6]
 
@@ -109,22 +106,6 @@ function LobbyView() {
 							>
 								<span className="text-[0.85rem] font-bold tracking-[0.1em] uppercase text-purple-pale">{mode.label}</span>
 								<span className="text-[0.65rem] tracking-[0.05em] text-[rgba(223,213,236,0.5)]">{mode.desc}</span>
-							</button>
-						))}
-					</div>
-				</div>
- 
-				<div className="mb-5">
-					<div className="m-0 mb-2.5 text-[0.72rem] tracking-ui uppercase text-[rgba(223,213,236,0.7)]">Game Type</div>
-					<div className="flex gap-2.5 justify-center">
-						{types.map(type => (
-							<button
-								key={type.value}
-								className={`${baseBtnStyle} flex-row p-2.5 flex-1 ${lobbyStruct.rules.gameType === type.value ? activeBtnStyle : ''}`}
-								onClick={() => isHost && handleRuleChange('gameType', type.value)}
-								disabled={!isHost}
-							>
-								{type.label}
 							</button>
 						))}
 					</div>
