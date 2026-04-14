@@ -139,6 +139,7 @@ export function LobbyProvider({ children }) {
 	}
 
 	const createLobby = (gameMode, gameType, maxUsers) => {
+		setGameId(null);
 		socketRef.current.emit('lobby:create', { gameMode, gameType, maxUsers });
 	};
 
@@ -159,6 +160,7 @@ export function LobbyProvider({ children }) {
 	};
 
 	const joinMatchmaking = (gameMode, gameType, maxUsers) => {
+		setGameId(null);
 		socketRef.current.emit('matchmaking:join', { gameMode, gameType, maxUsers });
 		setMatchmakingStatus('searching');
 	};

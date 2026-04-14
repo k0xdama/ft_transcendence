@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useRef } from "react";
 import { io } from "socket.io-client";
+import { useAuth } from "./AuthContext";
 
 const GameContext = createContext(null);
 
@@ -8,6 +9,7 @@ export function useGame() {
 };
 
 export function GameProvider({ children }) {
+	const { refreshToken } = useAuth();
 	const [gameStruct, setGameStruct] = useState(null);
 	const [gameError, setGameError] = useState(null);
 	const [pendingCheck, setPendingCheck] = useState(false);
@@ -18,6 +20,7 @@ export function GameProvider({ children }) {
 	const [gameResult, setGameResult] = useState(null);
 	const [riverSlots, setRiverSlot] = useState(null);
 	const socketRef = useRef(null);
+	const retryRef = useRef(0);
 	const gameRoute = '/api/game';
 
 	const updateRiverSlot = (slots) => {
@@ -47,6 +50,7 @@ export function GameProvider({ children }) {
 		});
 
 		socketRef.current.on('connect', () => {
+			retryRef.current = 0;
 			socketRef.current.emit('game:join', { gameId });
 			if (onConnected)
 				onConnected();
@@ -108,10 +112,23 @@ export function GameProvider({ children }) {
 			setGameError(message);
 		})
 
-		socketRef.current.on('connection_error', (err) => {
+		socketRef.current.on('connect_error', async (err) => {
+			console.error('[GAME-WS] Connection error:', err.message);
+			socketRef.current.disconnect();
 			socketRef.current = null;
-			if (onError)
-				onError(err.message);
+
+			if (retryRef.current >= 1) {
+				retryRef.current = 0;
+				if (onError)
+					onError(err.message);
+				return;
+			}
+			retryRef.current++;
+			const refreshed = await refreshToken();
+			if (refreshed)
+				connect(gameId, onConnected, onError);
+			else if (onError)
+				onError('Authentication failed');
 		})
 	}
 

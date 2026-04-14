@@ -1,5 +1,6 @@
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useGame } from "../../context/GameContext"
+import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
 import { useIsMobileGame } from '../../hooks/useIsMobileGame'
 import { useEffect, useState } from 'react'
@@ -51,6 +52,7 @@ function GameView() {
 	const { state } = useLocation()
 	const lobbyId = state?.lobbyId || gameId
 	const { gameStruct, connect, disconnect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
+	const { leaveLobby } = useLobby()
 	const { user } = useAuth()
 	const [selectedOpponent, setSelectedOpponent] = useState(null)
 	const [checkSent, setCheckSent] = useState(false)
@@ -95,6 +97,7 @@ function GameView() {
 				footer.style.display = ''
 			window.removeEventListener('resize', checkOrientation)
 
+			leaveLobby()
 			disconnect()
 		}
 	}, [])

@@ -111,6 +111,19 @@ export const AuthProvider = ({ children }) => {
 		})
 	}
 
+	const refreshToken = async () => {
+		if (!refreshPromiseRef.current) {
+			refreshPromiseRef.current = fetch(`${authRoute}/refresh`, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' }
+			});
+		}
+		const res = await refreshPromiseRef.current;
+		refreshPromiseRef.current = null;
+		return res.ok;
+	};
+
 	const isAuthenticated = () => user !== null;
 
 	const value = {
@@ -120,6 +133,7 @@ export const AuthProvider = ({ children }) => {
 		updateUser,
 		isAuthenticated,
 		authFetch,
+		refreshToken,
 		loading
 	};
 
