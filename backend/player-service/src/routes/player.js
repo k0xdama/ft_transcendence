@@ -527,9 +527,9 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 			// Si demande déjà envoyée par moi
 			if (existing.requester_id === user.id) {
 				if (existing.status === 'pending')
-					return res.status(400).json({ error: 'Friend request already sent' });
+					return res.status(403).json({ error: 'Friend request already sent' });//modif de 400 a 403
 				if (existing.status === 'accepted')
-					return res.status(400).json({ error: 'Already friends' });
+					return res.status(403).json({ error: 'Already friends' });//modif de 400 403
 				if (existing.status === 'blocked')
 					return res.status(403).json({ error: 'Cannot send friend request to this user' });
 			}
@@ -554,7 +554,7 @@ router.post('/me/friend-requests/:friend_auth_user_id', async (req, res) => {
 
 			// Si déjà amis ou bloqué
 			if (existing.status === 'accepted')
-				return res.status(400).json({ error: 'Already friends' });
+				return res.status(403).json({ error: 'Already friends' });//400 a 403
 			if (existing.status === 'blocked')
 				return res.status(403).json({ error: 'Cannot send friend request' });
 		}
