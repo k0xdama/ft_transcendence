@@ -215,7 +215,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 | Feature | Description | Contributor(s) |
 |---|---|---|
 | Registration & login | Email + username + password, bcrypt hashing, JWT issuance | [annabrag], [agremill] |
-| Profile page | Display user info, avatar, stats, match history, achievements | [agremill] |
+| Profile page | Display user info, avatar, stats, match history, achievements | [agremill], [pmateo] |
 | Profile settings | Update username, email, password; delete account | [agremill], [annabrag] |
 | Avatar upload | Upload custom avatar, default avatar if none | [agremill] |
 | Friends system | Send/accept/decline requests, list friends, online status | [agremill] |
@@ -225,13 +225,14 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 | Game invites from chat | Send a clickable game invite as a chat message | [annabrag] |
 | Private lobby | Create lobby, share 6-char code, ready-check, host starts game | [pmateo] |
 | Public matchmaking | Queue by mode/type/player count, auto-start when full | [pmateo] |
-| Real-time game | Card game for 3–6 players, Classic and Linked modes, Solo/Team | [pmateo] |
+| Real-time game | Card game for 3–6 players, Classic and Linked modes | [pmateo] |
 | Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo], [morajaon] |
-| Match history | Per-user log of past games, opponents, outcomes | [agremill] ?????????????, [pmateo] ??????????????? |
+| Match history | Per-user log of past games, opponents, outcomes | [agremill], [pmateo] |
 | Stats & achievements | Wins, combos, trio-of-7, perfect games, progression | [pmateo], [agremill] |
 | Leaderboard | Global ranking by score | [pmateo] |
 | Mobile responsive UI | Adaptive layouts for phone and desktop, including dedicated mobile chat overlays, split desktop/mobile NavBar and responsive size dictionaries per breakpoint | [morajaon], [annabrag] |
-| Icon set & design tokens | Named icon components (`Icons.jsx`), custom Tailwind palette, typography and shadows | [morajaon], [annabrag] |
+| Icon set & design tokens | Named icon components (`Icons.jsx`), custom Tailwind palette, typography and shadows | [morajaon], [annabrag], [pmateo] |
+| Game Rules | How To Play View | [pmateo], [morajaon] |
 | Legal pages | Privacy Policy & Terms of Service | [pmateo] |
 
 ---
@@ -273,24 +274,26 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 ## Individual Contributions
 
 ### Morgan @morajaon
-- **Owned**: api-gateway, frontend design system and game UI
-- **Modules**: #4, #8, #10  A VERIFIER
+- **Owned**: api-gateway, frontend design system, game UI, and some backend adjustements
+- **Modules**: #4, #7, #8, #9, #10
 - **Challenges**: I focused on learning these new technologies and a new web development mindset. Designing an interactive User Interface (UI) from scratch was a real step up — learning CSS and Tailwind styling, and going from idea to actual component. 
 
 ### Ana @annabrag
 - **Owned**: architecture, auth-service, chat-service, mobile responsive
-- **Modules**: #2, #7, #8, #9, #10, #12   A VERIFIER
+- **Modules**: #1, #2, #3, #7, #8, #9, #10, #12
 - **Challenges**: I spent quite a bit of time thinking about the ideal architecture that would suit our project concept. I tried to strike a balance between creating a project whose architecture resembles what’s already out there in the industry and a school project, specifically in terms of architecture, file organization, code consistency, and other aspects. Like my classmates, getting to grips with these new technologies and learning new languages was a bit of a challenge at first.
 
 ### Antoine @agremill
 - **Owned**: player-service, some sections of the frontend profile page
-- **Modules**: #2, #3, #4, #7, #9, #11   A VERIFIER
+- **Modules**: #2, #3, #7, #9, #11
 - **Challenges**: The most challenging part is that it was my first time programming with these technologies. Besides that, I had to do a lot of research and exchange with my team mates to understand how a microservice architecture and the backend work.
 
 ### Mateo @pmateo
-- **Owned**: lobby-service, matchmaking, game-service
-- **Modules**: #1, #4, #5, #6, #9, #11  A VERIFIER
-- **Challenges**: ????
+- **Owned**: lobby-service, matchmaking, game-service and some frontend Views, Components, and Contexts adjustements
+- **Modules**: #1, #2, #4, #5, #6, #7, #8, #9, #10, #11
+- **Challenges**: My first challenge was to understand and put myself in the shoes of a DevOps developer, and to set up a CI/CD pipeline right from the start of the project.
+Second, I needed to become sufficiently familiar with JavaScript and its syntax to be able to build from scratch the services related to the game’s functionality and multiplayer features.
+However, the main challenge was managing state synchronization between the client and server in an asynchronous, real-time environment — expired tokens, dropped WebSocket connections, and race conditions between simultaneous events could leave either side in an inconsistent state.
 
 ---
 
