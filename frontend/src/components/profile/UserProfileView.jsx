@@ -60,7 +60,12 @@ function UserProfileView() {
 		setLoading(true)
 		try {
 			const res = await authFetch(`${PLAYER_ROUTE}/${targetUserId}`)
-			if (!res.ok) throw new Error('Failed to fetch profile')
+			if (res.status === 404) {
+				setError('User not found')
+				return;
+			}
+			if (!res.ok) 
+				throw new Error('Failed to fetch profile')
 			const p = await res.json()
 
 			setProfileData({
