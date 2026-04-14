@@ -47,7 +47,8 @@ function UserProfileView() {
 	}, [searchParams])
 
 	useEffect(() => {
-		if (!targetUserId) return
+		if (!targetUserId)
+			return
 		setError('')
 		setProfileData(null)
 		fetchProfile()

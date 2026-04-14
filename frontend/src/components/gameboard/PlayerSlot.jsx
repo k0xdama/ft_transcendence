@@ -26,7 +26,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 			onClick={() => canSelectHand && onSelect(player.id)}
 		>
 			<span
-				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-cyan-glow [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''} ${player.cardCount === 0 ? 'opacity-40' : ''}`}
+				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? `absolute left-1/2 -translate-x-1/2 ${isMobile ? '-top-8' : '-top-10'}` : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-cyan-glow [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''} ${player.cardCount === 0 ? 'opacity-40' : ''}`}
 			>
 				{player.username ?? 'Opponent'}
 			</span>

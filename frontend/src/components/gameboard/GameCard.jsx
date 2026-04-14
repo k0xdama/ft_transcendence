@@ -6,7 +6,7 @@ function GameCard({ value = 'back', gameMode, className = '', isClickable = fals
 	const	isMobile = useIsMobileGame()
 	const	cardSize = isMobile
 		? "h-[4vw] w-[3vw] min-h-[44px] min-w-[32px]"
-		: "h-[5.5vw] w-[4vw] min-h-[90px] min-w-[70px]"
+		: "h-[min(5.5vw,10vh)] w-[min(4vw,7.5vh)] min-h-[90px] min-w-[70px]"
 	const	showLinks = gameMode === 'LINKED' && value !== 'back'
 
 	return (

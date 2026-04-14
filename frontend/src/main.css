@@ -76,9 +76,21 @@ body::before {
 }
 
 @layer utilities {
+  .profile-scrollbar,
+  .profile-scrollbar-x {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.25s ease;
+  }
+
   .profile-scrollbar {
     scrollbar-gutter: stable;
-    scrollbar-width: thin;
+  }
+
+  .profile-scrollbar:hover,
+  .profile-scrollbar:focus-within,
+  .profile-scrollbar-x:hover,
+  .profile-scrollbar-x:focus-within {
     scrollbar-color: rgba(192, 96, 255, 0.45) rgba(255, 255, 255, 0.03);
   }
 
@@ -86,18 +98,37 @@ body::before {
     width: 8px;
   }
 
-  .profile-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 9999px;
+  .profile-scrollbar-x::-webkit-scrollbar {
+    height: 6px;
   }
 
-  .profile-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(192, 96, 255, 0.45);
+  .profile-scrollbar::-webkit-scrollbar-track,
+  .profile-scrollbar-x::-webkit-scrollbar-track {
+    background: transparent;
     border-radius: 9999px;
+    transition: background 0.25s ease;
+  }
+
+  .profile-scrollbar::-webkit-scrollbar-thumb,
+  .profile-scrollbar-x::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .profile-scrollbar:hover::-webkit-scrollbar-track,
+  .profile-scrollbar-x:hover::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .profile-scrollbar:hover::-webkit-scrollbar-thumb,
+  .profile-scrollbar-x:hover::-webkit-scrollbar-thumb {
+    background: rgba(192, 96, 255, 0.45);
     box-shadow: 0 0 6px rgba(192, 96, 255, 0.25);
   }
 
-  .profile-scrollbar::-webkit-scrollbar-thumb:hover {
+  .profile-scrollbar::-webkit-scrollbar-thumb:hover,
+  .profile-scrollbar-x::-webkit-scrollbar-thumb:hover {
     background: rgba(192, 96, 255, 0.6);
     box-shadow: 0 0 8px rgba(192, 96, 255, 0.35);
   }

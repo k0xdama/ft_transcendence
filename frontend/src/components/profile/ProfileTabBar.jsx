@@ -4,7 +4,7 @@ const INACTIVE = 'text-purple-pale/50 hover:text-purple-pale/85'
  
 function ProfileTabBar({ tabs, activeTab, onTabChange }) {
 	return (
-		<div className="mb-5 flex w-full overflow-x-auto gap-1 border-b border-purple-dim pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+		<div className="profile-scrollbar-x mb-5 flex w-full overflow-x-auto gap-1 border-b border-purple-dim pb-1">
 			{tabs.map(({ key, label }) => (
 				<button
 					key={key}

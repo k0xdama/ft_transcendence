@@ -12,8 +12,7 @@ import {
 	MobilePanelHeader,
 	QuickReplyBar,
 	TypingLine,
-	mapChatMessage,
-} from "../chat/ChatUI";
+	mapChatMessage } from "../chat/ChatUI";
 import { IconChat } from "../icons/Icons";
 import { SOUNDS } from "./SoundBuzzers";
 
@@ -185,7 +184,7 @@ function ChatOverlay({ lobbyId }) {
 					onClick={() => setMobileOpen(true)}
 					hidden={mobileOpen}
 					ariaLabel="Open chat"
-					positionClassName="absolute bottom-[0.5vh] left-3"
+					positionClassName="absolute bottom-[6vh] left-3"
 					sizeClassName="h-9 w-9 text-[1rem]"
 				/>
 
@@ -225,7 +224,7 @@ function ChatMessage({ msg, onNavigate }) {
 				style={{ color: getAuthorColor(msg.author) }}
 				onClick={() => msg.author !== 'You' && onNavigate(`/profile/${msg.senderId}`)}
 			>
-				{msg.author}:
+				{msg.author}:{' '}
 			</span>
 			<span className="font-sans text-white/90">{msg.text}</span>
 		</div>

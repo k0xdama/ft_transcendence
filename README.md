@@ -1,15 +1,15 @@
-*This project has been created as part of the 42 curriculum by [morajaon], [annabrag], [agremill], [pmateo].*
+*This project has been created as part of the 42 curriculum by [morajaon](https://profile.intra.42.fr/users/morajaon), [annabrag](https://profile.intra.42.fr/users/annabrag), [agremill](https://profile.intra.42.fr/users/agremill), [pmateo](https://profile.intra.42.fr/users/pmateo).*
 
 # ft_transcendence
 
 ## Description
 
-Our **ft_transcendence** is a full-stack, real-time multiplayer web application built around an online card game. Players can register, chat, add friends, join public or private lobbies, and face each other in live matches supporting **3 to 6 players** simultaneously. The platform is designed as a distributed set of microservices communicating over REST and Redis Pub/Sub, with WebSocket channels handling all real-time interactions (presence, chat, matchmaking, game state...).
-
+**ft_transcendence** is a full-stack, real-time multiplayer web application built around an online card game. Players can register, chat, add friends, join public or private lobbies, and face each other in live matches supporting **3 to 6 players** simultaneously. The platform is designed as a distributed set of microservices communicating over REST and Redis Pub/Sub, with WebSocket channels handling all real-time interactions (presence, chat, matchmaking, game state...).
+<br>
 
 ### Key features
 
-- Real-time multiplayer card game (3–6 players, live matches, 1v1 and team modes)
+- Real-time multiplayer card game (3–6 players, live matches)
 - Two game modes: **Classic** and **Linked**, with multiple player counts
 - Public matchmaking queue and private lobbies with 6-character invite codes
 - Graceful disconnection handling with a 30-second reconnection window
@@ -34,7 +34,7 @@ Our **ft_transcendence** is a full-stack, real-time multiplayer web application 
 - **OpenSSL** (used by the certificate-generation script)
 - A free port `4000` (API gateway) and `8443` (frontend) on the host
 - Unix-like environment (tested on Linux and macOS)
-
+<br>
 
 ### Installation and launch
 
@@ -48,12 +48,12 @@ This single command will:
 
 1. Generate self-signed SSL certificates (`scripts/generate-cert.sh`)
 2. Create the `.env` file with default values (`scripts/create-env.sh`)
-3. Generate Docker secrets for DB, Redis and JWT (`scripts/create-secrets.sh` — non-interactive: reads values from an optional `.env.secrets` file if present, otherwise auto-generates strong random passwords with `openssl`). An interactive fallback (`scripts/interactive-secrets-setup.sh`) is also available to create `.env.secrets` from keyboard input.
+3. Generate Docker secrets for DB, Redis and JWT (`scripts/create-secrets.sh`)
 4. Build all Docker images
 5. Start the full stack in detached mode
 
 Once the containers are up, open **https://localhost:8443** in your browser and accept the self-signed certificate warning.
-
+<br>
 
 ### Useful Make targets
 
@@ -68,9 +68,17 @@ Once the containers are up, open **https://localhost:8443** in your browser and 
 | `make clean` / `make fclean` | Teardown (volumes + images / + builder prune) |
 | `make re` | Full clean rebuild |
 | `make shell-<service>` | Open a shell inside a service container (`gateway`, `auth`, `player`, `chat`, `lobby`, `game`, `db`, `redis`, `frontend`) |
+| `make db-psql` | Open an interactive `psql` session inside the `postgres` container |
+| `make db-schemas` | List all database schemas (`\dn`) |
+| `make db-tables` | List all tables across every schema (`\dt *.*`) |
+| `make db-users` | List all database roles/users (`\du`) |
+| `make db-size` | Show the total size of the current database (human-readable) |
+| `make db-query Q="<SQL>"` | Run an ad-hoc SQL query, e.g. `make db-query Q="SELECT * FROM auth.users LIMIT 5;"` |
+| `make db-dump` | Dump the whole database to `./backups/dump_<timestamp>.sql` |
+| `make redis-cli` | Open an authenticated `redis-cli` session inside the `redis` container |
 
 Run `make help` for the full list.
-
+<br>
 
 ### Environment configuration
 
@@ -84,16 +92,16 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 
 | Member | Login | Role(s) | Responsibilities |
 |---|---|---|---|
-| Morgan | `@morajaon` | Product Owner / Frontend | API Gateway + the whole web application esthetic (HTML, Tailwind CSS) |
-| Ana | `@itsbraga` | Project Manager / Backend | DevOps (DB, Redis, Docker Compose) + Auth and Chat microservices + Mobile responsive |
-| Mateo | `@k0xdama` | Technical Lead / Backend | Lobby and Game services + search for bugs, warnings and match history |
-| Antoine | `@agremill` | Developer Backend | Player service + game statistics |
+| Morgan | `@morajaon` | Product Owner / Frontend | API Gateway + the whole web application aesthetic (React, Tailwind CSS) |
+| Ana | `@annabrag` | Project Manager / Backend | DevOps (DB, Redis, Docker Compose) + Auth and Chat services + Mobile responsive |
+| Mateo | `@pmateo` | Technical Lead / Backend | Lobby and Game services + bug hunting and warning cleanup |
+| Antoine | `@agremill` | Developer Backend | Player service + game statistics and match history |
 
 ---
 
 ## Project Management
 
-- **Methodology**: One or two services per person, sync-ups when something was blocking, every merge to `main` went through a PR review (except for the project finishes)
+- **Methodology**: One or two services per person, sync-ups when something was blocking, every merge to `main` went through a PR review, except toward the very end of the project
 - **Task tracking**: TODO list with daily checks
 - **Meetings**: One or two weekly meetings depending on our advances in the features we were working on
 - **Communication**: Discord for daily chat, meetups for brainstorming
@@ -112,7 +120,6 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 - **Socket.IO client** for real-time WebSocket communication
 - **nginx** serving the production build behind HTTPS (port 8443)
 
-
 ### Backend
 
 - **Node.js** microservices
@@ -120,14 +127,15 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 - **Socket.IO** server for real-time WebSocket channels (chat, lobby, game)
 - **JWT** (access tokens) for stateless authentication propagated via the API gateway
 - **bcrypt** for password hashing
-- **axios** to do some requests
-- **multer** to upload files for the profile pictures
-
+- **axios** for HTTP requests between services
+- **multer** for avatar upload handling
+<br>
 
 ### Database and caching
 
-- **PostgreSQL 18** — the main database where all persistent data is stored (accounts, stats, friendships, chat history). It was chosen because it guarantees that data stays reliable and consistent even if something crashes in the middle of an operation (ACID*). The database is split into three schemas (`auth`, `player`, `chat`), and each service logs in with its own user (`auth_user`, `player_user`, `chat_user`) and its own password — that can only access its own schema, so if one service is compromised, the others remain safe. `lobby` and `game` services are excluded since they only rely on Redis.
-- **Redis 8** — a fast in-memory store used for short-lived real-time data (matchmaking queues, online presence, current lobby state, etc.). It also acts as a **Pub/Sub*** bus that lets services talk to each other without being directly connected (e.g. the game service announces `game:ended` and the player service picks it up to update stats).
+- **PostgreSQL 18** — the main database for all persistent data (accounts, stats, friendships, chat history). Chosen for its **ACID\*** guarantees: data stays reliable and consistent even if something crashes mid-operation.
+  - **Schema isolation**: split into three schemas (`auth`, `player`, `chat`), each owned by a dedicated role (`auth_user`, `player_user`, `chat_user`) with its own password. A service can only access its own schema, enforcing least privilege between services — if one is compromised, the others stay safe. `lobby` and `game` are excluded since they only rely on Redis.
+- **Redis 8** — a fast in-memory store used for short-lived real-time data (matchmaking queues, online presence, current lobby state, etc.). It also acts as a **Pub/Sub\*** bus that lets services talk to each other without being directly connected (e.g. the game service announces `game:ended` and the player service picks it up to update stats).
 
 > \* **ACID** = four guarantees that make a database trustworthy:
 > - **Atomicity**: a transaction either fully succeeds or is fully cancelled — no half-done operations.
@@ -136,7 +144,7 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 > - **Durability**: once data is saved, it survives a crash or power loss.
 >
 > \* **Pub/Sub** (Publish/Subscribe) = a messaging pattern where a service "publishes" an event on a channel without knowing who will read it, and any other service can "subscribe" to that channel to receive it. It keeps services independent from each other.
-
+<br>
 
 ### Infrastructure
 
@@ -144,12 +152,12 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 - **Docker secrets** for credentials and TLS material
 - **Self-signed TLS** across every HTTP and WebSocket endpoint
 - Private bridge network (`triple_network`) — only the API gateway and the frontend expose ports to the host
-
+<br>
 
 ### Justification of major technical choices
 
 - **Microservices over a monolith**: each service (auth, player, chat, lobby, game) has a single responsibility. It forces explicit contracts, allows independent deployment, and isolates fault domains — a disconnected chat service cannot take down an in-progress match.
-- **React + Vite**: React for component-driven UI with shared state via Context (AuthContext, LobbyContext, GameContext, ChatContext); Vite to serve file locally during developpement ("hot-reload")
+- **React + Vite**: React for component-driven UI with shared state via Context (AuthContext, LobbyContext, GameContext, ChatContext); Vite to serve files locally during development ("hot-reload").
 - **Socket.IO**: built-in reconnection, rooms, and JWT-based handshake, which mapped cleanly onto our lobby/game model.
 - **Redis Pub/Sub**: keeps services loosely coupled without introducing a heavy message broker.
 - **PostgreSQL schemas**: one schema per bounded context, with a dedicated role per service.
@@ -158,13 +166,15 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 
 ## Database Schema
 
-The database is split across **three PostgreSQL schemas**, one per bounded context that needs persistent data (`lobby` and `game` are excluded — they only rely on Redis for their ephemeral state). Each schema is owned by a dedicated role (`auth_user`, `player_user`, `chat_user`) with its own password, enforcing least privilege between services.
+The three schemas below (`auth`, `player`, `chat`) hold all persistent data. See the *Database and caching* section above for the rationale behind schema-level isolation.
+<br>
 
 ### `auth` schema
 | Table | Key fields |
 |---|---|
 | `auth.users` | `id UUID PK`, `email UNIQUE`, `username UNIQUE`, `password_hash` (bcrypt), `created_at`, `updated_at` |
 | `auth.refresh_tokens` | `id UUID PK`, `user_id → auth.users(id) ON DELETE CASCADE`, `token_hash`, `expires_at` |
+<br>
 
 ### `player` schema
 | Table | Key fields |
@@ -173,6 +183,7 @@ The database is split across **three PostgreSQL schemas**, one per bounded conte
 | `player.friendships` | `requester_id`, `addressee_id`, `status ENUM('pending','accepted','blocked')`, unique pair, no self-friendship |
 | `player.blocked` | `requester_id`, `addressee_id`, `requested_at` |
 | `player.match_history` | `id SERIAL PK`, `game_id`, `player_id UUID` (logical FK to `auth.users`), `won BOOLEAN`, `game_mode`, `game_type`, `played_at` — powers the per-user match history and feeds the global leaderboard |
+<br>
 
 ### `chat` schema
 | Table | Key fields |
@@ -181,6 +192,7 @@ The database is split across **three PostgreSQL schemas**, one per bounded conte
 | `chat.direct_conversations` | Paired conversation between two users, ordered `user1_id < user2_id` to deduplicate |
 | `chat.direct_messages` | DMs — `conversation_id`, `sender_id`, `content`, `read_at`, auto-expiry after **30 days** |
 | `chat.blocked_users` | DM-level blocking |
+<br>
 
 ### Logical relationships between schemas
 
@@ -202,26 +214,25 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 
 | Feature | Description | Contributor(s) |
 |---|---|---|
-| Registration & login | Email + username + password, bcrypt hashing, JWT issuance | [annabrag, agremill] |
+| Registration & login | Email + username + password, bcrypt hashing, JWT issuance | [annabrag], [agremill] |
 | Profile page | Display user info, avatar, stats, match history, achievements | [agremill] |
-| Profile settings | Update username, email, password; delete account | [agremill, annabrag] |
+| Profile settings | Update username, email, password; delete account | [agremill], [annabrag] |
 | Avatar upload | Upload custom avatar, default avatar if none | [agremill] |
 | Friends system | Send/accept/decline requests, list friends, online status | [agremill] |
-| User blocking | Block/unblock users (DM + chat filtered) | [agremill, annabrag] |
+| User blocking | Block/unblock users (DM + chat filtered) | [agremill], [annabrag] |
 | Direct messaging | 1-to-1 DM with history persistence and read receipts | [annabrag] |
-| Lobby chat | Per-lobby chat overlay during wait and in-game | [annabrag, morajaon] |
+| Lobby chat | Per-lobby chat overlay during wait and in-game | [annabrag], [morajaon] |
 | Game invites from chat | Send a clickable game invite as a chat message | [annabrag] |
 | Private lobby | Create lobby, share 6-char code, ready-check, host starts game | [pmateo] |
 | Public matchmaking | Queue by mode/type/player count, auto-start when full | [pmateo] |
 | Real-time game | Card game for 3–6 players, Classic and Linked modes, Solo/Team | [pmateo] |
-| Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo, morajaon, ?????????] |
-| Match history | Per-user log of past games, opponents, outcomes | [?????????, pmateo, ????????] |
-| Stats & achievements | Wins, combos, trio-of-7, perfect games, progression | [pmateo, agremill] |
+| Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo], [morajaon] |
+| Match history | Per-user log of past games, opponents, outcomes | [agremill] ?????????????, [pmateo] ??????????????? |
+| Stats & achievements | Wins, combos, trio-of-7, perfect games, progression | [pmateo], [agremill] |
 | Leaderboard | Global ranking by score | [pmateo] |
-| Mobile responsive UI | Adaptive layouts for phone and desktop, including dedicated mobile chat overlays, split desktop/mobile NavBar and responsive size dictionaries per breakpoint | [morajaon, annabrag] |
-| Icon set & design tokens | Named icon components (`Icons.jsx`), custom Tailwind palette, typography and shadows | [morajaon, annabrag] |
+| Mobile responsive UI | Adaptive layouts for phone and desktop, including dedicated mobile chat overlays, split desktop/mobile NavBar and responsive size dictionaries per breakpoint | [morajaon], [annabrag] |
+| Icon set & design tokens | Named icon components (`Icons.jsx`), custom Tailwind palette, typography and shadows | [morajaon], [annabrag] |
 | Legal pages | Privacy Policy & Terms of Service | [pmateo] |
-
 
 ---
 
@@ -238,6 +249,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 | 5 | GAMING AND USER EXPERIENCE | Remote players — Enable two players on separate computers to play the same game in real-time.<br>• Handle network latency and disconnections gracefully.<br>• Provide a smooth user experience for remote gameplay.<br>• Implement reconnection logic. |
 | 6 | GAMING AND USER EXPERIENCE | Multiplayer game (more than two players).<br>• Support for three or more players simultaneously.<br>• Fair gameplay mechanics for all participants.<br>• Proper synchronization across all clients. |
 | 7 | DEVOPS | Backend as microservices.<br>• Design loosely-coupled services with clear interfaces.<br>• Use REST APIs or message queues for communication.<br>• Each service should have a single responsibility. |
+<br>
 
 ### Minor modules (1 pt each)
 
@@ -248,7 +260,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 | 10 | WEB | Custom-made design system with reusable components, including a proper color palette, typography, and icons (minimum: 10 reusable components). |
 | 11 | USER MANAGEMENT | Game statistics and match history (requires a game module).<br>• Track user game statistics (wins, losses, ranking, level, etc.).<br>• Display match history (1v1 games, dates, results, opponents).<br>• Show achievements and progression.<br>• Leaderboard integration. |
 | 12 | GAMING AND USER EXPERIENCE | Advanced chat features (enhances the basic chat from "User interaction" module).<br>• Ability to block users from messaging you.<br>• Invite users to play games directly from chat.<br>• Game/tournament notifications in chat.<br>• Access to user profiles from chat interface.<br>• Chat history persistence.<br>• Typing indicators and read receipts. |
-
+<br>
 
 ### Point calculation
 
@@ -263,17 +275,17 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 ### Morgan @morajaon
 - **Owned**: api-gateway, frontend design system and game UI
 - **Modules**: #4, #8, #10  A VERIFIER
-- **Challenges**: Learning new technologies and a new web developpement logic. Designing an interactive User Interface (UI) from scratch, learning styling in css and tailwind, going from the idea to the actual component. 
+- **Challenges**: I focused on learning these new technologies and a new web development mindset. Designing an interactive User Interface (UI) from scratch was a real step up — learning CSS and Tailwind styling, and going from idea to actual component. 
 
 ### Ana @annabrag
-- **Owned**: infrastructure, auth-service, chat-service, mobile responsive
-- **Modules**: #2, #7, #8, #9, #10, #12
-- **Challenges**: ?????
+- **Owned**: architecture, auth-service, chat-service, mobile responsive
+- **Modules**: #2, #7, #8, #9, #10, #12   A VERIFIER
+- **Challenges**: I spent quite a bit of time thinking about the ideal architecture that would suit our project concept. I tried to strike a balance between creating a project whose architecture resembles what’s already out there in the industry and a school project, specifically in terms of architecture, file organization, code consistency, and other aspects. Like my classmates, getting to grips with these new technologies and learning new languages was a bit of a challenge at first.
 
 ### Antoine @agremill
 - **Owned**: player-service, some sections of the frontend profile page
-- **Modules**: #2, #3, #4, #7, #9, #11
-- **Challenges**: The most challenging part is that it was my first time programming with these technologies. Beside that, I had to do a lot of research and exange with my team mates to understand how a microservice architecture and the backend work.
+- **Modules**: #2, #3, #4, #7, #9, #11   A VERIFIER
+- **Challenges**: The most challenging part is that it was my first time programming with these technologies. Besides that, I had to do a lot of research and exchange with my team mates to understand how a microservice architecture and the backend work.
 
 ### Mateo @pmateo
 - **Owned**: lobby-service, matchmaking, game-service
@@ -288,15 +300,15 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 
 - [React](https://react.dev/) — UI framework
 - [Vite](https://vitejs.dev/) — dev server and bundler
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [Express](https://expressjs.com/)
+- [Tailwind CSS](https://tailwindcss.com/docs) — utility-first CSS framework
+- [Express](https://expressjs.com/) — HTTP server and middleware
 - [Socket.IO](https://socket.io/docs/v4/) — WebSocket rooms, handshake middleware, reconnection
 - [PostgreSQL 18](https://www.postgresql.org/docs/)
 - [Redis](https://redis.io/docs/) — Pub/Sub and ephemeral state
 - [Docker Compose v2](https://docs.docker.com/compose/) and [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/)
 - [JWT](https://jwt.io/introduction) — stateless authentication
 - [bcrypt](https://github.com/kelektiv/node.bcrypt.js) — password hashing
-
+<br>
 
 ### Articles & tutorials
 
@@ -305,16 +317,16 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 - MDN docs — WebSockets, HTTPS, Fetch API, CORS
 - Socket.IO "Rooms and namespaces" and "Authentication" guides
 - PostgreSQL "Schemas and privileges" documentation
-
+<br>
 
 ### Use of AI
 
 AI assistants (Claude and Copilot) were used as a **pair-programming and reviewing tool**, never as an autonomous generator of deliverables. Specifically:
 
 - **Rubber-ducking and design reviews**: challenging our microservice boundaries, our WebSocket event naming, and reviewing the shape of our API contract (e.g. `docs/API_CONTRACT_LOBBY_GAME.md`).
-- **Debugging assistance**: explaining cryptic error messages (Postgres errors, TLS handshake issues, and ????).
-- **Documentation**: review this README and improve phrasing where it was needed, same for our diagram
-- **Writing tests**: help in generating additional tests we did not thought about (`backend/*/tests/`), always reviewed and completed by the team.
+- **Debugging assistance**: explaining cryptic error messages (e.g. Postgres errors, TLS handshake issues).
+- **Documentation**: reviewing this README and our diagrams, improving phrasing where needed.
+- **Writing tests**: help in generating additional tests we had not thought about (`backend/*/tests/`), always reviewed and completed by the team.
 
 AI was **not** used to generate the core game logic, the database schema design decisions, the overall architecture, or commits without human review. Every AI-assisted change was read, understood, tested and validated by every team member before being merged.
 
@@ -325,13 +337,13 @@ AI was **not** used to generate the core game logic, the database schema design 
 - Self-signed TLS certificates — users must accept the browser warning on first visit.
 - No spectator mode.
 - Cross-schema references between `auth.users` and `player.users` are **logical only** (not enforced by a PostgreSQL foreign key), to keep schema ownership clean; consistency is maintained at the service layer.
-- Service-to-service HTTPS calls use `NODE_TLS_REJECT_UNAUTHORIZED=0` in the `auth` and `lobby` services to accept the self-signed certs on the private `triple_network`
-
+- Service-to-service HTTPS calls use `NODE_TLS_REJECT_UNAUTHORIZED=0` in the `auth` and `lobby` services to accept the self-signed certs on the private `triple_network`.
+<br>
 
 ## Privacy Policy & Terms of Service
 
 Available in-app under `/legal` (see `frontend/src/components/legal/`). The platform stores only the minimum information required to operate the game (email, username, hashed password, avatar path, game statistics, chat history with automatic expiry). Users can delete their account at any time from the profile settings, which cascades to all dependent records.
-
+<br>
 
 ## License
 

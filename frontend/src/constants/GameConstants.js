@@ -38,8 +38,9 @@ export const SEAT_MOBILE = {
 	right: "right-[2vw] top-1/2 -translate-y-1/2",
 	"top-left": "left-[10vw] top-[3vh]",
 	"top-right": "right-[10vw] top-[3vh]",
-	"bottom-left": "bottom-[3vh] left-[10vw]"
+	"bottom-left": "bottom-[6vh] left-[10vw]"
 }
+
 
 export const REVEALED_SEAT = {
 	top: "top-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 flex-row",
@@ -92,7 +93,7 @@ export const BUZZER_MOBILE = {
 	buttonSizeClass: 'h-9 w-9 text-[1rem]',
 	buttonPx: 36,
 	buttonGap: 8,
-	containerPositionClass: 'bottom-[0.5vh] right-3'
+	containerPositionClass: 'bottom-[6vh] right-3'
 }
 
 export const TRIO_DESKTOP = {
