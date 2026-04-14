@@ -106,7 +106,7 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 - **Meetings**: One or two weekly meetings depending on our advances in the features we were working on
 - **Communication**: Discord for daily chat, meetups for brainstorming
 - **Version control**: Git + GitHub, feature branches merged into `main` via pull requests with peer review
-- **Design**: Diagrams authored in Excalidraw / Mermaid — see `./docs/` (`archi_v3.pdf`, `GameTheory.excalidraw`, `LobbyService.excalidraw`, etc.)
+- **Design**: Diagrams authored in Excalidraw / Mermaid — see `./docs/` (`archi_v3.pdf`, `ArchiComparison.excalidraw`, etc.)
 
 ---
 
@@ -206,7 +206,7 @@ auth.users (1) ──logical──> (N) chat.direct_conversations ──> (N) ch
 auth.users (1) ──logical──> (N) chat.ws_messages (per lobby_id)
 ```
 
-Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excalidraw`, `LobbyService.excalidraw`, `GameTheory.excalidraw`).
+Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excalidraw`).
 
 ---
 
