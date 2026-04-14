@@ -40,7 +40,7 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 						/>
 					))}
 				</div>
-				<TrioBadge trios={player.trios} />
+				<TrioBadge trios={player.trios} gameMode={gameMode}/>
 			</div>
 			{revealedHandCards.length > 0 && (
 				<div className={`absolute flex gap-[0.4rem] ${revealedSeatClass}`}>

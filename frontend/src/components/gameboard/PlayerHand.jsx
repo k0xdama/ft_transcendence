@@ -31,7 +31,7 @@ function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf, gameMode }) {
 						origin={isBottomLeft ? 'origin-bottom' : ''}
 					/>
 				))}
-				<TrioBadge trios={trios} />
+				<TrioBadge trios={trios} gameMode={gameMode}/>
 			</div>
 		</div>
 	)
