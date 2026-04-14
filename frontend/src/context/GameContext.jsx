@@ -59,6 +59,7 @@ export function GameProvider({ children }) {
 		socketRef.current.on('game:started', ({ gameStruct }) => {
 			setGameStruct(gameStruct);
 			updateRiverSlot(hydrateRiverSlots(gameStruct.riverSlots, gameStruct.cardsInMiddle));
+			localStorage.setItem('activeGameId', gameStruct.gameId);
 		});
 
 		socketRef.current.on('game:update', ({ gameStruct, action_result }) => {
@@ -89,6 +90,7 @@ export function GameProvider({ children }) {
 
 		socketRef.current.on('game:ended', (result) => {
 			setGameResult(result);
+			localStorage.removeItem('activeGameId');
 		})
 
 		socketRef.current.on('game:playerDisconnected', ({ userId }) => {
@@ -110,6 +112,7 @@ export function GameProvider({ children }) {
 
 		socketRef.current.on('error', (message) => {
 			setGameError(message);
+			localStorage.removeItem('activeGameId');
 		})
 
 		socketRef.current.on('connect_error', async (err) => {

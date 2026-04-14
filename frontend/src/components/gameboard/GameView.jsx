@@ -23,7 +23,7 @@ function GameView() {
 	const { gameId } = useParams()
 	const { state } = useLocation()
 	const lobbyId = state?.lobbyId || gameId
-	const { gameStruct, connect, disconnect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult } = useGame()
+	const { gameStruct, connect, disconnect, sendAction, sendCheck, pendingCheck, lastAction, turnTimer, disconnectedPlayer, riverSlots, revealedHandCards, gameResult, gameError } = useGame()
 	const { leaveLobby } = useLobby()
 	const { user } = useAuth()
 	const [selectedOpponent, setSelectedOpponent] = useState(null)
@@ -33,6 +33,12 @@ function GameView() {
 	const [showRotateHint, setShowRotateHint] = useState(false)
 	const isMobile = useIsMobileGame()
 	const navigate = useNavigate()
+
+	useEffect(() => {
+		if (gameError) {
+			navigate('/');
+		}
+	}, [gameError])
 
 	useEffect(() => {
 		console.log('GameView mounted - gameId:', gameId);
@@ -66,8 +72,13 @@ function GameView() {
 		setSelectedOpponent(null)
 	}
 
-	if (!gameStruct)
+	if (!gameStruct) {
+		// if (gameError) {
+		// 	navigate('/', { state: { notification: gameError } });
+		// 	return null;
+		// }
 		return <p>Waiting for all players to connect...</p>
+	}
 
 	const me = gameStruct.players.find(p => p.id === user?.id)
 	if (me === undefined)

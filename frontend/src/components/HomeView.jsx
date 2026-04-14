@@ -1,10 +1,34 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const menuBtn = 'w-full rounded-lg border border-purple-mid/50 bg-card px-6 py-3 text-xs uppercase tracking-ui text-white/85 transition-all hover:border-purple-mid hover:bg-purple-brand/15'
 
 function HomeView() {
 	const { isAuthenticated } = useAuth()
+	const navigate = useNavigate()
+	const { state } = useLocation()
+	const activeGameId = localStorage.getItem('activeGameId')
+
+	if (activeGameId && isAuthenticated()) {
+		return (
+            <div className="flex min-h-[calc(100vh-170px)] w-full flex-col items-center justify-center">
+                <div className="relative w-full max-w-[560px] rounded-3xl border border-purple-mid bg-[rgba(10,5,20,0.72)] px-6 py-8 shadow-card backdrop-blur-3xl md:px-10 md:py-10">
+                    <div className="relative z-10 flex flex-col items-center gap-4">
+                        <h1 className="text-[3rem] text-white text-shadow-[0_0_12px_rgba(11,25,105,0.8),0_0_28px_rgba(11,25,105,0.65)] md:text-[4.6rem]">
+                            Triple
+                        </h1>
+                        <p className="text-sm uppercase tracking-ui text-[rgba(200,160,255,0.7)]">You have an active game</p>
+                        <button
+                            className="w-full max-w-[260px] rounded-lg border border-cyan-mid bg-card px-6 py-3 text-xs uppercase tracking-ui text-cyan-glow transition-all hover:border-cyan-str hover:bg-cyan-glow/15"
+                            onClick={() => navigate(`/game/${activeGameId}`)}
+                        >
+                            Rejoin game
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
 	return (
 		<div className="flex min-h-[calc(100vh-170px)] w-full flex-col items-center justify-center">
@@ -15,7 +39,11 @@ function HomeView() {
 					<h1 className="mb-6 text-[3rem] text-white text-shadow-[0_0_12px_rgba(11,25,105,0.8),0_0_28px_rgba(11,25,105,0.65)] md:mb-8 md:text-[4.6rem]">
 						Triple
 					</h1>
-
+					{state?.notification && (
+						<p className="mb-4 text-sm text-[#ff4466] uppercase tracking-ui">
+            				{state.notification}
+        				</p>
+					)}
 					<div className="mx-auto flex w-full max-w-[260px] flex-col justify-center gap-4">
 						{isAuthenticated() ? (
 							<>

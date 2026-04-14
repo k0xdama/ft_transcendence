@@ -98,6 +98,10 @@ io.on('connection', (socket) => {
 		}
 		const existingPlayer = gameStruct.players.find(player => player.id === socket.user.id);
 		if (existingPlayer) {
+			if (existingPlayer.eliminated) {
+				socket.emit('error', 'You have been eliminated from this game');
+				return;
+			}
 			if (existingPlayer.connected === true) {
 				socket.emit('error', 'You are already logged in to this game');
 				return;
@@ -148,6 +152,7 @@ io.on('connection', (socket) => {
 		io.to(data.gameId).emit('game:update', { action_result, gameStruct });
 		if (action_result.winner != null) {
 			const stats = buildGameStats(gameStruct, action_result.winner.winnerId);
+			console.log("GAME WON ! By : ", action_result.winner.winnerId);
 			//redis publish
 			await redisClient.lPush('game:results', JSON.stringify(stats));
 			await redisClient.publish('game:ended', JSON.stringify({ gameId: data.gameId, winner: action_result.winner }));
