@@ -39,7 +39,7 @@
 #         - name: Create JWT secret
 #           run: |
 #             sudo mkdir -p /run/secrets
-#             echo "${{ secrets.JWT_ACCESS }}" | sudo tee /run/secrets/jwt_access
+#             echo "${{ secrets.JWT_SIGNING_KEY }}" | sudo tee /run/secrets/jwt_signing_key
 #         # - run: npm run test:global
 #         #   working-directory: ./backend
 #         - run: npm test
@@ -65,7 +65,7 @@
 #             echo "${{ secrets.PSQL_PLAYER_PASSWD }}" > secrets/psql_player_passwd.txt
 #             echo "${{ secrets.PSQL_CHAT_PASSWD }}" > secrets/psql_chat_passwd.txt
 #             echo "${{ secrets.REDIS_PASSWD }}" > secrets/redis_passwd.txt
-#             echo "${{ secrets.JWT_ACCESS }}" > secrets/jwt_access.txt
+#             echo "${{ secrets.JWT_SIGNING_KEY }}" > secrets/jwt_signing_key.txt
 #         - run: docker compose up -d
 #         - run: docker exec auth npm test
 #         - run: npx wait-on http://localhost:5173 --timeout 60000

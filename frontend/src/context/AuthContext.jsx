@@ -14,6 +14,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
+	const [avatarVersion, setAvatarVersion] = useState(0);
 	const refreshPromiseRef = useRef(null);
 
 	useEffect(() => {
@@ -124,6 +125,8 @@ export const AuthProvider = ({ children }) => {
 		return res.ok;
 	};
 
+	const bumpAvatarVersion = () => setAvatarVersion(v => v + 1)
+
 	const isAuthenticated = () => user !== null;
 
 	const value = {
@@ -134,7 +137,9 @@ export const AuthProvider = ({ children }) => {
 		isAuthenticated,
 		authFetch,
 		refreshToken,
-		loading
+		loading,
+		avatarVersion,
+		bumpAvatarVersion
 	};
 
 	return (

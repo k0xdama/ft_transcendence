@@ -9,7 +9,7 @@ vi.mock('fs', async () => {
 
 const { authGuard } = await import('../src/middleware/authGuard.js')
 
-const JWT_SECRET = fs.readFileSync('/run/secrets/jwt_access', 'utf8').trim()
+const JWT_SIGNING_KEY = fs.readFileSync('/run/secrets/jwt_signing_key', 'utf8').trim()
 
 function buildResponse() {
 	const res = {}
@@ -48,7 +48,7 @@ describe('authGuard middleware', () => {
 
 	describe('when token is expired', () => {
 		it('should return 401', () => {
-			const expiredToken = jwt.sign({ userId: 1 }, JWT_SECRET, { expiresIn: -1 })
+			const expiredToken = jwt.sign({ userId: 1 }, JWT_SIGNING_KEY, { expiresIn: -1 })
 			const req = { cookies: { accessToken: expiredToken } }
 			const res = buildResponse()
 			const next = vi.fn()
@@ -62,7 +62,7 @@ describe('authGuard middleware', () => {
 
 	describe('when token is valid', () => {
 		it('should call next() and attach payload to req.user', () => {
-			const validToken = jwt.sign({ userId: 1 }, JWT_SECRET, { expiresIn: '1h' })
+			const validToken = jwt.sign({ userId: 1 }, JWT_SIGNING_KEY, { expiresIn: '1h' })
 			const req = { cookies: { accessToken: validToken } }
 			const res = buildResponse()
 			const next = vi.fn()

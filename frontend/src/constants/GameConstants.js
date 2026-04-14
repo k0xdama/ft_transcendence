@@ -64,5 +64,45 @@ export const GAME_MODES = [
 	{ value: 'CLASSIC', label: 'Classic', desc: 'Win 3 trios' },
 	{ value: 'LINKED',  label: 'Linked',  desc: 'Win 2 linked trios' }
 ]
- 
+
 export const PLAYER_OPTIONS = [3, 4, 5, 6]
+
+export const COUNTDOWN_DESKTOP = {
+	size: 70,
+	radius: 28,
+	strokeWidth: 4,
+	labelClass: 'text-[0.6rem]'
+}
+
+export const COUNTDOWN_MOBILE = {
+	size: 46,
+	radius: 18,
+	strokeWidth: 3,
+	labelClass: 'text-[0.45rem]'
+}
+
+export const BUZZER_DESKTOP = {
+	buttonSizeClass: 'h-[52px] w-[52px] text-[1.4rem]',
+	buttonPx: 52,
+	buttonGap: 12,
+	containerPositionClass: 'bottom-6 right-6'
+}
+
+export const BUZZER_MOBILE = {
+	buttonSizeClass: 'h-9 w-9 text-[1rem]',
+	buttonPx: 36,
+	buttonGap: 8,
+	containerPositionClass: 'bottom-[0.5vh] right-3'
+}
+
+export const TRIO_DESKTOP = {
+	arrowClass: 'border-b-[35px] border-l-[20px] border-r-[20px]',
+	labelClass: '-bottom-[30px] text-[0.75rem]',
+	cardPreviewClass: 'h-[3vw] w-[2.2vw]'
+}
+
+export const TRIO_MOBILE = {
+	arrowClass: 'border-b-[18px] border-l-[10px] border-r-[10px]',
+	labelClass: '-bottom-[16px] text-[0.5rem]',
+	cardPreviewClass: 'h-[24px] w-[18px]'
+}

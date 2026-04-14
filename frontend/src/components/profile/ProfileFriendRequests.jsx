@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import PFP_Default from '../../assets/PFP_Default.webp'
+import { IconCheck, IconDecline } from '../icons/Icons'
 
 function ProfileFriendRequests() {
 	const { authFetch } = useAuth()
@@ -195,19 +196,19 @@ function ProfileFriendRequests() {
 									</span>
 								</div>
 								<div className="flex gap-1.5 flex-shrink-0">
-									<button 
-										className="w-7 h-7 rounded border border-green-500/40 bg-green-500/8 text-green-400 text-xs cursor-pointer flex items-center justify-center hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 transition-all" 
+									<button
+										className="w-7 h-7 rounded border border-green-500/40 bg-green-500/8 text-green-400 text-xs cursor-pointer flex items-center justify-center hover:bg-green-500/18 hover:shadow-lg hover:shadow-green-500/30 transition-all"
 										title="Accept Request"
 										onClick={() => handleAccept(request.id)}
 									>
-										✓
+										<IconCheck />
 									</button>
-									<button 
-										className="w-7 h-7 rounded border border-red-500/40 bg-red-500/8 text-red-400 text-xs cursor-pointer flex items-center justify-center hover:bg-red-500/18 hover:shadow-lg hover:shadow-red-500/30 transition-all" 
+									<button
+										className="w-7 h-7 rounded border border-red-500/40 bg-red-500/8 text-red-400 text-xs cursor-pointer flex items-center justify-center hover:bg-red-500/18 hover:shadow-lg hover:shadow-red-500/30 transition-all"
 										title="Decline Request"
 										onClick={() => handleDecline(request.id)}
 									>
-										✗
+										<IconDecline />
 									</button>
 								</div>
 							</div>

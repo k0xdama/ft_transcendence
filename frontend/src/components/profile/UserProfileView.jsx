@@ -10,13 +10,14 @@ import ProfileMatchHistory from './ProfileMatchHistory'
 import ProfileLeaderboard from './ProfileLeaderboard'
 import ProfileSettings from './ProfileSettings'
 import DeleteAccountModal from './DeleteAccountModal'
+import ProfileCard from './ProfileCard'
 import { useDM } from '../../context/DMContext'
 
 function UserProfileView() {
 	const { userId } = useParams()
 	const [searchParams] = useSearchParams()
 	const navigate = useNavigate()
-	const { user, isAuthenticated, authFetch, logout, updateUser } = useAuth()
+	const { user, isAuthenticated, authFetch, logout, updateUser, bumpAvatarVersion } = useAuth()
 	const { openDM } = useDM()
 	const playerRoute = '/api/players'
 
@@ -30,7 +31,7 @@ function UserProfileView() {
 	const [error, setError] = useState('')
 	const [friendStatus, setFriendStatus] = useState(null) // 'friend', 'pending', 'none', 'blocked'
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
-	const tabBaseClass = 'shrink-0 !rounded-none !bg-transparent !border-0 border-b-2 border-b-transparent px-3 py-2 text-[0.64rem] uppercase tracking-ui cursor-pointer transition-colors whitespace-nowrap focus:outline-none focus-visible:outline-none md:w-full md:shrink md:px-2'
+	const tabBaseClass = 'shrink-0 !rounded-none !bg-transparent !border-0 border-b-2 border-b-transparent px-3 py-2 text-[0.64rem] uppercase tracking-ui cursor-pointer transition-colors whitespace-nowrap focus:outline-none focus-visible:outline-none'
 
 	const isOwnProfile = !userId || (user && userId === user.id)
 	const targetUserId = userId || (user && user.id)
@@ -213,6 +214,7 @@ function UserProfileView() {
 				...prev,
 				avatarUrl: `${playerRoute}/${user.id}/profile-picture`
 			}))
+			bumpAvatarVersion()
 		} catch (err) {
 			console.error('Avatar upload error:', err)
 			setError('Failed to upload avatar')
@@ -232,6 +234,7 @@ function UserProfileView() {
 				...prev,
 				avatarUrl: null
 			}))
+			bumpAvatarVersion()
 		} catch (err) {
 			console.error('Avatar delete error:', err)
 			setError('Failed to delete avatar')
@@ -289,27 +292,33 @@ function UserProfileView() {
 
 	if (loading) {
 		return (
-			<div className="flex flex-col items-center pt-4 gap-4 w-full px-4 md:pt-10 md:gap-6 md:px-0">
-				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-4 w-full max-w-[620px] h-[75vh] backdrop-blur-3xl shadow-card md:p-8 md:h-[62vh]">
-					<p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading profile...</p>
-				</div>
-			</div>
+			<ProfileCard>
+				<p className="text-xs uppercase tracking-ui text-purple-pale/85 text-center animate-crt-blink">Loading profile...</p>
+			</ProfileCard>
 		)
 	}
 
 	if (error && !profileData) {
 		return (
-			<div className="flex flex-col items-center pt-4 gap-4 w-full px-4 md:pt-10 md:gap-6 md:px-0">
-				<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-4 w-full max-w-[620px] h-[75vh] backdrop-blur-3xl shadow-card md:p-8 md:h-[62vh]">
-					<p className="text-red-500 text-xs text-center mt-2">{error}</p>
-				</div>
-			</div>
+			<ProfileCard>
+				<p className="text-red-500 text-xs text-center mt-2">{error}</p>
+			</ProfileCard>
 		)
 	}
 
+	const tabs = [
+		{ key: 'stats', label: 'Stats' },
+		{ key: 'history', label: 'History' },
+		{ key: 'achievements', label: 'Achievements' },
+		{ key: 'leaderboard', label: 'Leaderboard' },
+		{ key: 'friends', label: 'Friends' },
+		{ key: 'friend-requests', label: 'Friend Requests' },
+		...(isOwnProfile ? [{ key: 'settings', label: 'Settings' }] : [])
+	]
+
 	return (
-		<div className="flex flex-col items-center pt-4 gap-4 w-full px-4 md:pt-10 md:gap-6 md:px-0">
-			<div className="flex flex-col bg-card border border-purple-mid rounded-2xl p-4 w-full max-w-[620px] h-[75vh] backdrop-blur-3xl shadow-card md:p-8 md:h-[62vh]">
+		<>
+			<ProfileCard>
 				<ProfileHeader
 					profileData={profileData}
 					isOwnProfile={isOwnProfile}
@@ -322,51 +331,16 @@ function UserProfileView() {
 					onSendMessage={() => openDM(targetUserId, profileData.username, profileData.avatarUrl)}
 				/>
 
-				<div className={`mb-5 flex w-full overflow-x-auto gap-1 border-b border-purple-dim pb-1 md:grid ${isOwnProfile ? 'md:grid-cols-5' : 'md:grid-cols-4'} [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}>
-					<button
-						className={`${tabBaseClass} ${activeTab === 'stats' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
-						onClick={() => setActiveTab('stats')}
-					>
-						Stats
-					</button>
-					<button
-						className={`${tabBaseClass} ${activeTab === 'history' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
-						onClick={() => setActiveTab('history')}
-					>
-						History
-					</button>
-					<button
-						className={`${tabBaseClass} ${activeTab === 'achievements' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
-						onClick={() => setActiveTab('achievements')}
-					>
-						Achievements
-					</button>
-					<button
-						className={`${tabBaseClass} ${activeTab === 'leaderboard' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
-						onClick={() => setActiveTab('leaderboard')}
-					>
-						Leaderboard
-					</button>
-					<button
-						className={`${tabBaseClass} ${activeTab === 'friends' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
-						onClick={() => setActiveTab('friends')}
-					>
-						Friends
-					</button>
-					<button
-						className={`${tabBaseClass} ${activeTab === 'friend-requests' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
-						onClick={() => setActiveTab('friend-requests')}
-					>
-						Friend Requests
-					</button>
-					{isOwnProfile && (
+				<div className="mb-5 flex w-full overflow-x-auto gap-1 border-b border-purple-dim pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+					{tabs.map(({ key, label }) => (
 						<button
-							className={`${tabBaseClass} ${activeTab === 'settings' ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
-							onClick={() => setActiveTab('settings')}
+							key={key}
+							className={`${tabBaseClass} ${activeTab === key ? 'border-b-purple-light text-purple-pale text-shadow-purple' : 'text-purple-pale/50 hover:text-purple-pale/85'}`}
+							onClick={() => setActiveTab(key)}
 						>
-							Settings
+							{label}
 						</button>
-					)}
+					))}
 				</div>
 
 				<div className="profile-scrollbar flex-1 min-h-0 overflow-y-auto pr-2">
@@ -396,7 +370,9 @@ function UserProfileView() {
 						/>
 					)}
 				</div>
-			</div>
+
+				{error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
+			</ProfileCard>
 
 			{showDeleteModal && (
 				<DeleteAccountModal
@@ -404,9 +380,7 @@ function UserProfileView() {
 					onCancel={() => setShowDeleteModal(false)}
 				/>
 			)}
-
-			{error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
-		</div>
+		</>
 	)
 }
 

@@ -72,7 +72,7 @@ services:
       PORT: ${PORT}
       CORS_ORIGIN: ${CORS_ORIGIN}
     secrets:
-      - jwt_access
+      - jwt_signing_key
       - ssl_key
       - ssl_cert
     volumes:
@@ -101,7 +101,7 @@ services:
     secrets:
       - psql_dbname
       - psql_auth_passwd
-      - jwt_access
+      - jwt_signing_key
       - ssl_key
       - ssl_cert
     build:
@@ -246,8 +246,8 @@ secrets:
     file: ./secrets/psql_chat_passwd.txt
   redis_passwd:
     file: ./secrets/redis_passwd.txt
-  jwt_access:
-    file: ./secrets/jwt_access.txt
+  jwt_signing_key:
+    file: ./secrets/jwt_signing_key.txt
   ssl_key:
     file: ./secrets/ssl/key.pem
   ssl_cert:

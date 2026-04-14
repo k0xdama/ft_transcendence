@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'https';
 import { router, lobbyProxy, gameProxy, chatWsProxy } from './src/routes/proxy-router.js';
 
-const JWT_SECRET = fs.readFileSync('/run/secrets/jwt_access', 'utf8').trim();
+const JWT_SIGNING_KEY = fs.readFileSync('/run/secrets/jwt_signing_key', 'utf8').trim();
 
 function authenticateUpgrade(req) {
 	const cookies = cookie.parse(req.headers.cookie || '');
@@ -16,7 +16,7 @@ function authenticateUpgrade(req) {
 	if (!accessToken)
 		throw new Error('Missing access token');
 
-	return jwt.verify(accessToken, JWT_SECRET);
+	return jwt.verify(accessToken, JWT_SIGNING_KEY);
 };
 
 const sslOptions = {

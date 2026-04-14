@@ -6,6 +6,7 @@
 
 Our **ft_transcendence** is a full-stack, real-time multiplayer web application built around an online card game. Players can register, chat, add friends, join public or private lobbies, and face each other in live matches supporting **3 to 6 players** simultaneously. The platform is designed as a distributed set of microservices communicating over REST and Redis Pub/Sub, with WebSocket channels handling all real-time interactions (presence, chat, matchmaking, game state...).
 
+
 ### Key features
 
 - Real-time multiplayer card game (3–6 players, live matches, 1v1 and team modes)
@@ -17,7 +18,7 @@ Our **ft_transcendence** is a full-stack, real-time multiplayer web application 
 - Direct messaging, in-lobby chat and in-game chat
 - User blocking, game invites from chat
 - Match history, per-player statistics, achievements and leaderboard
-- Custom-designed reusable component library with a consistent visual identity
+- Custom-designed reusable component library with a consistent visual identity and mobile-first responsive layouts
 - HTTPS everywhere (self-signed certificates generated at setup)
 - Containerized microservices orchestrated with Docker Compose
 
@@ -34,6 +35,7 @@ Our **ft_transcendence** is a full-stack, real-time multiplayer web application 
 - A free port `4000` (API gateway) and `8443` (frontend) on the host
 - Unix-like environment (tested on Linux and macOS)
 
+
 ### Installation and launch
 
 Clone the repository and run:
@@ -46,11 +48,12 @@ This single command will:
 
 1. Generate self-signed SSL certificates (`scripts/generate-cert.sh`)
 2. Create the `.env` file with default values (`scripts/create-env.sh`)
-3. Generate Docker secrets for DB, Redis and JWT (`scripts/setup-secrets.sh` — interactive prompts, see *Known limitations*)
+3. Generate Docker secrets for DB, Redis and JWT (`scripts/create-secrets.sh` — non-interactive: reads values from an optional `.env.secrets` file if present, otherwise auto-generates strong random passwords with `openssl`). An interactive fallback (`scripts/interactive-secrets-setup.sh`) is also available to create `.env.secrets` from keyboard input.
 4. Build all Docker images
 5. Start the full stack in detached mode
 
 Once the containers are up, open **https://localhost:8443** in your browser and accept the self-signed certificate warning.
+
 
 ### Useful Make targets
 
@@ -68,9 +71,12 @@ Once the containers are up, open **https://localhost:8443** in your browser and 
 
 Run `make help` for the full list.
 
+
 ### Environment configuration
 
-The `.env` file is generated automatically by `scripts/create-env.sh` with sensible defaults (service URLs, ports, CORS origin). Secrets (DB password, JWT secret, Redis password, SSL key/cert) are stored under `./secrets/` and mounted as **Docker secrets** — they are never exposed as environment variables.
+The `.env` file is generated automatically by `scripts/create-env.sh` with sensible defaults (service URLs, ports, CORS origin). Secrets (DB passwords, JWT signing key, Redis password, SSL key/cert) are stored under `./secrets/` and mounted as **Docker secrets** — they are never exposed as environment variables.
+
+Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `.env.secrets` file is present at the project root it is sourced to populate the values; any missing password is auto-generated with `openssl rand`, and the JWT signing key is always generated if not provided. This lets `make` run end-to-end without any keyboard input. If you prefer entering values by hand, run `scripts/interactive-secrets-setup.sh` first to produce `.env.secrets`.
 
 ---
 
@@ -79,8 +85,8 @@ The `.env` file is generated automatically by `scripts/create-env.sh` with sensi
 | Member | Login | Role(s) | Responsibilities |
 |---|---|---|---|
 | Morgan | `@morajaon` | Product Owner / Frontend | API Gateway + the whole web application esthetic (HTML, Tailwind CSS) |
-| Ana | `@annabrag` | Project Manager / Backend | DevOps (DB, Redis, Docker Compose) + Auth and Chat microservices + a bit of Frontend -> Mobile responsive |
-| Mateo | `@pmateo` | Technical Lead / Backend | Lobby and Game services + search for bugs, warnings |
+| Ana | `@itsbraga` | Project Manager / Backend | DevOps (DB, Redis, Docker Compose) + Auth and Chat microservices + Mobile responsive |
+| Mateo | `@k0xdama` | Technical Lead / Backend | Lobby and Game services + search for bugs, warnings |
 | Antoine | `@agremill` | Developer Backend | Player service + game statistics and match history |
 
 ---
@@ -92,27 +98,32 @@ The `.env` file is generated automatically by `scripts/create-env.sh` with sensi
 - **Meetings**: One or two weekly meetings depending on our advances in the features we were working on
 - **Communication**: Discord for daily chat, meetups for brainstorming
 - **Version control**: Git + GitHub, feature branches merged into `main` via pull requests with peer review
-- **Design**: Diagrams authored in Excalidraw / Mermaid — see `./docs/` (`archi_v3.png`, `GameTheory.excalidraw`, `LobbyService.excalidraw`, etc.)
+- **Design**: Diagrams authored in Excalidraw / Mermaid — see `./docs/` (`archi_v3.pdf`, `GameTheory.excalidraw`, `LobbyService.excalidraw`, etc.)
 
 ---
 
 ## Technical Stack
 
 ### Frontend
+
 - **React** (SPA) + **Vite** (dev server and bundler)
 - **Tailwind CSS** + PostCSS + custom CSS modules for the design system
 - **ESLint** for linting
 - **Socket.IO client** for real-time WebSocket communication
 - **nginx** serving the production build behind HTTPS (port 8443)
 
+
 ### Backend
+
 - **Node.js** microservices
 - **Express** (lightweight HTTP layer across all services)
 - **Socket.IO** server for real-time WebSocket channels (chat, lobby, game)
 - **JWT** (access tokens) for stateless authentication propagated via the API gateway
 - **bcrypt** for password hashing
 
+
 ### Database and caching
+
 - **PostgreSQL 18** — the main database where all persistent data is stored (accounts, stats, friendships, chat history). It was chosen because it guarantees that data stays reliable and consistent even if something crashes in the middle of an operation (ACID*). The database is split into three schemas (`auth`, `player`, `chat`), and each service logs in with its own user (`auth_user`, `player_user`, `chat_user`) and its own password — that can only access its own schema, so if one service is compromised, the others remain safe. `lobby` and `game` services are excluded since they only rely on Redis.
 - **Redis 8** — a fast in-memory store used for short-lived real-time data (matchmaking queues, online presence, current lobby state, etc.). It also acts as a **Pub/Sub*** bus that lets services talk to each other without being directly connected (e.g. the game service announces `game:ended` and the player service picks it up to update stats).
 
@@ -124,11 +135,14 @@ The `.env` file is generated automatically by `scripts/create-env.sh` with sensi
 >
 > \* **Pub/Sub** (Publish/Subscribe) = a messaging pattern where a service "publishes" an event on a channel without knowing who will read it, and any other service can "subscribe" to that channel to receive it. It keeps services independent from each other.
 
+
 ### Infrastructure
+
 - **Docker** + **Docker Compose** — multi-service orchestration
 - **Docker secrets** for credentials and TLS material
 - **Self-signed TLS** across every HTTP and WebSocket endpoint
 - Private bridge network (`triple_network`) — only the API gateway and the frontend expose ports to the host
+
 
 ### Justification of major technical choices
 
@@ -178,7 +192,7 @@ auth.users (1) ──logical──> (N) chat.direct_conversations ──> (N) ch
 auth.users (1) ──logical──> (N) chat.ws_messages (per lobby_id)
 ```
 
-Architecture diagrams are available in `./docs/` (`archi_v3.png`, `DevOps.excalidraw`, `LobbyService.excalidraw`, `GameTheory.excalidraw`).
+Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excalidraw`, `LobbyService.excalidraw`, `GameTheory.excalidraw`).
 
 ---
 
@@ -202,7 +216,8 @@ Architecture diagrams are available in `./docs/` (`archi_v3.png`, `DevOps.excali
 | Match history | Per-user log of past games, opponents, outcomes | [????????? agremill, pmateo ????????] |
 | Stats & achievements | Wins, combos, trio-of-7, perfect games, progression | [pmateo, agremill] |
 | Leaderboard | Global ranking by score | [pmateo] |
-| Mobile responsive UI | Adaptive layouts for phone and desktop | [morajaon, annabrag] |
+| Mobile responsive UI | Adaptive layouts for phone and desktop, including dedicated mobile chat overlays, split desktop/mobile NavBar and responsive size dictionaries per breakpoint | [morajaon, annabrag] |
+| Icon set & design tokens | Named icon components (`Icons.jsx`), custom Tailwind palette, typography and shadows | [morajaon, annabrag] |
 | Legal pages | Privacy Policy & Terms of Service | [pmateo] |
 
 
@@ -232,6 +247,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.png`, `DevOps.excali
 | 11 | USER MANAGEMENT | Game statistics and match history (requires a game module).<br>• Track user game statistics (wins, losses, ranking, level, etc.).<br>• Display match history (1v1 games, dates, results, opponents).<br>• Show achievements and progression.<br>• Leaderboard integration. |
 | 12 | GAMING AND USER EXPERIENCE | Advanced chat features (enhances the basic chat from "User interaction" module).<br>• Ability to block users from messaging you.<br>• Invite users to play games directly from chat.<br>• Game/tournament notifications in chat.<br>• Access to user profiles from chat interface.<br>• Chat history persistence.<br>• Typing indicators and read receipts. |
 
+
 ### Point calculation
 
 - **Major**: 7 × 2 = **14 pts**
@@ -244,22 +260,22 @@ Architecture diagrams are available in `./docs/` (`archi_v3.png`, `DevOps.excali
 
 ### Morgan @morajaon
 - **Owned**: api-gateway, frontend design system and game????
-- **Modules**: [#4, #7, #8, #10] A VERIFIER
+- **Modules**: #4, #8, #10  A VERIFIER
 - **Challenges**: ?????
 
 ### Ana @annabrag
-- **Owned**: infrastructure, auth-service, chat-service, responsive mobile???
-- **Modules**: [#1, #2, #3, #7, #8, #9, #12]
+- **Owned**: infrastructure, auth-service, chat-service, mobile responsive
+- **Modules**: #2, #7, #8, #9, #10, #12
 - **Challenges**: ?????
 
 ### Antoine @agremill
-- **Owned**: player-service, some frontend pages???? and ???
-- **Modules**: [#1, #2, #3, #4, #5, #6, #9, #11] A VERIFIER
+- **Owned**: player-service, some frontend pages????
+- **Modules**: #1, #2, #3, #4, #9, #11  A VERIFIER
 - **Challenges**: ????
 
 ### Mateo @pmateo
 - **Owned**: lobby-service, matchmaking, game-service
-- **Modules**: [#1, #4, #5, #6, #9, #11] A VERIFIER
+- **Modules**: #1, #4, #5, #6, #9, #11  A VERIFIER
 - **Challenges**: ????
 
 ---
@@ -279,6 +295,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.png`, `DevOps.excali
 - [JWT](https://jwt.io/introduction) — stateless authentication
 - [bcrypt](https://github.com/kelektiv/node.bcrypt.js) — password hashing
 
+
 ### Articles & tutorials
 
 - Middlewares in Express JS
@@ -287,9 +304,10 @@ Architecture diagrams are available in `./docs/` (`archi_v3.png`, `DevOps.excali
 - Socket.IO "Rooms and namespaces" and "Authentication" guides
 - PostgreSQL "Schemas and privileges" documentation
 
+
 ### Use of AI
 
-AI assistants (Claude and Copilot???) were used as a **pair-programming and reviewing tool**, never as an autonomous generator of deliverables. Specifically:
+AI assistants (Claude and Copilot) were used as a **pair-programming and reviewing tool**, never as an autonomous generator of deliverables. Specifically:
 
 - **Rubber-ducking and design reviews**: challenging our microservice boundaries, our WebSocket event naming, and reviewing the shape of our API contract (e.g. `docs/API_CONTRACT_LOBBY_GAME.md`).
 - **Debugging assistance**: explaining cryptic error messages (Postgres errors, TLS handshake issues, and ????).
@@ -306,11 +324,12 @@ AI was **not** used to generate the core game logic, the database schema design 
 - No spectator mode.
 - Cross-schema references between `auth.users` and `player.users` are **logical only** (not enforced by a PostgreSQL foreign key), to keep schema ownership clean; consistency is maintained at the service layer.
 - Service-to-service HTTPS calls use `NODE_TLS_REJECT_UNAUTHORIZED=0` in the `auth` and `lobby` services to accept the self-signed certs on the private `triple_network`
-- `scripts/setup-secrets.sh` is interactive: the first `make` run will prompt for DB name, admin user/password, and per-service DB passwords.
+
 
 ## Privacy Policy & Terms of Service
 
 Available in-app under `/legal` (see `frontend/src/components/legal/`). The platform stores only the minimum information required to operate the game (email, username, hashed password, avatar path, game statistics, chat history with automatic expiry). Users can delete their account at any time from the profile settings, which cascades to all dependent records.
+
 
 ## License
 

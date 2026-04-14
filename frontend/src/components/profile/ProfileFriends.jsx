@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
 import PFP_Default from '../../assets/PFP_Default.webp'
+import { IconProfile, IconClose, IconLock } from '../icons/Icons'
 
 const STATUS_ORDER = { 'online': 0, 'in-game': 1, 'offline': 2 }
 const STATUS_LABELS = { 'online': 'Online', 'in-game': 'In Game', 'offline': 'Offline' }
@@ -222,13 +223,13 @@ function ProfileFriends() {
 						</div>
 						<div className="flex gap-1.5 flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity">
 							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-cyan-glow/50 hover:bg-cyan-glow/10 hover:text-cyan-glow transition-all" title="View Profile" onClick={() => navigate(`/profile/${friend.id}`)}>
-								&#9782;
+								<IconProfile />
 							</button>
 							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all" title="Remove Friend" onClick={() => handleRemoveFriend(friend.id)}>
-								&#10005;
+								<IconClose />
 							</button>
 							<button className="w-7 h-7 rounded border border-purple-mid/20 bg-white/4 text-purple-pale/60 text-xs cursor-pointer flex items-center justify-center hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400 transition-all" title="Block User" onClick={() => handleBlockUser(friend.id)}>
-								&#128274;
+								<IconLock />
 							</button>
 						</div>
 					</div>

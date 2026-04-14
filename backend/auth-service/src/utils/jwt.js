@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 
-const accessToken = fs.readFileSync('/run/secrets/jwt_access', 'utf-8').trim();
+const accessToken = fs.readFileSync('/run/secrets/jwt_signing_key', 'utf-8').trim();
 
 export function generateAccessToken(user) {
 	return jwt.sign(

@@ -32,28 +32,26 @@ function PublicMatchmakingView() {
 	}
 
 	return (
-		<div className='flex flex-col items-center pt-8 gap-6 w-full px-4 md:pt-20 md:px-0'>
-			<PageCard>
-				<h2 className='text-lg uppercase tracking-title text-purple-pale text-shadow-purple m-0 mb-7 text-center'>Public Match</h2>
+		<PageCard outerClassName='pt-8 md:pt-20'>
+			<h2 className='text-lg uppercase tracking-title text-purple-pale text-shadow-purple m-0 mb-7 text-center'>Public Match</h2>
 
-				{error && <p className='text-red-500 text-xs text-center mb-4'>{error}</p>}
+			{error && <p className='text-red-500 text-xs text-center mb-4'>{error}</p>}
 
-				<RuleSelector
-					gameMode={gameMode}
-					maxUsers={maxUsers}
-					onModeChange={setGameMode}
-					onPlayerChange={setMaxUsers}
-					modeBaseClass={modeBase}
-					modeActiveClass={modeActive}
-					playerBaseClass={playerBase}
-					playerActiveClass={playerActive}
-				/>
+			<RuleSelector
+				gameMode={gameMode}
+				maxUsers={maxUsers}
+				onModeChange={setGameMode}
+				onPlayerChange={setMaxUsers}
+				modeBaseClass={modeBase}
+				modeActiveClass={modeActive}
+				playerBaseClass={playerBase}
+				playerActiveClass={playerActive}
+			/>
 
-				<button className='w-full px-7 py-3 rounded border border-purple-mid/50 bg-purple-brand/15 text-purple-light uppercase tracking-ui text-sm hover:bg-purple-brand/30 hover:shadow-lg hover:shadow-purple-brand/40 transition-all cursor-pointer' onClick={handleSearch}>
-					Search Game
-				</button>
-			</PageCard>
-		</div>
+			<button className='w-full px-7 py-3 rounded border border-purple-mid/50 bg-purple-brand/15 text-purple-light uppercase tracking-ui text-sm hover:bg-purple-brand/30 hover:shadow-lg hover:shadow-purple-brand/40 transition-all cursor-pointer' onClick={handleSearch}>
+				Search Game
+			</button>
+		</PageCard>
 	)
 }
 

@@ -3,6 +3,15 @@ module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],  // scan all component files
 
   theme: {
+    // md = 1024px so that iPads + phones get the mobile layout,
+    // only laptops/desktops get the full desktop layout
+    screens: {
+      sm: '640px',
+      md: '1024px',
+      lg: '1280px',
+      xl: '1536px',
+      '2xl': '1800px',
+    },
     extend: {
       // ─── Colors ──────────────────────────────────────────
       // From: #752586, #9d4edd, #c060ff, #e0aaff, #00dcff

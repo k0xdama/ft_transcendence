@@ -1,6 +1,6 @@
-#—————————————————————
+#————————————————————————
 #	ANSI CODES
-#—————————————————————
+#————————————————————————
 
 RESET		:=	\033[0m
 BOLD		:=	\033[1m
@@ -15,15 +15,17 @@ BLUE		:=	\033[34m
 P_BLUE		:=	\033[38;2;179;235;242m
 CYAN		:=	\033[36m
 
-#—————————————————————
+
+#————————————————————————
 #	PROGRAM NAME
-#—————————————————————
+#————————————————————————
 
 NAME	:=	ft_transcendence
 
-#—————————————————————
-#	RULES
-#—————————————————————
+
+#————————————————————————
+#	GENERAL RULES
+#————————————————————————
 
 all: cert env secrets build up
 
@@ -34,7 +36,7 @@ env:
 	bash ./scripts/create-env.sh
 
 secrets:
-	bash ./scripts/setup-secrets.sh
+	bash ./scripts/create-secrets.sh
 
 build:
 	@echo "${CYAN}${BOLD}Building...${RESET}"
@@ -47,15 +49,15 @@ up:
 dev: cert env secrets
 	@echo "${CYAN}Building and starting with frontend Vite Dockerfile...${RESET}"
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-	@echo "${P_GREEN}${BOLD}${BLINK}Dev stack is up with Vite hot reload!${RESET}"
+	@echo "${P_GREEN}${BOLD}${BLINK}Dev stack is up with Vite hot reload!\n${RESET}"
 
 down:
 	docker compose down
-	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned!${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned!\n${RESET}"
 
 down-v:
 	docker compose down -v
-	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned and volumes have been erased!${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers have been shutdowned and volumes have been erased!\n${RESET}"
 
 logs:
 	docker compose logs
@@ -68,47 +70,98 @@ status:
 
 restart:
 	docker compose restart
-	@echo "${GREEN}${BOLD}${BLINK}All containers have been restarted!${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been restarted!\n${RESET}"
 
 recreate: down up
-	@echo "${GREEN}${BOLD}${BLINK}All containers have been recreated!${RESET}"
+	@echo "${GREEN}${BOLD}${BLINK}All containers have been recreated!\n${RESET}"
 
 clean:
 	docker compose down -v --rmi all
-	@echo "${P_YELLOW}${BOLD}Containers shutdowned, data and ALL images erased!${RESET}"
+	@echo "${P_YELLOW}${BOLD}Containers shutdowned, data and ALL images erased!\n${RESET}"
 
 fclean:
 	docker compose down -v --rmi all
+	rm -rf ./uploads/*
 	rm -rf ./secrets/ssl
-# 	rm -rf ./secrets/*
-# 	rm -rf .env
+	rm -rf ./secrets/*
+	rm -rf .env
 	docker builder prune -af
-	@echo "${RED}${BOLD}Full clean-up has been achieved!${RESET}"
+	@echo "${RED}${BOLD}Full clean-up has been achieved!\n${RESET}"
 
 re: fclean all
 
-#—————————————————————
+
+#————————————————————————
 #	CONTAINER RULES
-#—————————————————————
+#————————————————————————
 
 shell-gateway:
 		docker exec -it gateway /bin/bash
+
 shell-frontend:
 		docker exec -it frontend /bin/bash
+
 shell-auth:
 		docker exec -it auth /bin/bash
+
 shell-game:
 		docker exec -it game /bin/bash
+
 shell-lobby:
 		docker exec -it lobby /bin/bash
+
 shell-player:
 		docker exec -it player /bin/bash
+
 shell-chat:
 		docker exec -it chat /bin/bash
+
 shell-db:
 		docker exec -it postgres /bin/bash
+
 shell-redis:
 		docker exec -it redis /bin/bash
+
+
+#————————————————————————
+#	DATABASE RULES
+#————————————————————————
+
+# Reads the admin user & db name from Docker secrets mounted inside the container
+# so no credentials ever transit via Make or the host shell
+PSQL_EXEC	:=	docker exec -it postgres bash -c 'psql -U "$$(cat /run/secrets/psql_admin_user)" -d "$$(cat /run/secrets/psql_dbname)"'
+PSQL_NOTTY	:=	docker exec -i postgres bash -c 'psql -U "$$(cat /run/secrets/psql_admin_user)" -d "$$(cat /run/secrets/psql_dbname)"'
+
+db-psql:
+	@$(PSQL_EXEC)
+
+db-schemas:
+	@$(PSQL_NOTTY) -c "\dn"
+
+db-tables:
+	@$(PSQL_NOTTY) -c "\dt *.*"
+
+db-users:
+	@$(PSQL_NOTTY) -c "\du"
+
+db-size:
+	@$(PSQL_NOTTY) -c "SELECT pg_size_pretty(pg_database_size(current_database())) AS size;"
+
+# Ad-hoc query: make db-query Q="SELECT * FROM auth.users LIMIT 5;"
+db-query:
+	@if [ -z "$(Q)" ]; then \
+		echo "${RED}${BOLD}Usage: make db-query Q=\"<SQL>\"${RESET}"; exit 1; \
+	fi
+	@$(PSQL_NOTTY) -c "$(Q)"
+
+db-dump:
+	@mkdir -p ./backups
+	@docker exec -i postgres bash -c 'pg_dump -U "$$(cat /run/secrets/psql_admin_user)" -d "$$(cat /run/secrets/psql_dbname)"' > ./backups/dump_$$(date +%Y%m%d_%H%M%S).sql
+	@echo "${P_GREEN}${BOLD}Dump written to ./backups/${RESET}"
+
+redis-cli:
+	@docker exec -it redis sh -c 'redis-cli -a "$$(cat /run/secrets/redis_passwd)"'
+
 
 #—————————————————————
 #	HELP MENU
@@ -116,7 +169,7 @@ shell-redis:
 
 help:
 	@echo "${BLUE}${BOLD}COMMANDS:${RESET}"
-	@echo "${BLUE}${ITAL}${BOLD} make${RESET}			${P_BLUE}${ITAL}- Create a certificate, add env variables, setup secrets, build and start${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make${RESET}			${P_BLUE}${ITAL}- Create a certificate and its key, add env vars, create secrets, build and start${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make cert${RESET}		${P_BLUE}${ITAL}- Generate SSL certificate${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make env${RESET}		${P_BLUE}${ITAL}- Create .env file with default values${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make secrets${RESET}		${P_BLUE}${ITAL}- Configure secrets (DB, Redis, JWT)${RESET}"
@@ -141,6 +194,14 @@ help:
 	@echo "${BLUE}${ITAL}${BOLD} make shell-chat${RESET}	${P_BLUE}${ITAL}- Execute a shell inside chat container${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make shell-db${RESET}	${P_BLUE}${ITAL}- Execute a shell inside postgres container${RESET}"
 	@echo "${BLUE}${ITAL}${BOLD} make shell-redis${RESET}	${P_BLUE}${ITAL}- Execute a shell inside redis container${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make db-psql${RESET}	${P_BLUE}${ITAL}- Open an interactive psql session on the project DB${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make db-schemas${RESET}	${P_BLUE}${ITAL}- List all schemas${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make db-tables${RESET}	${P_BLUE}${ITAL}- List tables across all schemas${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make db-users${RESET}	${P_BLUE}${ITAL}- List DB roles/users${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make db-size${RESET}	${P_BLUE}${ITAL}- Show the DB size${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make db-query${RESET}	${P_BLUE}${ITAL}- Run an ad-hoc SQL query: make db-query Q=\"SELECT ...\"${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make db-dump${RESET}	${P_BLUE}${ITAL}- Dump the DB to ./backups/${RESET}"
+	@echo "${BLUE}${ITAL}${BOLD} make redis-cli${RESET}	${P_BLUE}${ITAL}- Open an authenticated redis-cli session${RESET}"
 
 
 .PHONY: all cert env secrets build up dev down clean fclean re

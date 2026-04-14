@@ -4,6 +4,7 @@ build/
 secrets/
 commit-msg.txt
 .env
+.env.secrets
 .vscode/
 *.log
 example.tsx

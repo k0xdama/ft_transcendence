@@ -11,9 +11,11 @@ import ChatOverlay from './ChatOverlay'
 import SoundBuzzers from './SoundBuzzers'
 import './GameView.css'
 import CountdownRing from './CountdownRing'
-import boardBackdrop from '../../assets/Board_backdrop.png'
+// import boardBackdrop from '../../assets/backgrounds/board_backdrop.png'
+import background from '../../assets/backgrounds/neon_grid_tunnel_to_the_void.png'
 import GameCard from './GameCard'
 import { LAYOUTS } from '../../constants/GameConstants'
+import { IconClose, IconRotatePhone } from '../icons/Icons'
 
 const	playerActionBtn = 'cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/[0.08] px-7 py-3 text-[0.75rem] uppercase tracking-[0.1em] text-cyan-glow transition-[background,box-shadow] duration-200 hover:bg-game-cyan-soft/[0.18] hover:shadow-[0_0_16px_rgba(0,200,255,0.35)]';
 
@@ -36,22 +38,9 @@ function GameView() {
 		console.log('GameView mounted - gameId:', gameId);
 		document.body.classList.add('gameboard-active')
 
-		// Hide all navbars (mobile + desktop) and footer during game
-		const isMobileScreen = window.innerWidth < 768 || window.innerHeight < 500
-		const mobileBar = document.querySelectorAll('.md\\:hidden')
-		const desktopNav = document.querySelector('nav')
-		const footer = document.querySelector('footer')
-		if (isMobileScreen) {
-			mobileBar.forEach(el => { if (el.closest && !el.closest('[class*="gameboard"]')) el.style.display = 'none' })
-			if (desktopNav)
-				desktopNav.style.display = 'none'
-		}
-		if (footer)
-			footer.style.display = 'none'
-
 		// Show rotate hint when portrait on mobile
 		const checkOrientation = () => {
-			const isPortrait = window.innerHeight > window.innerWidth && window.innerWidth < 768
+			const isPortrait = window.innerHeight > window.innerWidth && window.innerWidth < 1024
 			setShowRotateHint(isPortrait)
 		}
 		checkOrientation()
@@ -60,11 +49,6 @@ function GameView() {
 		connect(gameId)
 		return () => {
 			document.body.classList.remove('gameboard-active')
-			mobileBar.forEach(el => { el.style.display = '' })
-			if (desktopNav)
-				desktopNav.style.display = ''
-			if (footer)
-				footer.style.display = ''
 			window.removeEventListener('resize', checkOrientation)
 
 			leaveLobby()
@@ -88,6 +72,7 @@ function GameView() {
 	const me = gameStruct.players.find(p => p.id === user?.id)
 	if (me === undefined)
 		return;
+
 	const opponents = gameStruct.players.filter(p => p.id !== user?.id)
 	const isMyTurn = gameStruct?.currentPlayer === user?.id
 	const layout = LAYOUTS[gameStruct.players.length]
@@ -102,7 +87,7 @@ function GameView() {
 		<div className={`relative w-screen overflow-hidden ${isMobile ? 'h-screen' : 'h-[calc(100vh-var(--navbar-height))]'}`}>
 			<div
 				className="pointer-events-none fixed inset-0 z-0 h-full w-full bg-cover bg-center brightness-[0.8] blur-[2px]"
-				style={{ backgroundImage: `url(${boardBackdrop})` }}
+				style={{ backgroundImage: `url(${background})` }}
 			/>
 			<div className="relative z-10 h-full w-full">
 			{opponents.map((player, index) => (
@@ -139,8 +124,8 @@ function GameView() {
 
 			{myRevCards.length > 0 && (
 				<div className={`absolute z-[5] flex gap-2 ${layout.playerSeat === 'bottom-center'
-					? `left-1/2 -translate-x-1/2 ${isMobile ? 'bottom-[calc(6vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`
-					: `${isMobile ? 'bottom-[calc(6vh+50px)] right-[10vw]' : 'bottom-[calc(8vh+150px)] right-[22vw]'}`
+					? `left-1/2 -translate-x-1/2 ${isMobile ? 'bottom-[calc(3vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`
+					: `${isMobile ? 'bottom-[calc(3vh+50px)] right-[10vw]' : 'bottom-[calc(8vh+150px)] right-[22vw]'}`
 				}`}>
 					{myRevCards.map(rc => (
 						<GameCard
@@ -165,21 +150,19 @@ function GameView() {
 			<ChatOverlay lobbyId={lobbyId} />
 			<SoundBuzzers lobbyId={lobbyId} />
 
-			{/* Mobile: hamburger menu button */}
-			{isMobile && (
-				<button
-					className="absolute top-3 right-3 z-30 flex h-9 w-9 flex-col items-center justify-center gap-[4px] rounded-lg border border-purple-dim bg-[rgba(10,5,20,0.85)] p-0 transition-all hover:border-purple-mid"
-					onClick={() => setShowGameMenu(true)}
-					aria-label="Game menu"
-				>
-					<span className="block h-[2px] w-4 rounded-full bg-purple-pale"></span>
-					<span className="block h-[2px] w-4 rounded-full bg-purple-pale"></span>
-					<span className="block h-[2px] w-4 rounded-full bg-purple-pale"></span>
-				</button>
-			)}
+			{/* Hamburger menu button */}
+			<button
+				className="absolute top-3 right-3 z-30 flex h-9 w-9 flex-col items-center justify-center gap-[4px] rounded-lg border border-purple-dim bg-[rgba(10,5,20,0.85)] p-0 transition-all hover:border-purple-mid"
+				onClick={() => setShowGameMenu(true)}
+				aria-label="Game menu"
+			>
+				<span className="block h-[2px] w-4 rounded-full bg-purple-pale"></span>
+				<span className="block h-[2px] w-4 rounded-full bg-purple-pale"></span>
+				<span className="block h-[2px] w-4 rounded-full bg-purple-pale"></span>
+			</button>
 
-			{/* Mobile: game menu sidebar */}
-			{showGameMenu && isMobile && (
+			{/* Game menu sidebar */}
+			{showGameMenu && (
 				<div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm" onClick={() => setShowGameMenu(false)}>
 					<div
 						className="absolute right-0 top-0 flex h-full w-[220px] max-w-[70vw] flex-col bg-game-panel/95 shadow-[-8px_0_40px_rgba(0,0,0,0.5)] animate-slide-in-right"
@@ -190,7 +173,7 @@ function GameView() {
 								className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-transparent p-0 text-xs text-white/80 transition-colors hover:border-purple-mid hover:text-white"
 								onClick={() => setShowGameMenu(false)}
 							>
-								✕
+								<IconClose />
 							</button>
 						</div>
 
@@ -210,8 +193,8 @@ function GameView() {
 				</div>
 			)}
 
-			{/* Mobile: quit confirm overlay */}
-			{showQuitConfirm && isMobile && (
+			{/* Quit confirm overlay */}
+			{showQuitConfirm && (
 				<div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-[4px]" onClick={() => setShowQuitConfirm(false)}>
 					<div className="flex flex-col items-center gap-4 rounded-2xl border border-game-purple/40 bg-game-panel/95 px-8 py-6 shadow-[0_0_40px_rgba(140,40,200,0.3)]" onClick={e => e.stopPropagation()}>
 						<p className="m-0 text-[0.85rem] uppercase tracking-[0.15em] text-purple-pale [text-shadow:0_0_10px_rgba(180,80,255,0.6)]">Leave the game?</p>
@@ -236,7 +219,7 @@ function GameView() {
 			{pendingCheck && (
 			<div className={`absolute z-40 -translate-x-1/2 ${gameStruct.players.length >= 5 ? 'left-1/2' : 'left-[40%]'} ${isMobile ? 'bottom-[calc(6vh+50px)]' : 'bottom-[calc(2vh+150px)]'}`}>
 					<button
-						className={`cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/10 px-9 py-3 text-[0.8rem] uppercase tracking-[0.15em] text-cyan-glow ${checkSent ? 'cursor-not-allowed opacity-45 shadow-none' : 'animate-[pulse-check_1.2s_ease-in-out_infinite]'}`}
+						className={`cursor-pointer rounded-lg border border-game-cyan/50 bg-game-cyan-soft/10 uppercase tracking-[0.15em] text-cyan-glow ${isMobile ? 'px-5 py-2 text-[0.65rem]' : 'px-9 py-3 text-[0.8rem]'} ${checkSent ? 'cursor-not-allowed opacity-45 shadow-none' : 'animate-[pulse-check_1.2s_ease-in-out_infinite]'}`}
 						disabled={checkSent}
 						onClick={() => sendCheck(gameId)}
 					>
@@ -259,17 +242,17 @@ function GameView() {
 
 			{selectedOpponent && (
 				<div className='absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[4px]' onClick={() => setSelectedOpponent(null)}>
-					<div className='flex flex-col items-center gap-4 rounded-2xl border border-game-purple/40 bg-game-panel/90 px-6 py-5 shadow-[0_0_40px_rgba(140,40,200,0.3)] md:gap-5 md:px-10 md:py-8' onClick={e => e.stopPropagation()}>
-						<p className='m-0 text-[0.75rem] uppercase tracking-[0.15em] text-purple-pale [text-shadow:0_0_10px_rgba(180,80,255,0.6)] md:text-[0.85rem]'>Choose an action</p>
-						<div className='flex gap-3 md:gap-4'>
-							<button className={playerActionBtn} onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
+					<div className={`flex flex-col items-center rounded-2xl border border-game-purple/40 bg-game-panel/90 shadow-[0_0_40px_rgba(140,40,200,0.3)] ${isMobile ? 'gap-3 px-5 py-4' : 'gap-5 px-10 py-8'}`} onClick={e => e.stopPropagation()}>
+						<p className={`m-0 uppercase tracking-[0.15em] text-purple-pale [text-shadow:0_0_10px_rgba(180,80,255,0.6)] ${isMobile ? 'text-[0.65rem]' : 'text-[0.85rem]'}`}>Choose an action</p>
+						<div className={`flex ${isMobile ? 'gap-2' : 'gap-4'}`}>
+							<button className={`${playerActionBtn} ${isMobile ? '!px-4 !py-2 !text-[0.6rem]' : ''}`} onClick={() => handleOpponentAction('PLAYER_LOWEST')}>
 								Lowest card
 							</button>
-							<button className={playerActionBtn} onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
+							<button className={`${playerActionBtn} ${isMobile ? '!px-4 !py-2 !text-[0.6rem]' : ''}`} onClick={() => handleOpponentAction('PLAYER_HIGHEST')}>
 								Highest card
 							</button>
 						</div>
-						<button className='cursor-pointer border-none bg-transparent text-[0.7rem] uppercase tracking-[0.1em] text-game-purple-soft/40 transition-colors duration-200 hover:text-game-purple-soft/80' onClick={() => setSelectedOpponent(null)}>Cancel</button>
+						<button className={`cursor-pointer border-none bg-transparent uppercase tracking-[0.1em] text-game-purple-soft/40 transition-colors duration-200 hover:text-game-purple-soft/80 ${isMobile ? 'text-[0.55rem]' : 'text-[0.7rem]'}`} onClick={() => setSelectedOpponent(null)}>Cancel</button>
 					</div>
 				</div>
 			)}
@@ -299,7 +282,7 @@ function GameView() {
 			{/* Rotate hint overlay — shown on mobile portrait when orientation lock failed */}
 			{showRotateHint && (
 				<div className="fixed inset-0 z-[300] flex flex-col items-center justify-center gap-6 bg-game-panel/95 backdrop-blur-md">
-					<span className="text-[4rem] animate-[rotate-phone_1.5s_ease-in-out_infinite]">📱</span>
+					<IconRotatePhone className="text-[4rem] animate-[rotate-phone_1.5s_ease-in-out_infinite]" />
 					<p className="m-0 text-center text-[0.9rem] uppercase tracking-[0.2em] text-purple-pale [text-shadow:0_0_12px_rgba(180,80,255,0.6)]">
 						Rotate your device
 					</p>

@@ -3,9 +3,23 @@ import { useAuth } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
 import { useDM } from '../../context/DMContext'
 import PFP_Default from '../../assets/PFP_Default.webp'
+import {
+	CHAT_ROUTE,
+	MobileChatFab,
+	MobileChatPanel,
+	MobileCloseBtn,
+	UnreadBadge,
+} from './ChatUI'
+import { IconClose, IconMinimize, IconDoubleCheck, IconCheck, IconMessages } from '../icons/Icons'
 
-const playerRoute = '/api/players'
-const chatRoute = '/api/chat'
+const PLAYER_ROUTE = '/api/players'
+
+const otherUserId = (conv, userId) => (conv.user1_id === userId ? conv.user2_id : conv.user1_id)
+
+const avatarUrlFor = (conv, userId) =>
+	conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
+		? `${PLAYER_ROUTE}/${otherUserId(conv, userId)}/profile-picture`
+		: null
 
 // ─── Main Overlay (bottom-right corner) ─────────────────────────────────────
 function DMChatOverlay() {
@@ -15,11 +29,17 @@ function DMChatOverlay() {
 	if (!user)
 		return null
 
+	const openFromConversation = (conv, onAfter) => {
+		const otherId = otherUserId(conv, user.id)
+		const avatar = avatarUrlFor(conv, user.id)
+		openDM(otherId, conv.other_username, avatar)
+		onAfter?.()
+	}
+
 	return (
 		<>
 			{/* Desktop layout: bottom-right with chat windows */}
 			<div className="fixed bottom-10 right-0 z-50 hidden items-end gap-2 p-4 pointer-events-none md:flex">
-				{/* Open chat windows */}
 				{openChats.map(chat => (
 					<DMChatWindow
 						key={chat.conversationId}
@@ -29,122 +49,107 @@ function DMChatOverlay() {
 					/>
 				))}
 
-				{/* Conversations list */}
 				{listOpen && (
 					<DMConversationList
 						conversations={conversations}
 						user={user}
-						onSelect={(conv) => {
-							const otherId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
-							const avatar = conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
-								? `${playerRoute}/${otherId}/profile-picture`
-								: null
-							openDM(otherId, conv.other_username, avatar)
-						}}
+						onSelect={(conv) => openFromConversation(conv)}
 						onClose={() => setListOpen(false)}
 					/>
 				)}
 
-				{/* Toggle button */}
 				<button
 					className="pointer-events-auto relative flex h-14 w-14 items-center justify-center bg-transparent border-none cursor-pointer transition-transform hover:scale-110 mr-4"
 					onClick={() => setListOpen(prev => !prev)}
 					title="Messages"
 					style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.9)) drop-shadow(0 0 16px rgba(255,255,255,0.5))' }}
 				>
-					<span className="text-[2.25rem] leading-none">✉️</span>
-					{totalUnread > 0 && (
-						<span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
-							{totalUnread > 99 ? '99+' : totalUnread}
-						</span>
-					)}
+					<IconMessages className="text-[2.25rem] leading-none" />
+					<UnreadBadge count={totalUnread} />
 				</button>
 			</div>
 
 			{/* Mobile: toggle button — same level & size as lobby chat icon */}
-			<button
-				className={`md:hidden fixed bottom-4 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-purple-mid bg-[rgba(10,5,20,0.9)] text-xl text-purple-pale shadow-card transition-all hover:bg-[rgba(20,10,40,0.95)] ${listOpen ? 'hidden' : ''}`}
+			<MobileChatFab
+				icon={<IconMessages />}
+				unread={totalUnread}
 				onClick={() => setListOpen(prev => !prev)}
-				aria-label="Messages"
-			>
-				✉️
-				{totalUnread > 0 && (
-					<span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-bold text-white">
-						{totalUnread > 99 ? '99+' : totalUnread}
-					</span>
-				)}
-			</button>
+				hidden={listOpen}
+				ariaLabel="Messages"
+				positionClassName="md:hidden fixed bottom-4 right-4"
+			/>
 
 			{/* Mobile: fullscreen conversation list */}
 			{listOpen && (
-				<div className="md:hidden fixed inset-0 z-[150] flex flex-col bg-[rgba(10,5,20,0.95)] backdrop-blur-md">
+				<MobileChatPanel className="md:hidden">
 					<div className="flex items-center justify-between border-b border-purple-dim px-4 py-3">
 						<h3 className="m-0 text-xs font-semibold uppercase tracking-ui text-purple-pale">Messages</h3>
-						<button
-							className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/50 text-xs text-white/80"
-							onClick={() => setListOpen(false)}
-							aria-label="Close messages"
-						>
-							✕
-						</button>
+						<MobileCloseBtn onClick={() => setListOpen(false)} ariaLabel="Close messages" />
 					</div>
 					<div className="flex-1 overflow-y-auto">
 						{conversations.length === 0 ? (
-							<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-8 m-0">No conversations yet</p>
+							<EmptyConversations />
 						) : (
 							conversations.map(conv => (
-								<button
+								<DMConversationRow
 									key={conv.id}
-									className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors cursor-pointer border-0 bg-transparent"
-									onClick={() => {
-										const otherId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id
-										const avatar = conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
-											? `${playerRoute}/${otherId}/profile-picture`
-											: null
-										openDM(otherId, conv.other_username, avatar)
-										setListOpen(false)
-									}}
-								>
-									<img
-										className="h-9 w-9 rounded-full border-2 border-purple-brand/30 object-cover flex-shrink-0"
-										src={conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
-											? `${playerRoute}/${conv.user1_id === user.id ? conv.user2_id : conv.user1_id}/profile-picture`
-											: PFP_Default}
-										alt={conv.other_username}
-										onError={e => { e.target.src = PFP_Default }}
-									/>
-									<div className="flex flex-col gap-0.5 flex-1 min-w-0">
-										<div className="flex items-center justify-between">
-											<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{conv.other_username}</span>
-											{Number(conv.unread_count) > 0 && (
-												<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-brand px-1 text-[0.6rem] font-bold text-white flex-shrink-0 ml-2">
-													{conv.unread_count}
-												</span>
-											)}
-										</div>
-										{conv.last_message && (
-											<span className="text-xs text-white/40 truncate">{conv.last_message}</span>
-										)}
-									</div>
-								</button>
+									conv={conv}
+									user={user}
+									onClick={() => openFromConversation(conv, () => setListOpen(false))}
+								/>
 							))
 						)}
 					</div>
-				</div>
+				</MobileChatPanel>
 			)}
 
 			{/* Mobile: open DM chat windows as fullscreen */}
 			{openChats.filter(c => !c.minimized).map(chat => (
-				<div key={chat.conversationId} className="md:hidden fixed inset-0 z-[160] flex flex-col bg-[rgba(10,5,20,0.95)] backdrop-blur-md">
+				<MobileChatPanel key={chat.conversationId} zIndex={160} className="md:hidden">
 					<DMChatWindow
 						chat={{ ...chat, minimized: false }}
 						onClose={() => closeDM(chat.conversationId)}
 						onMinimize={() => toggleMinimize(chat.conversationId)}
 						mobile
 					/>
-				</div>
+				</MobileChatPanel>
 			))}
 		</>
+	)
+}
+
+function EmptyConversations() {
+	return <p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-8 m-0">No conversations yet</p>
+}
+
+// A single entry in the conversations list — identical markup in desktop and mobile views.
+function DMConversationRow({ conv, user, onClick }) {
+	const avatar = avatarUrlFor(conv, user.id) || PFP_Default
+	return (
+		<button
+			className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors cursor-pointer border-0 bg-transparent"
+			onClick={onClick}
+		>
+			<img
+				className="h-9 w-9 rounded-full border-2 border-purple-brand/30 object-cover flex-shrink-0"
+				src={avatar}
+				alt={conv.other_username}
+				onError={e => { e.target.src = PFP_Default }}
+			/>
+			<div className="flex flex-col gap-0.5 flex-1 min-w-0">
+				<div className="flex items-center justify-between">
+					<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{conv.other_username}</span>
+					{Number(conv.unread_count) > 0 && (
+						<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-brand px-1 text-[0.6rem] font-bold text-white flex-shrink-0 ml-2">
+							{conv.unread_count}
+						</span>
+					)}
+				</div>
+				{conv.last_message && (
+					<span className="text-xs text-white/40 truncate">{conv.last_message}</span>
+				)}
+			</div>
+		</button>
 	)
 }
 
@@ -152,50 +157,27 @@ function DMChatOverlay() {
 function DMConversationList({ conversations, onSelect, onClose, user }) {
 	return (
 		<div className="pointer-events-auto flex w-[calc(100vw-2rem)] flex-col rounded-xl border border-purple-mid bg-card backdrop-blur-3xl shadow-card max-h-[70vh] md:w-72 md:max-h-[420px]">
-			{/* Header */}
 			<div className="flex items-center justify-between border-b border-purple-dim px-4 py-3">
 				<h3 className="m-0 text-xs font-semibold uppercase tracking-ui text-purple-pale">Messages</h3>
 				<button
 					className="flex h-6 w-6 items-center justify-center rounded text-white/50 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
 					onClick={onClose}
 				>
-					&#10005;
+					<IconClose />
 				</button>
 			</div>
 
-			{/* Conversations */}
 			<div className="flex-1 overflow-y-auto min-h-0 [scrollbar-color:rgba(255,255,255,0.15)_transparent] [scrollbar-width:thin]">
 				{conversations.length === 0 ? (
-					<p className="text-center text-xs uppercase tracking-ui text-purple-pale/40 py-8 m-0">No conversations yet</p>
+					<EmptyConversations />
 				) : (
 					conversations.map(conv => (
-						<button
+						<DMConversationRow
 							key={conv.id}
-							className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors cursor-pointer border-0 bg-transparent"
+							conv={conv}
+							user={user}
 							onClick={() => onSelect(conv)}
-						>
-							<img
-								className="h-9 w-9 rounded-full border-2 border-purple-brand/30 object-cover flex-shrink-0"
-								src={conv.other_avatar && conv.other_avatar !== '/uploads/profilePictures/default_profile_picture.png'
-									? `${playerRoute}/${conv.user1_id === user.id ? conv.user2_id : conv.user1_id}/profile-picture`
-									: PFP_Default}
-								alt={conv.other_username}
-								onError={e => { e.target.src = PFP_Default }}
-							/>
-							<div className="flex flex-col gap-0.5 flex-1 min-w-0">
-								<div className="flex items-center justify-between">
-									<span className="text-sm font-bold uppercase tracking-wider text-purple-pale truncate">{conv.other_username}</span>
-									{Number(conv.unread_count) > 0 && (
-										<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-brand px-1 text-[0.6rem] font-bold text-white flex-shrink-0 ml-2">
-											{conv.unread_count}
-										</span>
-									)}
-								</div>
-								{conv.last_message && (
-									<span className="text-xs text-white/40 truncate">{conv.last_message}</span>
-								)}
-							</div>
-						</button>
+						/>
 					))
 				)}
 			</div>
@@ -222,7 +204,7 @@ function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 	useEffect(() => {
 		const fetchHistory = async () => {
 			try {
-				const res = await authFetch(`${chatRoute}/dm/${chat.conversationId}/history`)
+				const res = await authFetch(`${CHAT_ROUTE}/dm/${chat.conversationId}/history`)
 				if (res?.ok) {
 					const data = await res.json()
 					setMessages(data.reverse())
@@ -285,12 +267,10 @@ function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 		emit('dm:read', { conversationId: chat.conversationId })
 	}, [chat.minimized, chat.conversationId, emit, messages.length])
 
-	// Auto-scroll
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
 	}, [messages])
 
-	// Focus input when opened
 	useEffect(() => {
 		if (!chat.minimized)
 			inputRef.current?.focus()
@@ -310,7 +290,7 @@ function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 
 		setDraft('')
 		try {
-			await authFetch(`${chatRoute}/dm/${chat.conversationId}/send`, {
+			await authFetch(`${CHAT_ROUTE}/dm/${chat.conversationId}/send`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ content })
@@ -346,7 +326,6 @@ function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 			? "flex flex-1 flex-col bg-transparent"
 			: "pointer-events-auto flex w-[calc(100vw-2rem)] flex-col rounded-xl border border-purple-mid bg-card backdrop-blur-3xl shadow-card h-[70vh] md:w-72 md:h-[380px]"
 		}>
-			{/* Header */}
 			<div className="flex items-center gap-2 border-b border-purple-dim px-3 py-2 flex-shrink-0">
 				<img className="h-7 w-7 rounded-full border border-purple-brand/30 object-cover" src={avatarSrc} alt={chat.username} onError={e => { e.target.src = PFP_Default }} />
 				<span className="flex-1 text-xs font-bold uppercase tracking-wider text-purple-pale truncate">{chat.username}</span>
@@ -355,18 +334,17 @@ function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 					onClick={onMinimize}
 					title="Minimize"
 				>
-					&#8722;
+					<IconMinimize />
 				</button>
 				<button
 					className="flex h-6 w-6 items-center justify-center rounded text-white/40 hover:bg-white/10 hover:text-red-400 text-xs transition-colors cursor-pointer"
 					onClick={onClose}
 					title="Close"
 				>
-					&#10005;
+					<IconClose />
 				</button>
 			</div>
 
-			{/* Messages */}
 			<div className="flex-1 overflow-y-auto min-h-0 px-3 py-2 flex flex-col gap-1 [scrollbar-color:rgba(255,255,255,0.15)_transparent] [scrollbar-width:thin]">
 				{loading ? (
 					<p className="text-xs uppercase tracking-ui text-purple-pale/50 text-center py-4 m-0 animate-crt-blink">Loading...</p>
@@ -385,7 +363,7 @@ function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 							{msg.content}
 							{msg.sender_id === user.id && (
 								<span className={`ml-1.5 text-[0.6rem] ${msg.read_at ? 'text-cyan-glow/70' : 'text-white/25'}`}>
-									{msg.read_at ? '✓✓' : '✓'}
+									{msg.read_at ? <IconDoubleCheck /> : <IconCheck />}
 								</span>
 							)}
 						</div>
@@ -394,14 +372,12 @@ function DMChatWindow({ chat, onClose, onMinimize, mobile }) {
 				<div ref={bottomRef} />
 			</div>
 
-			{/* Typing indicator */}
 			{isTyping && (
 				<p className="m-0 px-3 py-1 text-[0.65rem] italic text-white/40 flex-shrink-0">
 					{chat.username} is typing...
 				</p>
 			)}
 
-			{/* Input */}
 			<div className="flex-shrink-0 flex border-t border-purple-dim">
 				<input
 					ref={inputRef}

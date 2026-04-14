@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 
-// Detects mobile game context: portrait small screen OR landscape phone
-// (landscape phones have height < 500px even if width > 768px)
+// Detects mobile/tablet game context: phones, iPads, or landscape with short height
+// Matches the tailwind md breakpoint (1024px) + landscape phones (height < 500px)
 export function useIsMobileGame() {
-	const query = '(max-height: 500px), (max-width: 767px)'
+	const query = '(max-height: 500px), (max-width: 1023px)'
 	const [isMobile, setIsMobile] = useState(() => window.matchMedia(query).matches)
 
 	useEffect(() => {

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
 import HomeView from './components/HomeView'
 import NavBar from './components/NavBar'
+import Footer from './components/Footer'
 import RegisterView from './components/auth/RegisterView'
 import LoginView from './components/auth/LoginView'
 import JoinGameView from './components/lobby/JoinGameView'
@@ -63,7 +64,7 @@ function App() {
 
 	return (
 		<>
-			<NavBar />
+			{!isGamePage && <NavBar />}
 
 			<div className='mx-auto px-4 py-4 text-center flex justify-center items-center min-h-[calc(100vh-100px)] md:p-8'>
 				<Routes>
@@ -91,6 +92,7 @@ function App() {
 			</div>
 
 			{!isGamePage && <DMChatOverlay />}
+			{!isGamePage && <Footer />}
 		</>
 	)
 }
