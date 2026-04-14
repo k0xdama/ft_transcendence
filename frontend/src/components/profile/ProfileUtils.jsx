@@ -34,7 +34,7 @@ export const extractStats = (playerData) => ({
 	totalScore:   playerData.score          || 0,
 	totalActions: playerData.actions_played || 0,
 	triosOf7:     playerData.trio_of_7      || 0,
-	totalCombos:  playerData.combo,
-	longestCombo: playerData.longest_combo  || 0,
+	totalCombos:  playerData.combo			|| 0,
+	lastRank:	  playerData.rank			|| 0,
 	perfectGames: playerData.perfect_game   || 0
 })

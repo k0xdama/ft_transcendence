@@ -77,20 +77,6 @@ function ProfileAchievements({ stats }) {
 			icon: '🔥'
 		},
 		{
-			id: 'combo_3',
-			name: 'Combo King',
-			description: 'Achieve a combo of 3+',
-			unlocked: stats.longestCombo >= 3,
-			icon: '💥'
-		},
-		{
-			id: 'combo_5',
-			name: 'Unstoppable',
-			description: 'Achieve a combo of 5+',
-			unlocked: stats.longestCombo >= 5,
-			icon: '⚡'
-		},
-		{
 			id: 'perfect_game',
 			name: 'Flawless Victory',
 			description: 'Win without any opponent scoring a trio',
