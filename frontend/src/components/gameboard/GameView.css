@@ -49,7 +49,7 @@ body.gameboard-active .main-container {
 		stroke-dashoffset: 0;
 	}
 	to {
-		stroke-dashoffset: 175.9;
+		stroke-dashoffset: var(--countdown-circumference);
 	}
 }
 

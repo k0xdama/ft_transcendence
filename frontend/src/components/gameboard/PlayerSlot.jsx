@@ -18,11 +18,12 @@ function PlayerSlot({ player, seat, isCurrentPlayer, isMyTurn, revealedHandCards
 	const isBottomLeft = seat === 'bottom-left'
 	const seatClass = (isMobile ? SEAT_MOBILE : SEAT_DESKTOP)[seat] ?? ""
 	const revealedSeatClass = REVEALED_SEAT[seat] ?? ""
+	const canSelectHand = isMyTurn && player.cardCount > 0
 
 	return (
 		<div
-			className={`absolute flex flex-col items-center gap-[0.4rem] ${seatClass} ${isMyTurn && player.cardCount > 0 ? 'cursor-pointer' : ''}`}
-			onClick={() => isMyTurn && player.cardCount > 0 && onSelect(player.id)}
+			className={`absolute flex flex-col items-center gap-[0.4rem] ${seatClass} ${canSelectHand ? 'cursor-pointer' : ''}`}
+			onClick={() => canSelectHand && onSelect(player.id)}
 		>
 			<span
 				className={`whitespace-nowrap ${isMobile ? 'text-[0.55rem]' : 'text-[1rem]'} ${isSideSeat ? 'absolute -top-5 left-1/2 -translate-x-1/2' : ''} ${isCurrentPlayer ? 'animate-[pulse-name_1.5s_ease-in-out_infinite] text-cyan-glow [text-shadow:0_0_10px_rgba(0,220,255,0.8)]' : ''} ${player.cardCount === 0 ? 'opacity-40' : ''}`}

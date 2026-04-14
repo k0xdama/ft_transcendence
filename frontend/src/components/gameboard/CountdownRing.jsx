@@ -20,6 +20,7 @@ function	CountdownRing({duration, label, color = '#00dcff'}) {
 					strokeDasharray={circumference}
 					strokeDashoffset="0"
 					style={{
+						'--countdown-circumference': `${circumference}`,
 						transformOrigin: `${center}px ${center}px`,
 						transform: 'rotate(-90deg)',
 						animation: `countdown-drain ${duration}s linear forwards`,

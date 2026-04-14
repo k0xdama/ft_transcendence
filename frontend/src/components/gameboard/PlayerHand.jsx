@@ -7,14 +7,15 @@ function PlayerHand({ cards, seat, trios, isMyTurn, onSelectSelf, gameMode }) {
 	const isMobile = useIsMobileGame()
 	const seatClass = (isMobile ? HAND_MOBILE : HAND_DESKTOP)[seat] ?? ""
 	const isBottomLeft = seat === 'bottom-left'
+	const canSelectHand = isMyTurn && cards.length > 0
 
 	return (
 		<div
-			className={`absolute flex items-center gap-3 ${seatClass} ${isMyTurn ? 'cursor-pointer' : ''}`}
-			onClick={() => isMyTurn && onSelectSelf()}
+			className={`absolute flex items-center gap-3 ${seatClass} ${canSelectHand ? 'cursor-pointer' : ''}`}
+			onClick={() => canSelectHand && onSelectSelf()}
 		>
 			{isMyTurn && (
-				<span className={`absolute -top-[22px] left-1/2 -translate-x-1/2 whitespace-nowrap tracking-[0.2em] text-cyan-glow [text-shadow:0_0_8px_rgba(0,220,255,0.8)] ${isMobile ? 'text-[0.5rem]' : 'text-[0.65rem]'}`}>
+				<span className={`absolute -top-[22px] left-1/2 -translate-x-1/2 whitespace-nowrap tracking-[0.2em] text-cyan-glow [text-shadow:0_0_8px_rgba(0,220,255,0.8)] cursor-pointer ${isMobile ? 'text-[0.5rem]' : 'text-[0.65rem]'}`}>
 					YOUR TURN
 				</span>
 			)}

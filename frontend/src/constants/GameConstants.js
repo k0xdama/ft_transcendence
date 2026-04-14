@@ -104,5 +104,5 @@ export const TRIO_DESKTOP = {
 export const TRIO_MOBILE = {
 	arrowClass: 'border-b-[18px] border-l-[10px] border-r-[10px]',
 	labelClass: '-bottom-[16px] text-[0.5rem]',
-	cardPreviewClass: 'h-[24px] w-[18px]'
+	cardPreviewClass: 'h-[5vw] w-[3.7vw]'
 }
