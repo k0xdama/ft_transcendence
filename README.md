@@ -149,7 +149,7 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 ### Justification of major technical choices
 
 - **Microservices over a monolith**: each service (auth, player, chat, lobby, game) has a single responsibility. It forces explicit contracts, allows independent deployment, and isolates fault domains — a disconnected chat service cannot take down an in-progress match.
-- **React + Vite**: React for component-driven UI with shared state via Context (AuthContext, LobbyContext, GameContext, ChatContext); Vite for ????
+- **React + Vite**: React for component-driven UI with shared state via Context (AuthContext, LobbyContext, GameContext, ChatContext); Vite to serve file locally during developpement ("hot-reload")
 - **Socket.IO**: built-in reconnection, rooms, and JWT-based handshake, which mapped cleanly onto our lobby/game model.
 - **Redis Pub/Sub**: keeps services loosely coupled without introducing a heavy message broker.
 - **PostgreSQL schemas**: one schema per bounded context, with a dedicated role per service.
@@ -214,7 +214,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 | Private lobby | Create lobby, share 6-char code, ready-check, host starts game | [pmateo] |
 | Public matchmaking | Queue by mode/type/player count, auto-start when full | [pmateo] |
 | Real-time game | Card game for 3–6 players, Classic and Linked modes, Solo/Team | [pmateo] |
-| Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo, morajaon ?????????] |
+| Reconnection | 30s grace window on disconnect, full state resync on return | [pmateo, morajaon] |
 | Match history | Per-user log of past games, opponents, outcomes | [????????? agremill, pmateo ????????] |
 | Stats & achievements | Wins, combos, trio-of-7, perfect games, progression | [pmateo, agremill] |
 | Leaderboard | Global ranking by score | [pmateo] |
@@ -261,9 +261,9 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 ## Individual Contributions
 
 ### Morgan @morajaon
-- **Owned**: api-gateway, frontend design system and game????
+- **Owned**: api-gateway, frontend design system and game UI
 - **Modules**: #4, #8, #10  A VERIFIER
-- **Challenges**: ?????
+- **Challenges**: Learning new technologies and a new web developpement logic. Designing an interactive User Interface (UI) from scratch, learning styling in css and tailwind, going from the idea to the actual component. 
 
 ### Ana @annabrag
 - **Owned**: infrastructure, auth-service, chat-service, mobile responsive
