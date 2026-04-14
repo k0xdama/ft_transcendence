@@ -98,6 +98,7 @@ function ProfileFriends() {
 			const res = await authFetch(`${PLAYER_ROUTE}/me/blocked/${friendId}`, { method: 'POST' })
 			if (!res.ok) throw new Error()
 			await fetchFriends()
+			await fetchBlocked()
 		} catch { setError('Failed to block user') }
 	}
  
@@ -106,6 +107,7 @@ function ProfileFriends() {
 			const res = await authFetch(`${PLAYER_ROUTE}/me/blocked/${userId}`, { method: 'DELETE' })
 			if (!res.ok) throw new Error()
 			await fetchBlocked()
+			await fetchFriends()
 		} catch { setError('Failed to unblock user') }
 	}
 

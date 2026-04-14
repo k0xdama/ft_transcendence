@@ -68,12 +68,13 @@ export function LobbyProvider({ children }) {
 			setLobbyStruct(struct.lobbyStruct);
 		});
 
-		socketRef.current.on('lobby:userLeft', ({ userId }) => {
+		socketRef.current.on('lobby:userLeft', ({ userId, creatorId }) => {
 			setLobbyStruct(prev => {
 				if (!prev)
 					return null;
 				return {...prev,
-				users: prev.users.filter(u => u.id !== userId)
+				users: prev.users.filter(u => u.id !== userId),
+				creatorId: creatorId ?? prev.creatorId
 				};
 			});
 		});

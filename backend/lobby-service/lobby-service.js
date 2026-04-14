@@ -378,7 +378,7 @@ io.on('connection', (socket) => {
 			if (lobbyStruct.state === LOBBY_STATE.FULL)
 				lobbyStruct.state = LOBBY_STATE.WAITING;
 			publishLobbyMembers(lobbyId, lobbyStruct);
-			io.to(lobbyId).emit('lobby:userLeft', { userId: socket.user.id });
+			io.to(lobbyId).emit('lobby:userLeft', { userId: socket.user.id, creatorId: lobbyStruct.creatorId });
 		}
 	});
 
