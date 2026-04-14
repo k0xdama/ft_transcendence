@@ -59,3 +59,10 @@ export const HAND_MOBILE = {
 	"bottom-center": "bottom-[6vh] left-1/2 -translate-x-1/2",
 	"bottom-right": "bottom-[6vh] right-[10vw]"
 }
+
+export const GAME_MODES = [
+	{ value: 'CLASSIC', label: 'Classic', desc: 'Win 3 trios' },
+	{ value: 'LINKED',  label: 'Linked',  desc: 'Win 2 linked trios' }
+]
+ 
+export const PLAYER_OPTIONS = [3, 4, 5, 6]

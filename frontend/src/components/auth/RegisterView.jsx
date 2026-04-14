@@ -102,7 +102,7 @@ function RegisterView() {
 				<AuthField
 					label="Confirm password"
 					name="confirmPassword"
-					value={formData.password}
+					value={formData.confirmPassword}
 					onChange={handleChange}
 					disabled={loading}
 					type='password'

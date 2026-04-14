@@ -3,12 +3,15 @@ import { useLobby } from '../../context/LobbyContext'
 import { useAuth } from '../../context/AuthContext'
 import { useState, useEffect, useRef } from 'react'
 import ChatOverlay from './ChatOverlay-Lobby'
-// import './LobbyView.css'
-// import './LobbyView.module.css'
+import PageCard from './PageCard'
+import RuleSelector from './RuleSelector'
+
+const baseBtnStyle = "flex justify-center items-center gap-1 rounded-[10px] border border-purple-dim bg-btn-muted text-[rgba(220,190,255,0.85)] cursor-pointer transition-all duration-200 hover:border-purple-mid hover:bg-[rgba(140,40,200,0.1)] disabled:cursor-default disabled:hover:border-purple-dim disabled:hover:bg-btn-muted disabled:hover:shadow-none"
+const activeBtnStyle = "!border-purple-str !bg-[rgba(140,40,200,0.2)] !shadow-glow-purple"
 
 function LobbyView() {
 	const	{ lobbyId: urlLobbyId } = useParams()
-	const	{ lobbyStruct, connected, lobbyId, updateRules, toggleReady, startGame, lobbyError, gameId, joinLobby, leaveLobby } = useLobby()
+	const	{ lobbyStruct, connected, lobbyId, updateRules, toggleReady, startGame, lobbyError, setLobbyError, gameId, joinLobby, leaveLobby } = useLobby()
 	const	{ user } = useAuth()
 	const	[error, setError] = useState(null)
 	const	[copied, setCopied] = useState(false)
@@ -34,17 +37,16 @@ function LobbyView() {
 
 	useEffect(() => {
 		setError('');
+		setLobbyError('');
 		if (connected && !lobbyStruct && urlLobbyId)
 			joinLobby(urlLobbyId);
 	}, [connected, lobbyStruct, urlLobbyId]);
  
 	if (!lobbyStruct) {
 		return (
-			<div className="flex flex-col items-center">
-				<div className="bg-card border border-purple-mid rounded-2xl py-[2vh] px-[3vh] w-full max-w-[460px] backdrop-blur-md shadow-card">
-					<p className="text-center text-[rgba(200,160,255,0.6)] text-[0.8rem] tracking-title uppercase">Creating Lobby...</p>
-				</div>
-			</div>
+			<PageCard>
+				<p className="text-center text-[rgba(200,160,255,0.6)] text-[0.8rem] tracking-title uppercase">Creating Lobby...</p>
+			</PageCard>
 		)
 	}
 
@@ -59,25 +61,12 @@ function LobbyView() {
 		setCopied(true)
 		setTimeout(() => setCopied(false), 2000)
 	}
- 
-	const handleRuleChange = (key, value) => {
-		updateRules(lobbyId, { [key]: value })
-	}
- 
-	const modes = [
-		{ value: 'CLASSIC', label: 'Classic', desc: 'Win 3 trios' },
-		{ value: 'LINKED', label: 'Linked', desc: 'Win 2 linked trios' }
-	]
-	const playerOptions = [3, 4, 5, 6]
 
-	const baseBtnStyle = "flex justify-center items-center gap-1 rounded-[10px] border border-purple-dim bg-btn-muted text-[rgba(220,190,255,0.85)] cursor-pointer transition-all duration-200 hover:border-purple-mid hover:bg-[rgba(140,40,200,0.1)] disabled:cursor-default disabled:hover:border-purple-dim disabled:hover:bg-btn-muted disabled:hover:shadow-none"
-	const activeBtnStyle = "!border-purple-str !bg-[rgba(140,40,200,0.2)] !shadow-glow-purple"
- 
 	return (
-		<div className="flex flex-col items-center w-full px-4 md:px-0">
-			<div className="bg-card border border-purple-mid rounded-2xl py-[2vh] px-[3vh] w-full max-w-[460px] backdrop-blur-md shadow-card">
-				<h2 className="text-[1.1rem] tracking-title uppercase text-purple-pale text-shadow-purple m-0 mb-6 text-center animate-crt-pulse">
+		<div className="flex flex-col items-center w-full">
+			<PageCard>
 					{creator?.username ?? lobbyStruct.creatorId}'s lobby
+				<h2 className="text-[1.1rem] tracking-title uppercase text-purple-pale text-shadow-purple m-0 mb-6 text-center animate-crt-pulse">
 				</h2>
  
 				{(error || lobbyError) && <p className="text-[#ff4466] text-[0.75rem] text-center m-0 mb-4 tracking-[0.05em]">{error || lobbyError}</p>}
@@ -94,38 +83,17 @@ function LobbyView() {
 					</button>
 				</div>
  
-				<div className="mb-5">
-					<div className="m-0 mb-2.5 text-[0.72rem] tracking-ui uppercase text-[rgba(223,213,236,0.7)]">Game Mode</div>
-					<div className="flex gap-2.5 justify-center">
-						{modes.map(mode => (
-							<button
-								key={mode.value}
-								className={`${baseBtnStyle} flex-col py-3 px-2.5 flex-1 ${lobbyStruct.rules.gameMode === mode.value ? activeBtnStyle : ''}`}
-								onClick={() => isHost && handleRuleChange('gameMode', mode.value)}
-								disabled={!isHost}
-							>
-								<span className="text-[0.85rem] font-bold tracking-[0.1em] uppercase text-purple-pale">{mode.label}</span>
-								<span className="text-[0.65rem] tracking-[0.05em] text-[rgba(223,213,236,0.5)]">{mode.desc}</span>
-							</button>
-						))}
-					</div>
-				</div>
- 
-				<div className="mb-5">
-					<div className="m-0 mb-2.5 text-[0.72rem] tracking-ui uppercase text-[rgba(223,213,236,0.7)]">Players</div>
-					<div className="flex gap-2.5 justify-center">
-						{playerOptions.map(n => (
-							<button
-								key={n}
-								className={`${baseBtnStyle} flex-row p-2.5 flex-[0_0_48px] h-12 text-base font-bold ${lobbyStruct.rules.maxUsers === n ? activeBtnStyle : ''}`}
-								onClick={() => isHost && handleRuleChange('maxUsers', n)}
-								disabled={!isHost}
-							>
-								{n}
-							</button>
-						))}
-					</div>
-				</div>
+				<RuleSelector
+					gameMode={lobbyStruct.rules.gameMode}
+					maxUsers={lobbyStruct.rules.maxUsers}
+					onModeChange={value => isHost && updateRules(lobbyId, { gameMode: value })}
+					onPlayersChange={value => isHost && updateRules(lobbyId, { maxUsers: value })}
+					disabled={!isHost}
+					modeBaseClass={`${baseBtnStyle} flex-col py-3 px-2.5 flex-1`}
+					modeActiveClass={activeBtnStyle}
+					playerBaseClass={`${baseBtnStyle} flex-row p-2.5 flex-[0_0_48px] h-12 text-base font-bold`}
+					playerActiveClass={activeBtnStyle}
+				/>
  
 				<ul className="list-none p-0 my-5 flex flex-col gap-2 border-t border-purple-dim pt-5">
 					{lobbyStruct.users.map(u => (
@@ -164,7 +132,7 @@ function LobbyView() {
 						</button>
 					)}
 				</div>
-			</div>
+			</PageCard>
 			<ChatOverlay lobbyId={lobbyId} />
 		</div>
 	)

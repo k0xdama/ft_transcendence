@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLobby } from '../../context/LobbyContext'
-// import './WaitingMatchmakingView.css'
+import PageCard from '../lobby/PageCard'
 
 function WaitingMatchmakingView() {
 	const navigate = useNavigate()
@@ -30,7 +30,7 @@ function WaitingMatchmakingView() {
 
 	return (
 		<div className='flex flex-col items-center pt-8 gap-6 w-full px-4 md:pt-20 md:px-0'>
-			<div className='bg-card border border-purple-mid rounded-2xl p-6 w-full max-w-96 backdrop-blur-3xl shadow-card text-center md:p-8'>
+			<PageCard className='text-center'>
 				<h2 className='text-lg uppercase tracking-title text-purple-pale text-shadow-purple m-0 mb-6 animate-crt-pulse'>Searching for opponents</h2>
 
 				<div className='flex justify-center gap-6 mb-6 pb-5 border-b border-purple-dim'>
@@ -53,7 +53,7 @@ function WaitingMatchmakingView() {
 				<button className='px-7 py-2.5 rounded border border-cyan-str bg-cyan-glow/8 text-cyan-glow uppercase tracking-ui text-xs hover:bg-cyan-glow/18 hover:shadow-lg hover:shadow-cyan-glow/30 transition-all cursor-pointer' onClick={handleCancel}>
 					Cancel
 				</button>
-			</div>
+			</PageCard>
 		</div>
 	)
 }

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
+import { AUTH_ROUTE } from "../constants/ApiRoutes";
 
 const AuthContext = createContext();
 
@@ -14,7 +15,6 @@ export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const refreshPromiseRef = useRef(null);
-	const authRoute = '/api/auth';
 
 	useEffect(() => {
 		const tryRestoreSession = async () => {
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
 				return;
 			}
 			try {
-				const res = await fetch(`${authRoute}/refresh`, {
+				const res = await fetch(`${AUTH_ROUTE}/refresh`, {
 					method: 'POST',
 					credentials: 'include',
 					headers: { 'Content-Type': 'application/json' }
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
 
 		// One refresh at a time
 		if (!refreshPromiseRef.current) {
-			refreshPromiseRef.current = fetch(`${authRoute}/refresh`, {
+			refreshPromiseRef.current = fetch(`${AUTH_ROUTE}/refresh`, {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' }
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }) => {
 
 	const refreshToken = async () => {
 		if (!refreshPromiseRef.current) {
-			refreshPromiseRef.current = fetch(`${authRoute}/refresh`, {
+			refreshPromiseRef.current = fetch(`${AUTH_ROUTE}/refresh`, {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' }
