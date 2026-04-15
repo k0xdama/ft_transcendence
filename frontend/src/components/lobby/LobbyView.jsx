@@ -87,7 +87,7 @@ function LobbyView() {
 					gameMode={lobbyStruct.rules.gameMode}
 					maxUsers={lobbyStruct.rules.maxUsers}
 					onModeChange={value => isHost && updateRules(lobbyId, { gameMode: value })}
-					onPlayersChange={value => isHost && updateRules(lobbyId, { maxUsers: value })}
+					onPlayerChange={value => isHost && updateRules(lobbyId, { maxUsers: value })}//enleve le s a plyers
 					disabled={!isHost}
 					modeBaseClass={`${baseBtnStyle} flex-col py-3 px-2.5 flex-1`}
 					modeActiveClass={activeBtnStyle}
