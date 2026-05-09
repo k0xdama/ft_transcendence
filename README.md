@@ -279,20 +279,13 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 - **Challenges**: I focused on learning these new technologies and a new web development mindset. Designing an interactive User Interface (UI) from scratch was a real step up — learning CSS and Tailwind styling, and going from idea to actual component. 
 
 ### Ana @annabrag
-<<<<<<< Updated upstream
 - **Owned**: architecture, auth-service, chat-service, mobile responsive
 - **Modules**: #1, #2, #3, #7, #8, #9, #10, #12
 - **Challenges**: I spent quite a bit of time thinking about the ideal architecture that would suit our project concept. I tried to strike a balance between creating a project whose architecture resembles what’s already out there in the industry and a school project, specifically in terms of architecture, file organization, code consistency, and other aspects. Like my classmates, getting to grips with these new technologies and learning new languages was a bit of a challenge at first.
-=======
-- **Owned**: infrastructure, auth-service, chat-service, mobile responsive
-- **Modules**: #1, #2, #7, #8, #9, #10, #12
-- **Challenges**: ?????
->>>>>>> Stashed changes
 
 ### Antoine @agremill
 - **Owned**: player-service, some sections of the frontend profile page
 - **Modules**: #2, #3, #7, #9, #11
-<<<<<<< Updated upstream
 - **Challenges**: The most challenging part is that it was my first time programming with these technologies. Besides that, I had to do a lot of research and exchange with my team mates to understand how a microservice architecture and the backend work.
 
 ### Mateo @pmateo
@@ -301,14 +294,6 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 - **Challenges**: My first challenge was to understand and put myself in the shoes of a DevOps developer, and to set up a CI/CD pipeline right from the start of the project.
 Second, I needed to become sufficiently familiar with JavaScript and its syntax to be able to build from scratch the services related to the game’s functionality and multiplayer features.
 However, the main challenge was managing state synchronization between the client and server in an asynchronous, real-time environment — expired tokens, dropped WebSocket connections, and race conditions between simultaneous events could leave either side in an inconsistent state.
-=======
-- **Challenges**: The most challenging part is that it was my first time programming with these technologies. Beside that, I had to do a lot of research and exange with my team mates to understand how a microservice architecture and the backend work.
-
-### Mateo @pmateo
-- **Owned**: lobby-service, matchmaking, game-service
-- **Modules**: #1, #4, #5, #6, #7, #8, #9, #10, #11  A VERIFIER
-- **Challenges**: ????
->>>>>>> Stashed changes
 
 ---
 
