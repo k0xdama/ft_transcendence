@@ -4,8 +4,14 @@
 
 ## Description
 
-**ft_transcendence** is a full-stack, real-time multiplayer web application built around an online card game. Players can register, chat, add friends, join public or private lobbies, and face each other in live matches supporting **3 to 6 players** simultaneously. The platform is designed as a distributed set of microservices communicating over REST and Redis Pub/Sub, with WebSocket channels handling all real-time interactions (presence, chat, matchmaking, game state...).
+**ft_transcendence** is a full-stack, real-time multiplayer web application built around an online card game for 3 to 6 players. Built as 42's final web project by a team of 4, it combines a distributed microservices backend, real-time WebSocket communication, and a security-conscious infrastructure (end-to-end TLS, schema-level database isolation, Docker secrets, JWT authentication).
+
+Players can register, chat, join public or private lobbies, and face each other in live matches with reconnection support.
 <br>
+
+<p align="center">
+  <img src="./docs/archi_v3.png" alt="Architecture overview" width="800"/>
+</p>
 
 ### Key features
 
@@ -107,6 +113,7 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 - **Communication**: Discord for daily chat, meetups for brainstorming
 - **Version control**: Git + GitHub, feature branches merged into `main` via pull requests with peer review
 - **Design**: Diagrams authored in Excalidraw / Mermaid — see `./docs/` (`archi_v3.pdf`, `ArchiComparison.excalidraw`, etc.)
+- **API contracts**: formal documentation of inter-service interfaces in `docs/API_CONTRACT_LOBBY_GAME.md`, written before implementation to enforce explicit boundaries between services
 
 ---
 
@@ -161,6 +168,34 @@ Secret generation (`scripts/create-secrets.sh`) is fully non-interactive: if a `
 - **Socket.IO**: built-in reconnection, rooms, and JWT-based handshake, which mapped cleanly onto our lobby/game model.
 - **Redis Pub/Sub**: keeps services loosely coupled without introducing a heavy message broker.
 - **PostgreSQL schemas**: one schema per bounded context, with a dedicated role per service.
+<br>
+
+### Security considerations
+
+This section consolidates the security-relevant choices made across the project. Some are detailed elsewhere in the technical sections; they are grouped here to make the overall security posture explicit.
+
+Security was treated as a cross-cutting concern rather than a bolt-on, with deliberate choices at multiple layers of the stack:
+
+**Authentication & credentials**
+- Password hashing with **bcrypt** (no plaintext storage at any point)
+- **JWT-based authentication** with separate access and refresh tokens
+- Password policy enforced on registration and password change
+- Unified error messages on authentication failures (e.g. `"Invalid credentials"` rather than disclosing whether the email or password is wrong) to prevent user enumeration
+
+**Network & transport**
+- **End-to-end TLS** across all HTTP and WebSocket endpoints (self-signed certificates generated at setup)
+- Private bridge network (`triple_network`) — only the API gateway and the frontend expose ports to the host; internal services are not reachable from outside
+- **CORS** policy configured on the API gateway
+
+**Data isolation & least privilege**
+- PostgreSQL **schema-level isolation** between services (`auth`, `player`, `chat`), each owned by a dedicated role with its own password — a compromised service cannot read or write outside its schema
+- **Docker secrets** for database credentials, JWT signing key, Redis password and TLS material — never exposed as environment variables
+- Automatic message expiration in chat (`7 days` for lobby/game chat, `30 days` for direct messages) to limit data retention
+
+**Input handling & observability**
+- **Backend-side input validation** on all incoming requests (no trust placed in the client)
+- Error responses sanitized to avoid leaking internal state (no stack traces, no schema details)
+- **Security event logging** (failed logins, authentication errors) for traceability
 
 ---
 
@@ -274,14 +309,14 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 ## Individual Contributions
 
 ### Morgan @morajaon
-- **Owned**: api-gateway, frontend design system, game UI, and some backend adjustements
+- **Owned**: api-gateway, frontend design system, game UI, and some backend adjustments
 - **Modules**: #4, #7, #8, #9, #10
 - **Challenges**: I focused on learning these new technologies and a new web development mindset. Designing an interactive User Interface (UI) from scratch was a real step up — learning CSS and Tailwind styling, and going from idea to actual component. 
 
 ### Ana @annabrag
 - **Owned**: architecture, auth-service, chat-service, mobile responsive
 - **Modules**: #1, #2, #3, #7, #8, #9, #10, #12
-- **Challenges**: I spent quite a bit of time thinking about the ideal architecture that would suit our project concept. I tried to strike a balance between creating a project whose architecture resembles what’s already out there in the industry and a school project, specifically in terms of architecture, file organization, code consistency, and other aspects. Like my classmates, getting to grips with these new technologies and learning new languages was a bit of a challenge at first.
+- **Challenges**: I spent quite a bit of time thinking about the ideal architecture that would suit our project concept. Like my classmates, ramping up on these technologies from scratch was demanding — the harder part for me was architecting a system that would feel close to industry practice rather than a school project, especially around file organization, code consistency, and clean service boundaries.
 
 ### Antoine @agremill
 - **Owned**: player-service, some sections of the frontend profile page
@@ -289,7 +324,7 @@ Architecture diagrams are available in `./docs/` (`archi_v3.pdf`, `DevOps.excali
 - **Challenges**: The most challenging part is that it was my first time programming with these technologies. Besides that, I had to do a lot of research and exchange with my team mates to understand how a microservice architecture and the backend work.
 
 ### Mateo @pmateo
-- **Owned**: lobby-service, matchmaking, game-service and some frontend Views, Components, and Contexts adjustements
+- **Owned**: lobby-service, matchmaking, game-service and some frontend Views, Components, and Contexts adjustments
 - **Modules**: #1, #2, #4, #5, #6, #7, #8, #9, #10, #11
 - **Challenges**: My first challenge was to understand and put myself in the shoes of a DevOps developer, and to set up a CI/CD pipeline right from the start of the project.
 Second, I needed to become sufficiently familiar with JavaScript and its syntax to be able to build from scratch the services related to the game’s functionality and multiplayer features.
@@ -313,15 +348,6 @@ However, the main challenge was managing state synchronization between the clien
 - [bcrypt](https://github.com/kelektiv/node.bcrypt.js) — password hashing
 <br>
 
-### Articles & tutorials
-
-- Middlewares in Express JS
-- Redis Pub/Sub in-depth (how it works)
-- MDN docs — WebSockets, HTTPS, Fetch API, CORS
-- Socket.IO "Rooms and namespaces" and "Authentication" guides
-- PostgreSQL "Schemas and privileges" documentation
-<br>
-
 ### Use of AI
 
 AI assistants (Claude and Copilot) were used as a **pair-programming and reviewing tool**, never as an autonomous generator of deliverables. Specifically:
@@ -341,6 +367,8 @@ AI was **not** used to generate the core game logic, the database schema design 
 - No spectator mode.
 - Cross-schema references between `auth.users` and `player.users` are **logical only** (not enforced by a PostgreSQL foreign key), to keep schema ownership clean; consistency is maintained at the service layer.
 - Service-to-service HTTPS calls use `NODE_TLS_REJECT_UNAUTHORIZED=0` in the `auth` and `lobby` services to accept the self-signed certs on the private `triple_network`.
+- **No rate limiting** on authentication or sensitive endpoints — known gap; would be a priority hardening step before any non-educational use.
+- **No security headers** (CSP, HSTS, X-Frame-Options, etc.) configured on NGINX — same caveat as above.
 <br>
 
 ## Privacy Policy & Terms of Service
